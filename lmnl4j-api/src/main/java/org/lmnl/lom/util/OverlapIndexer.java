@@ -1,0 +1,121 @@
+/**
+ * Layered Markup and Annotation Language for Java (lmnl4j):
+ * implementation of LMNL, a markup language supporting layered and/or
+ * overlapping annotations.
+ *
+ * Copyright (C) 2010 the respective authors.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.lmnl.lom.util;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+
+import org.lmnl.lom.LmnlAnnotation;
+import org.lmnl.lom.LmnlRange;
+import org.lmnl.lom.LmnlRangeAddress;
+
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+
+/**
+ * Function indexing range annotations based on a {@link Partitioning
+ * partitioning} of their covered text segment.
+ * 
+ * <p/>
+ * 
+ * Indizes created by this function can help in determining markup applicable to
+ * non-overlapping segments of a text with the segments constructed such, that
+ * variance in markup can be recognized.
+ * 
+ * @author <a href="http://gregor.middell.net/"
+ *         title="Homepage of Gregor Middell">Gregor Middell</a>
+ * 
+ */
+public class OverlapIndexer implements Function<Iterable<? extends LmnlAnnotation>, SortedMap<LmnlRangeAddress, List<LmnlRange>>> {
+
+	private final Predicate<LmnlRange> partitioningFilter;
+
+	/**
+	 * Creates an indexing function, that fully partitions given range
+	 * annotation collections.
+	 * 
+	 * @see #OverlapIndexer(Predicate)
+	 */
+	public OverlapIndexer() {
+		this(null);
+	}
+
+	/**
+	 * Creates an indexing function with the given predicate determining the
+	 * subset of range annotations used for partitioning.
+	 * 
+	 * @param partitioningFilter
+	 *                the filter predicate used for determining the index
+	 *                keys
+	 */
+	public OverlapIndexer(Predicate<LmnlRange> partitioningFilter) {
+		this.partitioningFilter = partitioningFilter;
+	}
+
+	@Override
+	public SortedMap<LmnlRangeAddress, List<LmnlRange>> apply(Iterable<? extends LmnlAnnotation> from) {
+		return Functions.compose(new Indexer(from), new Partitioning(partitioningFilter)).apply(from);
+	}
+
+	private static class Indexer implements Function<SortedSet<LmnlRangeAddress>, SortedMap<LmnlRangeAddress, List<LmnlRange>>> {
+
+		private final Iterable<? extends LmnlAnnotation> entries;
+
+		private Indexer(Iterable<? extends LmnlAnnotation> entries) {
+			this.entries = entries;
+
+		}
+
+		@Override
+		public SortedMap<LmnlRangeAddress, List<LmnlRange>> apply(SortedSet<LmnlRangeAddress> from) {
+			List<LmnlRange> ranges = Lists.newArrayList(Iterables.filter(entries, LmnlRange.class));
+			final SortedMap<LmnlRangeAddress, List<LmnlRange>> index = new TreeMap<LmnlRangeAddress, List<LmnlRange>>();
+
+			for (LmnlRangeAddress segment : from) {
+				ArrayList<LmnlRange> overlapping = new ArrayList<LmnlRange>();
+				for (Iterator<LmnlRange> rangeIt = ranges.iterator(); rangeIt.hasNext();) {
+					LmnlRange range = rangeIt.next();
+					LmnlRangeAddress tr = range.address();
+
+					if (tr.hasOverlapWith(segment) || tr.start == segment.start) {
+						overlapping.add(range);
+					}
+
+					if (tr.precedes(segment)) {
+						rangeIt.remove();
+					}
+				}
+				index.put(segment, overlapping);
+			}
+
+			return index;
+		}
+
+	}
+}

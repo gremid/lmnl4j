@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Layered Markup and Annotation Language for Java (lmnl4j):
+    implementation of LMNL, a markup language supporting layered and/or
+    overlapping annotations.
+
+    Copyright (C) 2010 the respective authors.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:f="http://www.faustedition.net/ns" xmlns:svg="http://www.w3.org/2000/svg" xmlns:ge="http://www.tei-c.org/ns/geneticEditions">
+	<ge:document>
+		<surface>
+			<zone>
+				<ge:line type="uncounted" rend="right"><handShift new="#xx_blau" />96</ge:line>
+				<!-- oder sc_? -->
+			</zone>
+			<zone>
+				<ge:line type="uncounted" rend="right"><handShift new="#xy_bl" />34</ge:line>
+				<!-- oder sc_? -->
+			</zone>
+			<zone>
+				<ge:line rend="centered"><handShift new="#jo_t" /><hi rend="underline" hand="#jo_t">Sirenen.</hi>
+				</ge:line>
+				<ge:line>Leicht bewegt, in mäßiger Eile,</ge:line>
+				<ge:line>Um den Wagen, Kreis um Kreis,</ge:line>
+				<ge:line>Bald verſchlungen Zeil<handShift new="#g_bl" />’<handShift new="#jo_t" /> an Zeile<f:st rend="erase" hand="#">.</f:st></ge:line>
+				<!-- hand? -->
+				<ge:line>Schlangenartig reihenweis,</ge:line>
+				<ge:line>Naht euch rüſtige Nereiden,</ge:line>
+				<ge:line>Derbe Frau<handShift new="#g_bl" />’<handShift new="#jo_t" /><f:st hand="#g_bl" rend="vertical">e</f:st>n<handShift new="#g_t" xml:id="handShift_1" />, <handShift new="#jo_t" /> gefällig mild,</ge:line>
+				<!-- Streichung wurde zudem fixiert -> muss noch kodiert werden -->
+				<ge:line>Bringet<handShift new="#g_t" xml:id="handShift_2" />, <handShift new="#jo_t" /> zärtliche Doriden<handShift new="#g_t" xml:id="handShift_3" />,</ge:line>
+				<ge:line><handShift new="#jo_t" />Galatee der Mutter<handShift new="#g_bl" /><ge:rewrite><f:grLine f:orient="vert" /></ge:rewrite><handShift new="#jo_t" />
+					<f:overw>
+						<f:under>b</f:under>
+						<f:over><handShift new="#g_bl" /><ge:rewrite hand="#g_t" xml:id="hand_1">B</ge:rewrite></f:over>
+					</f:overw><handShift new="#jo_t" />ild<f:overw>
+						<f:under>.</f:under>
+						<f:over><handShift new="#g_bl" />:</f:over>
+					</f:overw></ge:line>
+				<ge:line><handShift new="#jo_t" />Ernſt<handShift new="#g_t" xml:id="handShift_4" />, 
+					<handShift new="#jo_t" />den Göttern gleich zu 
+					ſchauen<handShift new="#g_bl" xml:id="handShift_5" /><ge:rewrite hand="#g_t" xml:id="hand_2">,</ge:rewrite></ge:line>
+				<!-- 1. Komma mgl.weise auch mit Blei vorgeschrieben und mit Tinte fixiert -> am Original prüfen -->
+				<ge:line><handShift new="#jo_t" />Würdiger Unſterblichkeit,</ge:line>
+				<ge:line>Doch wie holde Menſchenfrauen</ge:line>
+				<ge:line>Lockender Anmuthigkeit.</ge:line>
+				<ge:line rend="indent-30"><hi rend="underline" hand="#jo_t">Doriden</hi> (im Chor am Nereus vorbeyziehend)</ge:line>
+				<ge:line type="inter" rend="indent-40"><handShift new="#g_t" />ſämmtlich auf Delphinen.</ge:line>
+				<ge:line><handShift new="#jo_t" />Leih uns Luna Licht und Schatten,</ge:line>
+				<ge:line>Klarheit dieſem Jugendflor;</ge:line>
+				<ge:line>Denn wir zeigen liebe Gatten</ge:line>
+				<ge:line>Unſer<f:overw>
+						<f:under>n</f:under>
+						<f:over><handShift new="#g_t" xml:id="handShift_6" />m</f:over></f:overw>
+					<handShift new="#jo_t" />Vater bittend vor.</ge:line>
+				<ge:line rend="indent-40">(zu Nereus)</ge:line>
+				<ge:line>Knaben ſinds die wir gerettet,</ge:line>
+				<ge:line type="inter"><handShift new="#g_bl" /><ge:rewrite hand="#g_t">der Brandung</ge:rewrite></ge:line>
+				<!-- g_t auch ES -->
+				<ge:line><handShift new="#jo_t" />Aus
+					<f:st hand="#g_t">des</f:st>
+					<f:st hand="#g_t">Strandes</f:st>
+					grimmem Zahn,</ge:line>
+				<!-- Streichung und Interlineare Zeile gehören zusammen -->
+				<ge:line>Sie, auf Schilf und Moos gebettet,</ge:line>
+				<ge:line type="inter"><handShift new="#g_bl" /><ge:rewrite hand="#g_t">Licht</ge:rewrite></ge:line>
+				<!-- g_t auch ES -->
+				<ge:line>Aufgewärmt zum <f:st hand="#g_t">Tag</f:st> heran,</ge:line>
+				<!-- Streichung und Interlineare Zeile gehören zusammen -->
+				<ge:line>Die es nun mit heißen Küſſen</ge:line>
+				<ge:line>Treulich uns verdanken müſſen;</ge:line>
+				<ge:line>Schau<handShift new="#g_bl" />’<handShift new="#jo_t" />
+					die
+					<f:overw>
+						<f:under>h<unclear>o</unclear></f:under>
+						<f:over><handShift new="#g_bl" />Ho</f:over>
+					</f:overw><handShift new="#jo_t" />lden günſtig an!</ge:line>
+				<!-- Ausrufezeichen evt. handShift -->
+				<ge:line rend="centered"><hi rend="underline" hand="#jo_t">Nereus.</hi></ge:line>
+				<ge:line>Hoch iſt der Doppelgewinn zu ſchätzen:</ge:line>
+				<ge:line>Barmherzig ſeyn, und ſich zugleich ergötzen.</ge:line>
+			</zone>
+			<zone>
+				<ge:line type="uncounted"><handShift new="#ri_bl" xml:id="handShift_7" /><f:grLine f:orient="horiz-top" />te’n?</ge:line>
+				<!-- Riemer oder wer? ES: "der nicht Riemerisch Galate’n zu kürzen ist." -->
+			</zone>
+			<zone>
+				<ge:line rend="centered"><handShift new="#g_bl" /><unclear reason="illegible">Nereus.</unclear></ge:line>
+				<ge:line><unclear reason="illegible">Hoch iſt der Doppelgewinn zu ſchätzen:</unclear></ge:line>
+				<ge:line><unclear reason="illegible">Barmherzig ſeyn, und ſich zugleich 
+					ergötzen.</unclear><certainty target="#handShift_1 #handShift_2 #handShift_3 #handShift_4 #handShift_5 #handShift_6 #handShift_7 #hand_1 #hand_2" locus="attrName" /></ge:line>
+			</zone>
+		</surface>
+	</ge:document>
+</TEI>
