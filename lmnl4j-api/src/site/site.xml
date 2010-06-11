@@ -25,7 +25,7 @@
 <project name="Layered Markup and Annotation Language for Java" xmlns="http://maven.apache.org/DECORATION/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.0 http://maven.apache.org/xsd/decoration-1.0.0.xsd">
 	<body>
 		<links>
-			<item name="Home" href="http://www.middell.net/lmnl4j/" />
+			<item name="Project Home" href="index.html" />
 			<item name="Project @ Launchpad" href="https://launchpad.net/lmnl4j/" />
 			<item name="LMNL Wiki" href="http://www.lmnl.org/wiki/" />
 		</links>
@@ -36,6 +36,7 @@
 			<item href="use-cases.html" name="Use cases" />
 			<item href="apidocs/index.html" name="Javadoc" />
 			<item href="xref/index.html" name="Source" />
+			<item href="repository/" name="Maven Repo." />
 		</menu>
 		<menu ref="reports" />
 	</body>

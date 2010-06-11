@@ -30,13 +30,11 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<!-- 
 	<distributionManagement>
 		<site>
-			<id></id>
-			<name></name>
-			<url></url>
+			<id>lmnl4j.middell.net</id>
+			<name>middell.net/lmnl4j</name>
+			<url>sftp://middell.net/var/www/lmnl4j</url>
 		</site>
 	</distributionManagement>
-	 -->
 </project>
