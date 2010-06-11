@@ -1,0 +1,12 @@
+This Java library provides a LMNL Object Model (LOM) implementation, a model
+suited to represent marked-up text with multi-layered annotations, that can
+overlap arbitrarily. The basic concepts of a LOM, namely documents, layers,
+annotations and ranges, are borrowed from the experimental markup language
+LMNL, the "Layered Markup and Annotation Language" as invented by Jeni
+Tennison and Wendell Piez.
+
+For more information, including installation and usage instructions, visit
+
+	<http://www.middell.net/lmnl4j/>
+
+Thanks for your interest!
