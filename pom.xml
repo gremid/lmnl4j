@@ -3,7 +3,7 @@
 	<groupId>org.lmnl</groupId>
 	<artifactId>lmnl4j-project</artifactId>
 	<packaging>pom</packaging>
-	<version>0.9-SNAPSHOT</version>
+	<version>0.9</version>
 	<name>lmnl4j :: Project</name>
 	<description>Java implementation of LMNL, a markup language supporting layered and/or overlapping annotations.</description>
 	<url>http://www.middell.net/lmnl4j/</url>
@@ -103,7 +103,7 @@
 				<groupId>com.mycila.maven-license-plugin</groupId>
 				<artifactId>maven-license-plugin</artifactId>
 				<configuration>
-					<header>${basedir}/../lmnl4j-api/HEADER</header>
+					<header>lmnl4j-api/HEADER</header>
 					<encoding>UTF-8</encoding>
 					<excludes>
 						<exclude>HEADER</exclude>
@@ -119,13 +119,6 @@
 						<year>2010</year>
 					</properties>
 				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
