@@ -3,7 +3,7 @@
 	<groupId>org.lmnl</groupId>
 	<artifactId>lmnl4j-project</artifactId>
 	<packaging>pom</packaging>
-	<version>0.9</version>
+	<version>1.0-SNAPSHOT</version>
 	<name>lmnl4j :: Project</name>
 	<description>Java implementation of LMNL, a markup language supporting layered and/or overlapping annotations.</description>
 	<url>http://www.middell.net/lmnl4j/</url>
