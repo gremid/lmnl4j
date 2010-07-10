@@ -222,8 +222,6 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 */
 	boolean hasText();
 
-	LmnlRangeAddress getCoveringRange();
-	
 	/**
 	 * Associates text with this layer.
 	 * 

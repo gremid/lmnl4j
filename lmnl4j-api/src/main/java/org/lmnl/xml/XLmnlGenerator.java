@@ -20,7 +20,7 @@ public class XLmnlGenerator {
 	}
 
 	public void generate(LmnlDocument document) throws XMLStreamException {
-
+		generate(document, document);
 	}
 
 	public void generate(LmnlLayer layer, LmnlDocument document) throws XMLStreamException {

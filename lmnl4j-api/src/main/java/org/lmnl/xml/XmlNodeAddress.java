@@ -43,19 +43,15 @@ import org.codehaus.jackson.JsonGenerator;
  * 
  */
 public class XmlNodeAddress implements Comparable<XmlNodeAddress> {
-	private final URI document;
 	private final int[] address;
 
 	/**
 	 * Creates a pointer to an XML node.
 	 * 
-	 * @param document
-	 *                URI of the source document or <code>null</code>
 	 * @param address
 	 *                the node's path
 	 */
-	public XmlNodeAddress(URI document, int[] address) {
-		this.document = document;
+	public XmlNodeAddress(int[] address) {
 		this.address = address;
 	}
 
@@ -78,21 +74,12 @@ public class XmlNodeAddress implements Comparable<XmlNodeAddress> {
 	}
 
 	/**
-	 * Yields the XML node's source document
-	 * 
-	 * @return the URI of the source document or <code>null</code>
-	 */
-	public URI getDocument() {
-		return document;
-	}
-
-	/**
 	 * Yields an XPath 2.0 expression for the XML node address.
 	 * 
 	 * @return an XPath 2.0 expression based on the source document URI and
 	 *         the numeric node path
 	 */
-	public String xpath() {
+	public String xpath(URI document) {
 		StringBuilder xpath = new StringBuilder(document == null ? "" : ("fn:doc('" + document.toASCIIString() + "')"));
 		xpath.append("/element()[1]");
 		for (int pos : address) {
@@ -113,10 +100,6 @@ public class XmlNodeAddress implements Comparable<XmlNodeAddress> {
 	 */
 	public void serialize(JsonGenerator jg) throws IOException {
 		jg.writeStartObject();
-		if (document != null) {
-			jg.writeStringField("doc", document.toASCIIString());
-		}
-
 		jg.writeArrayFieldStart("pos");
 		for (int pos : address) {
 			jg.writeNumber(pos);
@@ -127,17 +110,11 @@ public class XmlNodeAddress implements Comparable<XmlNodeAddress> {
 
 	@Override
 	public String toString() {
-		return xpath();
+		return xpath(null);
 	}
 
 	@Override
 	public int compareTo(XmlNodeAddress o) {
-		if (document != null || o.document != null) {
-			if (document == null || !document.equals(o.document)) {
-				throw new IllegalArgumentException(o.toString());
-			}
-		}
-
 		int i = 0;
 		int oi = 0;
 

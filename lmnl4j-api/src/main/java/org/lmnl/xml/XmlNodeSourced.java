@@ -60,18 +60,7 @@ public interface XmlNodeSourced extends Comparable<XmlNodeSourced> {
 
 		@Override
 		public int compare(XmlNodeSourced o1, XmlNodeSourced o2) {
-			XmlNodeAddress o1Xml = o1.getXmlNodeAddress();
-			XmlNodeAddress o2Xml = o2.getXmlNodeAddress();
-
-			if ((o1Xml.getDocument() == null) && (o2Xml.getDocument() == null)) {
-				return o1Xml.compareTo(o2Xml);
-			}
-
-			if ((o1Xml.getDocument() != null) && (o2Xml.getDocument() != null) && o1Xml.getDocument().equals(o2Xml.getDocument())) {
-				return o1Xml.compareTo(o2Xml);
-			}
-
-			throw new IllegalArgumentException(o1 + ", " + o2);
+			return o1.getXmlNodeAddress().compareTo(o2.getXmlNodeAddress());
 		}
 	};
 

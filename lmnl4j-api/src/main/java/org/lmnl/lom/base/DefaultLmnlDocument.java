@@ -28,13 +28,14 @@ import java.util.Map;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.lmnl.lom.LmnlDocument;
+import org.lmnl.lom.LmnlRangeAddress;
 
 public class DefaultLmnlDocument extends AbstractLmnlLayer implements LmnlDocument {
 	protected Map<String, URI> namespaceContext = new HashMap<String, URI>();
 
-	public DefaultLmnlDocument(URI base) {
+	public DefaultLmnlDocument(URI id) {
 		super(LMNL_NS_URI, "lmnl", "document", null);
-		setId(base);
+		setId(id);
 	}
 
 	@Override
@@ -46,7 +47,7 @@ public class DefaultLmnlDocument extends AbstractLmnlLayer implements LmnlDocume
 	public void setNamespaceContext(Map<String, URI> context) {
 		this.namespaceContext = context;
 	}
-
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null || (!(obj instanceof DefaultLmnlDocument))) {

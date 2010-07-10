@@ -35,7 +35,6 @@ import org.codehaus.jackson.JsonGenerator;
 import org.lmnl.lom.LmnlAnnotation;
 import org.lmnl.lom.LmnlDocument;
 import org.lmnl.lom.LmnlLayer;
-import org.lmnl.lom.LmnlRangeAddress;
 
 public abstract class AbstractLmnlLayer implements LmnlLayer {
 	public static final JsonFactory JSON = new JsonFactory();
@@ -56,9 +55,9 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 	}
 
 	@Override
-	public LmnlDocument getDocument() {
-		LmnlLayer current = owner;
-		while (owner != null && !(owner instanceof LmnlDocument)) {
+	public LmnlDocument getDocument() {		
+		LmnlLayer current = this;
+		while (current != null && !(current instanceof LmnlDocument)) {
 			current = current.getOwner();
 		}
 
@@ -91,7 +90,7 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 			return null;
 		}
 		LmnlDocument document = getDocument();
-		return (document == null ? id : document.getId().resolve(id));
+		return (document == null ? id : (document.getId() == null ? id : document.getId().resolve(id)));
 	}
 
 	@Override
@@ -144,11 +143,6 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 		this.text = text;
 	}
 
-	@Override
-	public LmnlRangeAddress getCoveringRange() {		
-		return new LmnlRangeAddress(0, getText().length());
-	}
-	
 	@Override
 	public List<LmnlAnnotation> getAnnotations() {
 		return Collections.unmodifiableList(annotations);

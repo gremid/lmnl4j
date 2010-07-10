@@ -25,12 +25,13 @@ import java.net.URI;
 import java.util.Map;
 import java.util.SortedSet;
 
-import org.junit.BeforeClass;
 import org.lmnl.lom.base.DefaultLmnlDocument;
+import org.lmnl.xml.GenericXmlBasedLmnlAnnotationFactory;
+import org.lmnl.xml.LmnlXmlUtils;
 import org.lmnl.xml.PlainTextXmlFilter;
-import org.lmnl.xml.SaxBasedLmnlBuilder;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -52,19 +53,17 @@ public abstract class AbstractXmlSourcedTest extends AbstractTest {
 			"archimedes-palimpsest-tei.xml", "george-algabal-tei.xml", "homer-iliad-tei.xml"));
 
 	private static Map<String, DefaultLmnlDocument> documents = Maps.newHashMap();
-	private static SaxBasedLmnlBuilder builder;
 
 	/**
-	 * Creates a LOM builder for parsing XML test resources.
+	 * Creates an XML reader for parsing text-centric XML test resources.
 	 * 
 	 * @throws SAXException
 	 *                 if an XML related parser error occurs
 	 */
-	@BeforeClass
-	public static void initBuilder() throws SAXException {
-		builder = new SaxBasedLmnlBuilder(new PlainTextXmlFilter()//
+	public XMLReader createXMLReader() throws SAXException {
+		return new PlainTextXmlFilter()//
 				.withLineElements(Sets.newHashSet("lg", "l", "sp", "speaker", "stage", "div", "head", "p"))//
-				.withElementOnlyElements(Sets.newHashSet("document", "surface", "zone", "subst")));
+				.withElementOnlyElements(Sets.newHashSet("document", "surface", "zone", "subst"));
 	}
 
 	/**
@@ -85,7 +84,8 @@ public abstract class AbstractXmlSourcedTest extends AbstractTest {
 			if (RESOURCES.contains(resource) && !documents.containsKey(resource)) {
 				URI uri = AbstractXmlSourcedTest.class.getResource("/" + resource).toURI();
 				DefaultLmnlDocument document = new DefaultLmnlDocument(uri);
-				builder.build(new InputSource(uri.toASCIIString()), document);
+				GenericXmlBasedLmnlAnnotationFactory factory = new GenericXmlBasedLmnlAnnotationFactory(document);
+				LmnlXmlUtils.build(createXMLReader(), new InputSource(uri.toASCIIString()), factory);
 				documents.put(resource, document);
 			}
 		} catch (Exception e) {

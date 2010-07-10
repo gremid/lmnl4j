@@ -68,6 +68,8 @@ import com.google.common.base.Objects;
  * 
  */
 public class LmnlRangeAddress implements Comparable<LmnlRangeAddress> {
+	public static final LmnlRangeAddress NULL = new LmnlRangeAddress(0, 0);
+
 	/** The start offset of the segment (counted from zero, inclusive). */
 	public int start;
 

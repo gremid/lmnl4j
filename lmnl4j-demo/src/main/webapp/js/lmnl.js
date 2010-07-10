@@ -39,10 +39,10 @@ LmnlLayer.prototype.prefix = function() {
 };
 LmnlLayer.prototype.contents = function() {
 	return this.text ? this.text : this.owner.contents();
-}
+};
 LmnlLayer.prototype.completeView = function() {
 	return new LmnlView(function(a) { return true; }, this);
-}
+};
 
 LmnlLayer.prototype.partition = function(annotations) {
 	var offsets = [];
@@ -67,7 +67,7 @@ LmnlLayer.prototype.partition = function(annotations) {
 		start = end;
 	}
 	return segments;
-}
+};
 
 // ======================================== LmnlDocument
 
@@ -82,18 +82,15 @@ LmnlDocument.prototype = new LmnlLayer;
 function LmnlAnnotation(model, owner) {
 	$.extend(this, model);
 	this.initLayer(owner);
-	if (this.range) {
-		this.range = new LmnlRange(this.range[0], this.range[1]);
-	}
+	this.range = new LmnlRange(this.range[0], this.range[1]);
 	if (this.xmlNode) {
 		this.xmlNode = new LmnlXmlNodeAddress(this.xmlNode);
 	}
 }
 LmnlAnnotation.prototype = new LmnlLayer;
-LmnlAnnotation.prototype.contents = function() {
-	var baseText = LmnlLayer.prototype.contents.call(this);
-	return this.range ? this.range.of(baseText) : baseText;
-}
+LmnlAnnotation.prototype.contentRange = function() {
+	return this.range.of(LmnlLayer.prototype.contents.call(this));
+};
 
 // ======================================== LmnlRange
 
@@ -145,7 +142,7 @@ function LmnlView(predicate, layer) {
 }
 LmnlView.prototype.get = function() {
 	return (this.layer.annotations || []).filter(this.predicate);
-}
+};
 LmnlView.prototype.index = function(view) {
 	var partitions = this.layer.partition(this.get());
 	var annotations = (view ? view.get() : this.get());
@@ -177,4 +174,4 @@ LmnlView.prototype.index = function(view) {
 		index.push({ range: partition, annotations: overlapping });
 	}
 	return index;
-}
+};
