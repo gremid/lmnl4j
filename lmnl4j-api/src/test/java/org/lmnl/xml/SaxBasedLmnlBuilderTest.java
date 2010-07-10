@@ -23,7 +23,7 @@ package org.lmnl.xml;
 
 import org.junit.Test;
 import org.lmnl.AbstractXmlSourcedTest;
-import org.lmnl.lom.base.DefaultLmnlDocument;
+import org.lmnl.base.DefaultLmnlDocument;
 
 /**
  * Tests the generation of LOMs from XML sources.

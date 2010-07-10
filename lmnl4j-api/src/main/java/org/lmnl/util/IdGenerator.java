@@ -19,10 +19,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.lom.util;
+package org.lmnl.util;
 
-import org.lmnl.lom.LmnlLayer;
-import org.lmnl.lom.LmnlRangeAddress;
+import org.lmnl.LmnlLayer;
+import org.lmnl.LmnlRange;
 
 /**
  * Callback interface implemented by objects, which generate unique
@@ -43,7 +43,7 @@ public interface IdGenerator {
 	 */
 	String next(LmnlLayer layer);
 
-	String next(LmnlRangeAddress address);
+	String next(LmnlRange address);
 
 	void reset();
 }

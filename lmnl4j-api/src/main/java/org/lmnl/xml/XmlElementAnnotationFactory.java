@@ -2,7 +2,7 @@ package org.lmnl.xml;
 
 import java.net.URI;
 
-import org.lmnl.lom.LmnlAnnotation;
+import org.lmnl.LmnlAnnotation;
 import org.xml.sax.Attributes;
 
 /**
@@ -32,7 +32,7 @@ public interface XmlElementAnnotationFactory {
 	 * @param startOffset
 	 *                the offset of the range's start. Note that the end
 	 *                offset will be set later on the range's address,
-	 *                accessing it via {@link LmnlRange#address()}
+	 *                accessing it via {@link LmnlAnnotation#address()}
 	 * @return a range annotation representing the XML element
 	 */
 	LmnlAnnotation startElement(URI ns, String prefix, String localName, Attributes attrs, XPathAddress address, int startOffset);

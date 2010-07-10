@@ -21,10 +21,7 @@
 
 package org.lmnl.xml;
 
-import java.io.IOException;
 import java.net.URI;
-
-import org.codehaus.jackson.JsonGenerator;
 
 /**
  * A pointer to an XML node, allowing it to be addressed.
@@ -53,6 +50,10 @@ public class XPathAddress implements Comparable<XPathAddress> {
 	 */
 	public XPathAddress(int[] address) {
 		this.address = address;
+	}
+
+	public int[] get() {
+		return address;
 	}
 
 	/**
@@ -86,26 +87,6 @@ public class XPathAddress implements Comparable<XPathAddress> {
 			xpath.append("/" + (pos == 0 ? "attribute()" : "*[" + pos + "]"));
 		}
 		return xpath.toString();
-	}
-
-	/**
-	 * Prints a JSON representation of this XML node address.
-	 * 
-	 * @param jg
-	 *                a streaming-oriented callback object to generate
-	 *                output in <i>JavaScript Object Notation</i>
-	 * @throws IOException
-	 *                 in case an I/O related error occurs while streaming;
-	 *                 propagated from the generator methods
-	 */
-	public void serialize(JsonGenerator jg) throws IOException {
-		jg.writeStartObject();
-		jg.writeArrayFieldStart("pos");
-		for (int pos : address) {
-			jg.writeNumber(pos);
-		}
-		jg.writeEndArray();
-		jg.writeEndObject();
 	}
 
 	@Override

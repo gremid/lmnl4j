@@ -2,7 +2,7 @@ package org.lmnl.xml;
 
 import java.util.Set;
 
-import org.lmnl.lom.LmnlAnnotation;
+import org.lmnl.LmnlAnnotation;
 
 public interface XmlElementAnnotation extends LmnlAnnotation {
 

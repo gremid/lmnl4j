@@ -27,11 +27,8 @@ import java.util.List;
 import java.util.SortedMap;
 
 import org.codehaus.jackson.JsonGenerator;
-import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.LmnlLayer;
-import org.lmnl.lom.LmnlRangeAddress;
-import org.lmnl.lom.base.AbstractLmnlLayer;
-import org.lmnl.lom.util.OverlapIndexer;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.lmnl.util.OverlapIndexer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,16 +45,18 @@ public abstract class AbstractTest {
 	 */
 	protected static final Logger LOG = LoggerFactory.getLogger(AbstractTest.class.getPackage().getName());
 
+	protected ObjectMapper jsonMapper = new ObjectMapper();
+
 	/**
 	 * Prints the given {@link OverlapIndexer range index} to the log.
 	 * 
 	 * @param index
 	 *                the range index to output
 	 */
-	protected void printDebugMessage(SortedMap<LmnlRangeAddress, List<LmnlAnnotation>> index) {
+	protected void printDebugMessage(SortedMap<LmnlRange, List<LmnlAnnotation>> index) {
 		if (LOG.isDebugEnabled()) {
 			final StringBuilder str = new StringBuilder();
-			for (LmnlRangeAddress segment : index.keySet()) {
+			for (LmnlRange segment : index.keySet()) {
 				str.append("[" + segment + ": { ");
 				boolean first = true;
 				for (LmnlAnnotation annotation : index.get(segment)) {
@@ -94,10 +93,8 @@ public abstract class AbstractTest {
 		if (LOG.isDebugEnabled()) {
 			try {
 				StringWriter out = new StringWriter();
-				JsonGenerator jg = AbstractLmnlLayer.JSON.createJsonGenerator(out);
-				jg.useDefaultPrettyPrinter();
-				layer.serialize(jg);
-				jg.flush();
+				JsonGenerator jgen = jsonMapper.getJsonFactory().createJsonGenerator(out).useDefaultPrettyPrinter();
+				jsonMapper.writeValue(jgen, layer);
 				LOG.debug(out.toString());
 			} catch (IOException e) {
 				throw new RuntimeException(e);

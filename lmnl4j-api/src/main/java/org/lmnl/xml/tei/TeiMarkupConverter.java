@@ -21,7 +21,6 @@
 
 package org.lmnl.xml.tei;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -31,14 +30,13 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.SortedMap;
 
-import org.codehaus.jackson.JsonGenerator;
-import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.LmnlDocument;
-import org.lmnl.lom.LmnlLayer;
-import org.lmnl.lom.LmnlRangeAddress;
-import org.lmnl.lom.base.AbstractLmnlLayer;
-import org.lmnl.lom.base.DefaultLmnlAnnotation;
-import org.lmnl.lom.util.OverlapIndexer;
+import org.lmnl.LmnlAnnotation;
+import org.lmnl.LmnlDocument;
+import org.lmnl.LmnlLayer;
+import org.lmnl.LmnlRange;
+import org.lmnl.base.AbstractLmnlLayer;
+import org.lmnl.base.DefaultLmnlAnnotation;
+import org.lmnl.util.OverlapIndexer;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -140,15 +138,15 @@ public class TeiMarkupConverter {
 		Iterable<LmnlAnnotation> ranges = Iterables.filter(layer, msPredicate);
 		ranges = Iterables.concat(ranges, Collections.singletonList(new LayerCoveringRange(layer)));
 
-		SortedMap<LmnlRangeAddress, List<LmnlAnnotation>> msIndex = new OverlapIndexer(msPredicate).apply(ranges);
-		for (LmnlRangeAddress segment : msIndex.keySet()) {
+		SortedMap<LmnlRange, List<LmnlAnnotation>> msIndex = new OverlapIndexer(msPredicate).apply(ranges);
+		for (LmnlRange segment : msIndex.keySet()) {
 			for (LmnlAnnotation milestone : msIndex.get(segment)) {
 				if (milestone instanceof LayerCoveringRange) {
 					continue;
 				}
 				if (milestone.address().start == segment.start) {
 					// FIXME: factory pattern!
-					LmnlAnnotation element = new DefaultLmnlAnnotation(LmnlDocument.LMNL_NS_URI, "lmnl", elementName, null, new LmnlRangeAddress(segment));
+					LmnlAnnotation element = new DefaultLmnlAnnotation(LmnlDocument.LMNL_NS_URI, "lmnl", elementName, null, new LmnlRange(segment));
 					layer.add(element);
 					for (LmnlAnnotation annotation : milestone) {
 						element.add(annotation);
@@ -236,16 +234,16 @@ public class TeiMarkupConverter {
 
 	private static class LayerCoveringRange extends AbstractLmnlLayer implements LmnlAnnotation {
 		private final LmnlLayer layer;
-		private final LmnlRangeAddress rangeAddress;
+		private final LmnlRange rangeAddress;
 
 		private LayerCoveringRange(LmnlLayer layer) {
 			super(layer.getUri(), layer.getPrefix(), layer.getLocalName(), null);
 			this.layer = layer;
-			this.rangeAddress = new LmnlRangeAddress(0, layer.getText().length());
+			this.rangeAddress = new LmnlRange(0, layer.getText().length());
 		}
 
 		@Override
-		public LmnlRangeAddress address() {
+		public LmnlRange address() {
 			return rangeAddress;
 		}
 
@@ -253,10 +251,5 @@ public class TeiMarkupConverter {
 		public String getSegmentText() {
 			return layer.getText();
 		}
-
-		@Override
-		protected void serializeAttributes(JsonGenerator jg) throws IOException {
-		}
-
 	}
 }

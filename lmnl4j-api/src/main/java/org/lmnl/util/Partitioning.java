@@ -19,13 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.lom.util;
+package org.lmnl.util;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.LmnlRangeAddress;
+import org.lmnl.LmnlAnnotation;
+import org.lmnl.LmnlRange;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -52,7 +52,7 @@ import com.google.common.collect.Sets;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class Partitioning implements Function<Iterable<LmnlAnnotation>, SortedSet<LmnlRangeAddress>> {
+public class Partitioning implements Function<Iterable<LmnlAnnotation>, SortedSet<LmnlRange>> {
 
 	private final Predicate<LmnlAnnotation> filterPredicate;
 
@@ -79,7 +79,7 @@ public class Partitioning implements Function<Iterable<LmnlAnnotation>, SortedSe
 	}
 
 	@Override
-	public SortedSet<LmnlRangeAddress> apply(Iterable<LmnlAnnotation> from) {
+	public SortedSet<LmnlRange> apply(Iterable<LmnlAnnotation> from) {
 		SortedSet<Integer> offsets = Sets.newTreeSet();
 
 		if (filterPredicate != null) {
@@ -91,11 +91,11 @@ public class Partitioning implements Function<Iterable<LmnlAnnotation>, SortedSe
 			offsets.add(a.address().end);
 		}
 
-		SortedSet<LmnlRangeAddress> partition = new TreeSet<LmnlRangeAddress>();
+		SortedSet<LmnlRange> partition = new TreeSet<LmnlRange>();
 		int start = -1;
 		for (int end : offsets) {
 			if (start >= 0) {
-				partition.add(new LmnlRangeAddress(start, end));
+				partition.add(new LmnlRange(start, end));
 			}
 			start = end;
 		}

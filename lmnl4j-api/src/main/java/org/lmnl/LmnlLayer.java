@@ -19,9 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.lom;
+package org.lmnl;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.Set;
@@ -47,7 +46,6 @@ import org.codehaus.jackson.JsonGenerator;
  * 
  * @see LmnlDocument
  * @see LmnlAnnotation
- * @see LmnlRange
  * 
  * @author <a href="http://gregor.middell.net/"
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
@@ -244,8 +242,7 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 * be, that this method returns a {@link Set} in future versions.
 	 * 
 	 * @return the owned annotations of this layer, also known as its
-	 *         children; most probably {@link LmnlAnnotation annotations}
-	 *         and/or {@link LmnlRange ranges}
+	 *         children
 	 */
 	List<LmnlAnnotation> getAnnotations();
 
@@ -283,8 +280,6 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 */
 	LmnlAnnotation remove(LmnlAnnotation annotation);
 
-	void flatten();
-	
 	/**
 	 * Recursively visits all descendants of this layer and calls back the
 	 * visitor.
@@ -298,25 +293,6 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 *                the object called back for every traversed layer
 	 */
 	void visit(Visitor visitor);
-
-	/**
-	 * Serializes the contents of this layer in <a
-	 * href="http://en.wikipedia.org/wiki/JSON"
-	 * title="Wikipedia article">JSON format</a>.
-	 * 
-	 * <p/>
-	 * 
-	 * The serialization of layers happens recursively, so calling on the
-	 * lowest layer of a LOM outputs the whole model.
-	 * 
-	 * @param jg
-	 *                a streaming-oriented callback object to generate
-	 *                output in <i>JavaScript Object Notation</i>
-	 * @throws IOException
-	 *                 in case an I/O related error occurs while streaming;
-	 *                 propagated from the generator methods
-	 */
-	void serialize(JsonGenerator jg) throws IOException;
 
 	/**
 	 * Callback interface for traversing layers.

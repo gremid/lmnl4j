@@ -25,7 +25,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.SortedSet;
 
-import org.lmnl.lom.base.DefaultLmnlDocument;
+import org.lmnl.base.DefaultLmnlDocument;
 import org.lmnl.xml.DefaultXmlElementAnnotationFactory;
 import org.lmnl.xml.LmnlXmlUtils;
 import org.lmnl.xml.sax.PlainTextXmlFilter;

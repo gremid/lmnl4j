@@ -6,10 +6,10 @@ import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.LmnlDocument;
-import org.lmnl.lom.LmnlLayer;
-import org.lmnl.lom.LmnlRangeAddress;
+import org.lmnl.LmnlAnnotation;
+import org.lmnl.LmnlDocument;
+import org.lmnl.LmnlLayer;
+import org.lmnl.LmnlRange;
 
 public class XLmnlGenerator {
 	private static final String XLMNL_NS = "http://lmnl.org/namespace/LMNL/xLMNL";
@@ -43,7 +43,7 @@ public class XLmnlGenerator {
 		out.writeAttribute("prefix", layer.getPrefix());
 		out.writeAttribute("name", layer.getLocalName());
 		if (layer instanceof LmnlAnnotation) {
-			LmnlRangeAddress address = ((LmnlAnnotation) layer).address();
+			LmnlRange address = ((LmnlAnnotation) layer).address();
 			// FIXME: identify XML attributes via subclass
 			if (address.start != 0 || address.end != 0) {
 				out.writeAttribute("start", Integer.toString(address.start));

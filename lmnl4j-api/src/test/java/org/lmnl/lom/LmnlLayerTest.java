@@ -28,8 +28,10 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 import org.lmnl.AbstractXmlSourcedTest;
-import org.lmnl.lom.base.DefaultLmnlAnnotation;
-import org.lmnl.lom.base.DefaultLmnlDocument;
+import org.lmnl.LmnlAnnotation;
+import org.lmnl.LmnlRange;
+import org.lmnl.base.DefaultLmnlAnnotation;
+import org.lmnl.base.DefaultLmnlDocument;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -51,7 +53,7 @@ public class LmnlLayerTest extends AbstractXmlSourcedTest {
 	public void extractViews() {
 		DefaultLmnlDocument d = document("george-algabal-tei.xml");
 
-		final LmnlAnnotation drama = new DefaultLmnlAnnotation(URI.create("urn:lmnl-test"), "test", "drama", null, new LmnlRangeAddress(0, d.getText().length()));
+		final LmnlAnnotation drama = new DefaultLmnlAnnotation(URI.create("urn:lmnl-test"), "test", "drama", null, new LmnlRange(0, d.getText().length()));
 		d.add(drama);
 		for (LmnlAnnotation a : Lists.newArrayList(Iterables.filter(d, DRAMA_ANNOTATIONS))) {
 			drama.add(a);
@@ -59,7 +61,7 @@ public class LmnlLayerTest extends AbstractXmlSourcedTest {
 
 		Assert.assertTrue("Extracted dramatic text structure", drama.getAnnotations().size() > 0);
 
-		final LmnlAnnotation spans = new DefaultLmnlAnnotation(URI.create("urn:lmnl-test"), "test", "spans", null, new LmnlRangeAddress(0, d.getText().length()));
+		final LmnlAnnotation spans = new DefaultLmnlAnnotation(URI.create("urn:lmnl-test"), "test", "spans", null, new LmnlRange(0, d.getText().length()));
 		d.add(spans);
 		for (LmnlAnnotation a : Lists.newArrayList(Iterables.filter(d, SPANNING_ANNOTATIONS))) {
 			drama.add(a);

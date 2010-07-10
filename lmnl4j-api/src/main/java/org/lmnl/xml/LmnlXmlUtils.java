@@ -9,8 +9,8 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXResult;
 
-import org.lmnl.lom.LmnlDocument;
-import org.lmnl.lom.base.DefaultLmnlDocument;
+import org.lmnl.LmnlDocument;
+import org.lmnl.base.DefaultLmnlDocument;
 import org.lmnl.xml.sax.LmnlBuildingDefaultHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;

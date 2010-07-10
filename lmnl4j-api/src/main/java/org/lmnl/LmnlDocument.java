@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.lom;
+package org.lmnl;
 
 import java.net.URI;
 import java.util.Map;

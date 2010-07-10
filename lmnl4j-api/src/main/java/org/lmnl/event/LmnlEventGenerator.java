@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.LmnlDocument;
-import org.lmnl.lom.LmnlLayer;
-import org.lmnl.lom.LmnlRangeAddress;
+import org.lmnl.LmnlAnnotation;
+import org.lmnl.LmnlDocument;
+import org.lmnl.LmnlLayer;
+import org.lmnl.LmnlRange;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -51,7 +51,7 @@ public class LmnlEventGenerator {
 
 		SortedMap<Integer, List<LmnlAnnotation>> offsetIndex = new TreeMap<Integer, List<LmnlAnnotation>>();
 		for (LmnlAnnotation r : children) {
-			LmnlRangeAddress addr = r.address();
+			LmnlRange addr = r.address();
 			if (offsetIndex.containsKey(addr.start)) {
 				offsetIndex.get(addr.start).add(r);
 			} else {
@@ -74,14 +74,14 @@ public class LmnlEventGenerator {
 			List<LmnlAnnotation> ranges = offsetIndex.get(offset);
 			// ending ranges
 			for (LmnlAnnotation annotation : rangeOrdering.reverse().sortedCopy(ranges)) {
-				LmnlRangeAddress address = annotation.address();
+				LmnlRange address = annotation.address();
 				if (address.end == offset && address.start != offset) {
 					eventHandler.endAnnotation(annotation);
 				}
 			}
 			// atoms ranges
 			for (LmnlAnnotation annotation : rangeOrdering.sortedCopy(ranges)) {
-				LmnlRangeAddress address = annotation.address();
+				LmnlRange address = annotation.address();
 				if (address.start == offset && address.end == offset) {
 					eventHandler.startAnnotation(annotation);
 					for (LmnlAnnotation a : annotation) {
@@ -92,7 +92,7 @@ public class LmnlEventGenerator {
 			}
 			// starting ranges
 			for (LmnlAnnotation annotation : rangeOrdering.sortedCopy(ranges)) {
-				LmnlRangeAddress address = annotation.address();
+				LmnlRange address = annotation.address();
 				if (address.start == offset && address.end != offset) {
 					eventHandler.startAnnotation(annotation);
 					for (LmnlAnnotation a : annotation) {

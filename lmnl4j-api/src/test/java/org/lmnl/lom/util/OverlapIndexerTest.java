@@ -23,7 +23,7 @@ package org.lmnl.lom.util;
 
 import org.junit.Test;
 import org.lmnl.AbstractDefaultLmnlDocumentTest;
-import org.lmnl.lom.util.OverlapIndexer;
+import org.lmnl.util.OverlapIndexer;
 
 /**
  * Tests the calculation of overlap indizes.

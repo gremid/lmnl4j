@@ -1,10 +1,10 @@
-package org.lmnl.lom.util;
+package org.lmnl.util;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.lmnl.lom.LmnlLayer;
-import org.lmnl.lom.LmnlRangeAddress;
+import org.lmnl.LmnlLayer;
+import org.lmnl.LmnlRange;
 
 /**
  * A default implementation of an identifier generator.
@@ -13,7 +13,7 @@ public class DefaultIdGenerator implements IdGenerator {
 	private Map<String, Integer> layerIds = new HashMap<String, Integer>();
 
 	@Override
-	public String next(LmnlRangeAddress range) {
+	public String next(LmnlRange range) {
 		return ("seg_" + range.start + "_" + range.end);
 	}
 

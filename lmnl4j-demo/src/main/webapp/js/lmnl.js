@@ -125,12 +125,12 @@ LmnlRange.prototype.toString = function() {
 //======================================== LmnlXmlNodeAddress
 
 function LmnlXmlNodeAddress(model) {
-	$.extend(this, model);
+	this.address = model;
 };
 LmnlXmlNodeAddress.prototype.xpath = function() {
-	var xpath = (this.doc ? ("fn:doc('" + this.doc + "')") : "") + "/element()[1]";
-	for (var pi = 0; pi < this.pos.length; pi++) {
-		xpath += ("/" + (this.pos[pi] == 0 ? "attribute()" : "*[" + this.pos[pi] + "]"));
+	var xpath = "/element()[1]";
+	for (var pi = 0; pi < this.address.length; pi++) {
+		xpath += ("/" + "*[" + this.address[pi] + "]");
 	}
 	return xpath;
 };

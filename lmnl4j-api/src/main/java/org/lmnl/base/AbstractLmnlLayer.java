@@ -19,10 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.lom.base;
+package org.lmnl.base;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,15 +28,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.LmnlDocument;
-import org.lmnl.lom.LmnlLayer;
+import org.lmnl.LmnlAnnotation;
+import org.lmnl.LmnlDocument;
+import org.lmnl.LmnlLayer;
 
 public abstract class AbstractLmnlLayer implements LmnlLayer {
-	public static final JsonFactory JSON = new JsonFactory();
-
 	protected LmnlLayer owner;
 	protected URI id;
 	protected URI namespace;
@@ -201,53 +195,12 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 	}
 
 	@Override
-	public void flatten() {
-	}
-
-	@Override
 	public void visit(Visitor visitor) {
 		for (LmnlAnnotation a : annotations) {
 			visitor.visit(a);
 		}
 		for (LmnlAnnotation a : annotations) {
 			a.visit(visitor);
-		}
-	}
-
-	public void serialize(JsonGenerator jg) throws IOException {
-		jg.writeStartObject();
-		if (id != null) {
-			jg.writeStringField("id", id.toASCIIString());
-		}
-
-		serializeAttributes(jg);
-		jg.writeStringField("name", getQName());
-		if (text != null) {
-			jg.writeStringField("text", text);
-		}
-		if (!annotations.isEmpty()) {
-			jg.writeArrayFieldStart("annotations");
-			for (LmnlAnnotation annotation : annotations) {
-				annotation.serialize(jg);
-			}
-			jg.writeEndArray();
-		}
-		jg.writeEndObject();
-
-	}
-
-	protected abstract void serializeAttributes(JsonGenerator jg) throws IOException;
-
-	@Override
-	public String toString() {
-		try {
-			StringWriter str = new StringWriter();
-			JsonGenerator jg = JSON.createJsonGenerator(str);
-			serialize(jg);
-			jg.flush();
-			return str.toString();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
 		}
 	}
 

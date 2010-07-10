@@ -19,16 +19,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.lom.base;
+package org.lmnl.base;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonGenerator;
-import org.lmnl.lom.LmnlDocument;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.lmnl.LmnlDocument;
+import org.lmnl.json.LmnlDocumentSerializer;
 
+@JsonSerialize(using = LmnlDocumentSerializer.class)
 public class DefaultLmnlDocument extends AbstractLmnlLayer implements LmnlDocument {
 	protected Map<String, URI> namespaceContext = new HashMap<String, URI>();
 
@@ -46,7 +47,7 @@ public class DefaultLmnlDocument extends AbstractLmnlLayer implements LmnlDocume
 	public void setNamespaceContext(Map<String, URI> context) {
 		this.namespaceContext = context;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null || (!(obj instanceof DefaultLmnlDocument))) {
@@ -59,17 +60,5 @@ public class DefaultLmnlDocument extends AbstractLmnlLayer implements LmnlDocume
 	@Override
 	public int hashCode() {
 		return getId().hashCode();
-	}
-
-	@Override
-	protected void serializeAttributes(JsonGenerator jg) throws IOException {
-		jg.writeArrayFieldStart("ns");
-		for (String prefix : namespaceContext.keySet()) {
-			jg.writeStartObject();
-			jg.writeStringField("prefix", prefix);
-			jg.writeStringField("uri", namespaceContext.get(prefix).toString());
-			jg.writeEndObject();
-		}
-		jg.writeEndArray();
 	}
 }

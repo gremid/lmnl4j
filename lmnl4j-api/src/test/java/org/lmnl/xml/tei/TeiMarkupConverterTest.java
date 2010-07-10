@@ -25,8 +25,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 import org.lmnl.AbstractXmlSourcedTest;
-import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.base.DefaultLmnlDocument;
+import org.lmnl.LmnlAnnotation;
+import org.lmnl.base.DefaultLmnlDocument;
 import org.lmnl.xml.tei.TeiMarkupConverter;
 
 import com.google.common.base.Predicate;

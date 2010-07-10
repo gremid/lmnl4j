@@ -1,7 +1,7 @@
 package org.lmnl.event;
 
-import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.LmnlDocument;
+import org.lmnl.LmnlAnnotation;
+import org.lmnl.LmnlDocument;
 
 
 public interface LmnlEventHandler {

@@ -23,8 +23,8 @@ package org.lmnl.xml.tei;
 
 import org.junit.Test;
 import org.lmnl.AbstractXmlSourcedTest;
-import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.util.OverlapIndexer;
+import org.lmnl.LmnlAnnotation;
+import org.lmnl.util.OverlapIndexer;
 
 import com.google.common.base.Predicate;
 

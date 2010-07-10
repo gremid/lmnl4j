@@ -2,9 +2,9 @@ package org.lmnl.event;
 
 import org.junit.Test;
 import org.lmnl.AbstractXmlSourcedTest;
-import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.LmnlDocument;
-import org.lmnl.lom.LmnlRangeAddress;
+import org.lmnl.LmnlAnnotation;
+import org.lmnl.LmnlDocument;
+import org.lmnl.LmnlRange;
 import org.lmnl.xml.XmlElementAnnotation;
 
 import com.google.common.collect.Ordering;
@@ -43,7 +43,7 @@ public class LmnlEventGeneratorTest extends AbstractXmlSourcedTest {
 
 		@Override
 		public void startAnnotation(LmnlAnnotation annotation) {
-			LmnlRangeAddress address = annotation.address();
+			LmnlRange address = annotation.address();
 			printDebugMessage(indent() + String.format("AnnotationStart[%s{%s}]: [%d,%d]", annotation.getQName(),// 
 					(annotation.getId() == null ? "" : annotation.getId()), address.start, address.end));
 			depth++;

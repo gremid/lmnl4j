@@ -29,10 +29,10 @@ import java.util.Stack;
 
 import javax.xml.XMLConstants;
 
-import org.lmnl.lom.LmnlLayer;
-import org.lmnl.lom.LmnlRangeAddress;
-import org.lmnl.lom.util.DefaultIdGenerator;
-import org.lmnl.lom.util.IdGenerator;
+import org.lmnl.LmnlLayer;
+import org.lmnl.LmnlRange;
+import org.lmnl.util.DefaultIdGenerator;
+import org.lmnl.util.IdGenerator;
 import org.lmnl.xml.XPathAddress;
 import org.lmnl.xml.XmlAttribute;
 import org.lmnl.xml.XmlElementAnnotation;
@@ -77,7 +77,7 @@ public class XStandoffMarkupGenerator {
 	private final LmnlLayer source;
 	private final Node target;
 	private final Document targetDocument;
-	private final BiMap<String, LmnlRangeAddress> segments = HashBiMap.create();
+	private final BiMap<String, LmnlRange> segments = HashBiMap.create();
 	private IdGenerator idGenerator = new DefaultIdGenerator();
 	private Element corpusData;
 	private Element annotationRoot;
@@ -174,7 +174,7 @@ public class XStandoffMarkupGenerator {
 				segmentId = segments.inverse().get(lmnlElement);
 			} else {
 				segmentId = idGenerator.next(lmnlElement.address());
-				segments.put(segmentId, new LmnlRangeAddress(lmnlElement.address()));
+				segments.put(segmentId, new LmnlRange(lmnlElement.address()));
 			}
 			domElement.setAttributeNS(XSTANDOFF_NS_URI, "xsf:segment", "#" + segmentId);
 
@@ -190,8 +190,8 @@ public class XStandoffMarkupGenerator {
 	public void close() {
 		Element segmentation = targetDocument.createElementNS(XSTANDOFF_NS_URI, "xsf:segmentation");
 
-		BiMap<LmnlRangeAddress, String> segments = this.segments.inverse();
-		for (LmnlRangeAddress segment : Sets.newTreeSet(segments.keySet())) {
+		BiMap<LmnlRange, String> segments = this.segments.inverse();
+		for (LmnlRange segment : Sets.newTreeSet(segments.keySet())) {
 			Element segmentEl = targetDocument.createElementNS(XSTANDOFF_NS_URI, "xsf:segment");
 			segmentEl.setAttributeNS(XSTANDOFF_NS_URI, "xsf:type", "char");
 			segmentEl.setAttributeNS(XSTANDOFF_NS_URI, "xsf:start", Integer.toString(segment.start));

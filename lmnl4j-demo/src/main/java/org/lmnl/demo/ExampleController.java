@@ -23,6 +23,7 @@ package org.lmnl.demo;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -37,14 +38,21 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
-import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.LmnlDocument;
-import org.lmnl.lom.LmnlRangeAddress;
-import org.lmnl.lom.base.DefaultLmnlAnnotation;
-import org.lmnl.lom.util.OverlapIndexer;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.lmnl.LmnlAnnotation;
+import org.lmnl.LmnlDocument;
+import org.lmnl.LmnlRange;
+import org.lmnl.base.DefaultLmnlAnnotation;
+import org.lmnl.json.LmnlAnnotationSerializer;
+import org.lmnl.util.OverlapIndexer;
 import org.lmnl.xml.LmnlXmlUtils;
+import org.lmnl.xml.XmlAttribute;
+import org.lmnl.xml.XmlElementAnnotation;
 import org.lmnl.xml.sax.PlainTextXmlFilter;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -68,9 +76,12 @@ import com.google.common.collect.Sets;
 @RequestMapping("/example/")
 public class ExampleController implements ApplicationContextAware {
 
-	private static final URI TEI_NS = URI.create("http://www.tei-c.org/ns/1.0");
-
 	private ApplicationContext applicationContext;
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
 
 	@RequestMapping(value = "xml/{id}")
 	public void resource2xml(@PathVariable("id") String id, HttpServletResponse response) throws Exception {
@@ -117,16 +128,22 @@ public class ExampleController implements ApplicationContextAware {
 		}
 
 		Iterable<LmnlAnnotation> handShifts = Iterables.filter(document, HANDSHIFT_PREDICATE);
-		SortedMap<LmnlRangeAddress, List<LmnlAnnotation>> handIndex = new OverlapIndexer(HANDSHIFT_PREDICATE).apply(handShifts);
-		for (LmnlRangeAddress handSegment : handIndex.keySet()) {
+		SortedMap<LmnlRange, List<LmnlAnnotation>> handIndex = new OverlapIndexer(HANDSHIFT_PREDICATE).apply(handShifts);
+		for (LmnlRange handSegment : handIndex.keySet()) {
 			List<LmnlAnnotation> currentHandShifts = handIndex.get(handSegment);
 			if (currentHandShifts.isEmpty()) {
 				continue;
 			}
 			LmnlAnnotation handShift = currentHandShifts.iterator().next();
 			if (handShift.address().start == handSegment.start) {
-				LmnlAnnotation hand = document.add(new DefaultLmnlAnnotation(TEI_NS, "", "hand", null, new LmnlRangeAddress(handSegment)));				
-				hand.add(new DefaultLmnlAnnotation(TEI_NS, "", "value", Iterables.find(handShift, HAND_ID).getText(), LmnlRangeAddress.NULL));
+				String handValue = "";
+				for (XmlAttribute attr : ((XmlElementAnnotation) handShift).getAttributes()) {
+					if ("new".equals(attr.localName)) {
+						handValue = attr.value;
+						break;
+					}
+				}
+				document.add(new HandAnnotation(new LmnlRange(handSegment), handValue));
 			}
 		}
 		return document;
@@ -137,6 +154,7 @@ public class ExampleController implements ApplicationContextAware {
 	}
 
 	private static class LmnlJsonView extends AbstractView {
+		private static final ObjectMapper OM = new ObjectMapper();
 		private final LmnlDocument document;
 
 		public LmnlJsonView(LmnlDocument document) {
@@ -147,10 +165,9 @@ public class ExampleController implements ApplicationContextAware {
 		protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
 			response.setContentType(MediaType.APPLICATION_JSON.toString());
 			response.setCharacterEncoding("UTF-8");
-
-			final JsonGenerator jg = new JsonFactory().createJsonGenerator(response.getWriter());
-			document.serialize(jg);
-			jg.flush();
+			PrintWriter out = response.getWriter();
+			OM.writeValue(out, document);
+			out.flush();
 		}
 	}
 
@@ -162,17 +179,30 @@ public class ExampleController implements ApplicationContextAware {
 		}
 	};
 
-	private static final Predicate<LmnlAnnotation> HAND_ID = new Predicate<LmnlAnnotation>() {
+	@JsonSerialize(using = HandAnnotationSerializer.class)
+	private static class HandAnnotation extends DefaultLmnlAnnotation {
 
-		@Override
-		public boolean apply(LmnlAnnotation input) {
-			return "new".equals(input.getLocalName());
+		private final String value;
+
+		public HandAnnotation(LmnlRange address, String value) {
+			super(LmnlDocument.LMNL_NS_URI, "lmnl", "hand", null, address);
+			this.value = value;
 		}
 
-	};
+		public String getValue() {
+			return value;
+		}
 
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
+	}
+
+	private static class HandAnnotationSerializer extends JsonSerializer<HandAnnotation> {
+
+		@Override
+		public void serialize(HandAnnotation value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+			jgen.writeStartObject();
+			LmnlAnnotationSerializer.doSerialize(value, jgen, provider);
+			jgen.writeStringField("value", value.getValue());
+			jgen.writeEndObject();
+		}
 	}
 }

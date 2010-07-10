@@ -6,11 +6,11 @@ import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.lmnl.LmnlAnnotation;
+import org.lmnl.LmnlDocument;
+import org.lmnl.LmnlRange;
 import org.lmnl.event.LmnlEventHandler;
 import org.lmnl.event.LmnlEventHandlerException;
-import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.LmnlDocument;
-import org.lmnl.lom.LmnlRangeAddress;
 
 public class StaxGeneratingLmnlEventHandler implements LmnlEventHandler {
 
@@ -92,7 +92,7 @@ public class StaxGeneratingLmnlEventHandler implements LmnlEventHandler {
 
 	private void text(LmnlAnnotation annotation, int endOffset) throws XMLStreamException {
 		if (withText && (startOffset < endOffset)) {
-			out.writeCharacters(new LmnlRangeAddress(startOffset, endOffset).applyTo(annotation.getText()));
+			out.writeCharacters(new LmnlRange(startOffset, endOffset).applyTo(annotation.getText()));
 			startOffset = endOffset;
 		}
 	}

@@ -3,7 +3,7 @@ package org.lmnl.xml.sax;
 import java.net.URI;
 import java.util.Stack;
 
-import org.lmnl.lom.LmnlAnnotation;
+import org.lmnl.LmnlAnnotation;
 import org.lmnl.xml.XPathAddress;
 import org.lmnl.xml.XmlElementAnnotationFactory;
 import org.xml.sax.Attributes;

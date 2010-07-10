@@ -25,9 +25,8 @@ import java.net.URI;
 
 import org.junit.After;
 import org.junit.Before;
-import org.lmnl.lom.LmnlRangeAddress;
-import org.lmnl.lom.base.DefaultLmnlAnnotation;
-import org.lmnl.lom.base.DefaultLmnlDocument;
+import org.lmnl.base.DefaultLmnlAnnotation;
+import org.lmnl.base.DefaultLmnlDocument;
 
 /**
  * Base class for tests using an in-memory document model.
@@ -75,7 +74,7 @@ public abstract class AbstractDefaultLmnlDocumentTest extends AbstractTest {
 	}
 
 	/**
-	 * Adds a simple {@link DefaultLmnlRange range annotation} to the test
+	 * Adds a simple {@link DefaultLmnlAnnotation annotation} to the test
 	 * document.
 	 * 
 	 * @param name
@@ -87,7 +86,7 @@ public abstract class AbstractDefaultLmnlDocumentTest extends AbstractTest {
 	 *                its end offset
 	 */
 	protected void addTestRange(String name, int start, int end) {
-		document.add(new DefaultLmnlAnnotation(TEST_NS, TEST_NS_PREFIX, name, null, new LmnlRangeAddress(start, end)));
+		document.add(new DefaultLmnlAnnotation(TEST_NS, TEST_NS_PREFIX, name, null, new LmnlRange(start, end)));
 	}
 
 	/**

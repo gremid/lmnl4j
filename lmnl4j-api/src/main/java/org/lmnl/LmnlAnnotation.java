@@ -19,18 +19,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.lom;
+package org.lmnl;
 
 /**
  * An annotation representing markup in a LOM.
- * 
- * <p/>
- * 
- * Currently this is just a marker interface, which distinguishes annotation
- * layers from the {@link LmnlDocument document layer}, but does not add any
- * annotation-specific functionality. Annotations only refer to their owning
- * layer, so they annotate it in its entirety. For markup, that targets a
- * specific segment of text in the owning layer, use {@link LmnlRange ranges}.
  * 
  * @author <a href="http://gregor.middell.net/"
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
@@ -43,7 +35,7 @@ public interface LmnlAnnotation extends LmnlLayer {
 	 * @return a value object adressing the text segment, that is annotated
 	 *         by this range annotation
 	 */
-	LmnlRangeAddress address();
+	LmnlRange address();
 	
 	/**
 	 * The actual text being annotated by this range.

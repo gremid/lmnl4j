@@ -3,7 +3,6 @@
  */
 package org.lmnl.xml;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
@@ -12,17 +11,19 @@ import java.util.TreeSet;
 
 import javax.xml.XMLConstants;
 
-import org.codehaus.jackson.JsonGenerator;
-import org.lmnl.lom.LmnlRangeAddress;
-import org.lmnl.lom.base.DefaultLmnlAnnotation;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.lmnl.LmnlRange;
+import org.lmnl.base.DefaultLmnlAnnotation;
+import org.lmnl.json.XmlElementAnnotationSerializer;
 import org.xml.sax.Attributes;
 
+@JsonSerialize(using = XmlElementAnnotationSerializer.class)
 public class DefaultXmlElementAnnotation extends DefaultLmnlAnnotation implements XmlElementAnnotation {
 	protected XPathAddress xPathAddress;
 	protected SortedSet<XmlAttribute> attributes = new TreeSet<XmlAttribute>();
 
 	public DefaultXmlElementAnnotation(URI uri, String prefix, String localName, Attributes attrs, XPathAddress xPathAddress, int start) {
-		super(uri, prefix, localName, null, new LmnlRangeAddress(start, start));
+		super(uri, prefix, localName, null, new LmnlRange(start, start));
 		this.xPathAddress = xPathAddress;
 		for (int ac = 0; ac < attrs.getLength(); ac++) {
 			String attrQName = attrs.getQName(ac);
@@ -49,25 +50,6 @@ public class DefaultXmlElementAnnotation extends DefaultLmnlAnnotation implement
 			}
 
 			attributes.add(new XmlAttribute(URI.create(attrUri), attrPrefix, attrLocalName, attrValue));
-		}
-	}
-
-	@Override
-	protected void serializeAttributes(JsonGenerator jg) throws IOException {
-		super.serializeAttributes(jg);
-		jg.writeFieldName("xmlNode");
-		xPathAddress.serialize(jg);
-
-		if (!attributes.isEmpty()) {
-			jg.writeArrayFieldStart("attributes");
-			for (XmlAttribute attr : attributes) {
-				jg.writeStartObject();
-				jg.writeStringField("ns", attr.ns.toASCIIString());
-				jg.writeStringField("localName", attr.localName);
-				jg.writeStringField("value", attr.value);
-				jg.writeEndObject();
-			}
-			jg.writeEndArray();
 		}
 	}
 

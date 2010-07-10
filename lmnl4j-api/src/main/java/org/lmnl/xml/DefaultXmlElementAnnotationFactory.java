@@ -2,8 +2,8 @@ package org.lmnl.xml;
 
 import java.net.URI;
 
-import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.LmnlLayer;
+import org.lmnl.LmnlAnnotation;
+import org.lmnl.LmnlLayer;
 import org.xml.sax.Attributes;
 
 public class DefaultXmlElementAnnotationFactory implements XmlElementAnnotationFactory {
