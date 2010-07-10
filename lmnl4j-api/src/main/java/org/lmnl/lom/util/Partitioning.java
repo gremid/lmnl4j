@@ -25,7 +25,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.lmnl.lom.LmnlAnnotation;
-import org.lmnl.lom.LmnlRange;
 import org.lmnl.lom.LmnlRangeAddress;
 
 import com.google.common.base.Function;
@@ -55,7 +54,7 @@ import com.google.common.collect.Sets;
  */
 public class Partitioning implements Function<Iterable<? extends LmnlAnnotation>, SortedSet<LmnlRangeAddress>> {
 
-	private final Predicate<LmnlRange> filterPredicate;
+	private final Predicate<LmnlAnnotation> filterPredicate;
 
 	/**
 	 * Creates a function doing complete/ unfiltered partitioning of passed
@@ -75,7 +74,7 @@ public class Partitioning implements Function<Iterable<? extends LmnlAnnotation>
 	 *                a filter predicate to determine the subset of range
 	 *                annotations constituting the partitioning
 	 */
-	public Partitioning(Predicate<LmnlRange> filterPredicate) {
+	public Partitioning(Predicate<LmnlAnnotation> filterPredicate) {
 		this.filterPredicate = filterPredicate;
 	}
 
@@ -83,14 +82,13 @@ public class Partitioning implements Function<Iterable<? extends LmnlAnnotation>
 	public SortedSet<LmnlRangeAddress> apply(Iterable<? extends LmnlAnnotation> from) {
 		SortedSet<Integer> offsets = Sets.newTreeSet();
 
-		Iterable<LmnlRange> filtered = Iterables.filter(from, LmnlRange.class);
 		if (filterPredicate != null) {
-			filtered = Iterables.filter(filtered, filterPredicate);
+			from = Iterables.filter(from, filterPredicate);
 		}
 
-		for (LmnlRange r : filtered) {
-			offsets.add(r.address().start);
-			offsets.add(r.address().end);
+		for (LmnlAnnotation a : from) {
+			offsets.add(a.address().start);
+			offsets.add(a.address().end);
 		}
 
 		SortedSet<LmnlRangeAddress> partition = new TreeSet<LmnlRangeAddress>();

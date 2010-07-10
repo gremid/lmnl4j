@@ -37,5 +37,18 @@ package org.lmnl.lom;
  * 
  */
 public interface LmnlAnnotation extends LmnlLayer {
-
+	/**
+	 * The segment/ range of text being annotated.
+	 * 
+	 * @return a value object adressing the text segment, that is annotated
+	 *         by this range annotation
+	 */
+	LmnlRangeAddress address();
+	
+	/**
+	 * The actual text being annotated by this range.
+	 * 
+	 * @return the textual contents of the segment
+	 */
+	String getSegmentText();
 }

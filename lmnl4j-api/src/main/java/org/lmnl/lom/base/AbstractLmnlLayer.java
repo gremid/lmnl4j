@@ -26,7 +26,6 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -36,25 +35,24 @@ import org.codehaus.jackson.JsonGenerator;
 import org.lmnl.lom.LmnlAnnotation;
 import org.lmnl.lom.LmnlDocument;
 import org.lmnl.lom.LmnlLayer;
-
-import com.google.common.collect.Sets;
+import org.lmnl.lom.LmnlRangeAddress;
 
 public abstract class AbstractLmnlLayer implements LmnlLayer {
 	public static final JsonFactory JSON = new JsonFactory();
 
-	private LmnlLayer owner;
-	private String id;
-	private String prefix;
-	private String localName;
-	private String text;
-	private List<LmnlAnnotation> annotations = new ArrayList<LmnlAnnotation>();
-	private Map<String, URI> namespaceContext = new HashMap<String, URI>();
+	protected LmnlLayer owner;
+	protected URI id;
+	protected URI namespace;
+	protected String prefix;
+	protected String localName;
+	protected String text;
+	protected List<LmnlAnnotation> annotations = new ArrayList<LmnlAnnotation>();
 
-	protected AbstractLmnlLayer(URI uri, String prefix, String localName, String text) {
+	protected AbstractLmnlLayer(URI namespace, String prefix, String localName, String text) {
+		this.namespace = namespace;
 		this.prefix = prefix;
 		this.localName = localName;
 		this.text = text;
-		this.namespaceContext.put(prefix, uri);
 	}
 
 	@Override
@@ -78,33 +76,22 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 	}
 
 	@Override
-	public String getId() {
+	public URI getId() {
 		return id;
 	}
 
 	@Override
-	public void setId(String id) {
-		// FIXME: check validity of fragment identifier
+	public void setId(URI id) {
 		this.id = id;
 	}
 
 	@Override
 	public URI getUri() {
-		LmnlDocument document = getDocument();
-		if (document == null) {
-			throw new IllegalStateException();
+		if (id == null) {
+			return null;
 		}
-		return (id == null ? null : document.getBase().resolve("#" + id));
-	}
-
-	@Override
-	public Map<String, URI> getNamespaceContext() {
-		return (namespaceContext == null ? owner.getNamespaceContext() : namespaceContext);
-	}
-
-	@Override
-	public void setNamespaceContext(Map<String, URI> context) {
-		this.namespaceContext = (context == null ? null : new HashMap<String, URI>(context));
+		LmnlDocument document = getDocument();
+		return (document == null ? id : document.getId().resolve(id));
 	}
 
 	@Override
@@ -134,8 +121,12 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 
 	@Override
 	public URI getNamespace() {
-		final Map<String, URI> ctx = this.getNamespaceContext();
-		return (ctx == null ? null : ctx.get(prefix));
+		return (namespace == null ? getDocument().getNamespaceContext().get(prefix) : namespace);
+	}
+
+	@Override
+	public void setNamespace(URI namespace) {
+		this.namespace = namespace;
 	}
 
 	@Override
@@ -144,10 +135,20 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 	}
 
 	@Override
+	public boolean hasText() {
+		return (text != null);
+	}
+
+	@Override
 	public void setText(String text) {
 		this.text = text;
 	}
 
+	@Override
+	public LmnlRangeAddress getCoveringRange() {		
+		return new LmnlRangeAddress(0, getText().length());
+	}
+	
 	@Override
 	public List<LmnlAnnotation> getAnnotations() {
 		return Collections.unmodifiableList(annotations);
@@ -163,17 +164,28 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 		if (annotation.getOwner() != null) {
 			annotation.getOwner().remove(annotation);
 		}
-		Map<String, URI> ctx = getNamespaceContext();
-		for (String commonPrefix : Sets.intersection(ctx.keySet(), annotation.getNamespaceContext().keySet())) {
-			final URI existingUri = ctx.get(commonPrefix);
-			final URI newUri = annotation.getNamespaceContext().get(commonPrefix);
-			if (!existingUri.equals(newUri)) {
-				// FIXME: remap clashing prefixes
-				throw new IllegalArgumentException("Namespace clash on prefix '" + commonPrefix + "' : '" + existingUri + "' != '" + newUri + "'");
+
+		String prefix = annotation.getPrefix();
+		URI ns = annotation.getNamespace();
+		Map<String, URI> ctx = getDocument().getNamespaceContext();
+		if (ctx.containsValue(ns)) {
+			if (ctx.containsKey(prefix)) {
+				if (!ctx.get(prefix).equals(ns)) {
+					throw new IllegalArgumentException("Prefix'" + prefix + "' already mapped: '" + ns + "' != '" + ctx.get(prefix) + "'");
+				}				
+			} else {
+				for (String nsPrefix : ctx.keySet()) {
+					if (ns.equals(ctx.get(nsPrefix))) {
+						annotation.setPrefix(nsPrefix);
+						break;
+					}
+				}
 			}
+		} else {
+			ctx.put(prefix, ns);
 		}
-		ctx.putAll(annotation.getNamespaceContext());
-		annotation.setNamespaceContext(null);
+
+		annotation.setNamespace(null);
 		annotation.setOwner(this);
 
 		annotations.add(annotation);
@@ -188,9 +200,14 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 		if (!annotations.remove(annotation)) {
 			throw new IllegalArgumentException(annotation.toString());
 		}
+		URI ns = annotation.getNamespace();
 		annotation.setOwner(null);
-		annotation.setNamespaceContext(new HashMap<String, URI>(getNamespaceContext()));
+		annotation.setNamespace(ns);
 		return annotation;
+	}
+
+	@Override
+	public void flatten() {
 	}
 
 	@Override
@@ -202,28 +219,15 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 			a.visit(visitor);
 		}
 	}
-	
+
 	public void serialize(JsonGenerator jg) throws IOException {
 		jg.writeStartObject();
-		if (owner == null) {
-			if (!namespaceContext.isEmpty()) {
-				jg.writeArrayFieldStart("ns");
-				for (String prefix : namespaceContext.keySet()) {
-					jg.writeStartObject();
-					jg.writeStringField("prefix", prefix);
-					jg.writeStringField("uri", namespaceContext.get(prefix).toString());
-					jg.writeEndObject();
-				}
-				jg.writeEndArray();
-			}
-		}
-
 		if (id != null) {
-			jg.writeStringField("id", id);
+			jg.writeStringField("id", id.toASCIIString());
 		}
 
-		jg.writeStringField("name", getQName());
 		serializeAttributes(jg);
+		jg.writeStringField("name", getQName());
 		if (text != null) {
 			jg.writeStringField("text", text);
 		}
@@ -252,7 +256,7 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	// FIXME: implement proper type-safe removal
 	// public void remove(LmnlRange deleted) {
 	// remove(deleted, true);

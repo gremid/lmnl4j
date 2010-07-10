@@ -286,10 +286,4 @@ public class LmnlRangeAddress implements Comparable<LmnlRangeAddress> {
 		int end = (this.end >= subtrahend.end ? this.end - length : this.end - overlap);
 		return new LmnlRangeAddress(start, end);
 	}
-
-	public LmnlRangeAddress relativeTo(LmnlRangeAddress base) {
-		int start = (this.start < base.start ? 0 : this.start - base.start);
-		int end = start + overlapWith(base);
-		return new LmnlRangeAddress(start, end);
-	}
 }

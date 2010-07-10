@@ -19,35 +19,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.lom;
+package org.lmnl.lom.util;
+
+import org.lmnl.lom.LmnlLayer;
+import org.lmnl.lom.LmnlRangeAddress;
 
 /**
- * A range annotation marking up a specific segment of text in its owning layer.
- * 
- * <p/>
- * 
- * While annotations refer to their owning layer in its entirety, range
- * annotations target parts of the text in the annotated layer. Think for
- * example of pure annotations as XML attributes annotating XML elements and of
- * range annotations as XML elements annotating portions of text.
+ * Callback interface implemented by objects, which generate unique
+ * <code>xml:id</code> values for XStandoff <i>segments</i>.
  * 
  * @author <a href="http://gregor.middell.net/"
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public interface LmnlRange extends LmnlAnnotation {
+public interface IdGenerator {
 	/**
-	 * The segment/ range of text being annotated.
+	 * Returns a unique <code>xml:id</code> value for a given segment.
 	 * 
-	 * @return a value object adressing the text segment, that is annotated
-	 *         by this range annotation
+	 * @param range
+	 *                the text segment's address, for which an identifier is
+	 *                needed
+	 * @return <code>xml:id</code>-compliant identifier value
 	 */
-	LmnlRangeAddress address();
-	
-	/**
-	 * The actual text being annotated by this range.
-	 * 
-	 * @return the textual contents of the segment
-	 */
-	String getSegmentText();
+	String next(LmnlLayer layer);
+
+	String next(LmnlRangeAddress address);
+
+	void reset();
 }

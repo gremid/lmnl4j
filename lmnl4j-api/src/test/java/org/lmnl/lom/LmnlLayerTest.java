@@ -51,7 +51,7 @@ public class LmnlLayerTest extends AbstractXmlSourcedTest {
 	public void extractViews() {
 		DefaultLmnlDocument d = document("george-algabal-tei.xml");
 
-		final LmnlAnnotation drama = new DefaultLmnlAnnotation(URI.create("urn:lmnl-test"), "test", "drama", null);
+		final LmnlAnnotation drama = new DefaultLmnlAnnotation(URI.create("urn:lmnl-test"), "test", "drama", null, d.getCoveringRange());
 		d.add(drama);
 		for (LmnlAnnotation a : Lists.newArrayList(Iterables.filter(d, DRAMA_ANNOTATIONS))) {
 			drama.add(a);
@@ -59,7 +59,7 @@ public class LmnlLayerTest extends AbstractXmlSourcedTest {
 
 		Assert.assertTrue("Extracted dramatic text structure", drama.getAnnotations().size() > 0);
 
-		final LmnlAnnotation spans = new DefaultLmnlAnnotation(URI.create("urn:lmnl-test"), "test", "spans", null);
+		final LmnlAnnotation spans = new DefaultLmnlAnnotation(URI.create("urn:lmnl-test"), "test", "spans", null, d.getCoveringRange());
 		d.add(spans);
 		for (LmnlAnnotation a : Lists.newArrayList(Iterables.filter(d, SPANNING_ANNOTATIONS))) {
 			drama.add(a);

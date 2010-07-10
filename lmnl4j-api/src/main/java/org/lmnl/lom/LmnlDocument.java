@@ -22,6 +22,7 @@
 package org.lmnl.lom;
 
 import java.net.URI;
+import java.util.Map;
 
 /**
  * A document, the natural base layer of a LMNL object model (LOM).
@@ -37,20 +38,41 @@ import java.net.URI;
  */
 public interface LmnlDocument extends LmnlLayer {
 	/**
-	 * The URI of this document.
+	 * Registered mappings from name prefixes to namespace URIs in this
+	 * layer.
 	 * 
 	 * <p/>
 	 * 
-	 * A document's URI is used for example to create URIs of descendant
-	 * layers by resolving their respective {@link LmnlLayer#getId()
-	 * identifiers} against it.
+	 * In a LOM, namespace mapping are aggregated at the lowest layer with
+	 * higher layers delegating namespace handling to their owner. This is
+	 * achieved by merging namespace registers upon addition of layer to
+	 * others.
 	 * 
-	 * @return the (mandatory) URI of a document
-	 * @see <a href="http://www.w3.org/TR/xmlbase/" title="XML Base">XML
-	 *      Base</a>
+	 * @return a map of registered namespaces, either originating from the
+	 *         layer itself, if it happens to be the lowest, or from a layer
+	 *         up the {@link #getOwner() chain} of owners.
 	 * 
+	 * @see #add(LmnlAnnotation)
 	 */
-	URI getBase();
+	Map<String, URI> getNamespaceContext();
+
+	/**
+	 * Assigns a map of registered namespaces to this layer.
+	 * 
+	 * <p/>
+	 * 
+	 * As namespace handling is handled internally to a large extent during
+	 * {@link #add(LmnlAnnotation) LOM construction}, for example by
+	 * propagating mappings up the layer hierarchy, this method should
+	 * normally not be called by users.
+	 * 
+	 * @param context
+	 *                a map of namespaces registered in this layer and its
+	 *                descendants or <code>null</code> in case the namespace
+	 *                context of this layer shall be removed and further
+	 *                lookups be delegated to its owner
+	 */
+	void setNamespaceContext(Map<String, URI> context);
 
 	/**
 	 * The LMNL namespace, mainly used as a default.

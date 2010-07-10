@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.SortedMap;
 
 import org.codehaus.jackson.JsonGenerator;
+import org.lmnl.lom.LmnlAnnotation;
 import org.lmnl.lom.LmnlLayer;
-import org.lmnl.lom.LmnlRange;
 import org.lmnl.lom.LmnlRangeAddress;
 import org.lmnl.lom.base.AbstractLmnlLayer;
 import org.lmnl.lom.util.OverlapIndexer;
@@ -54,13 +54,13 @@ public abstract class AbstractTest {
 	 * @param index
 	 *                the range index to output
 	 */
-	protected void printDebugMessage(SortedMap<LmnlRangeAddress, List<LmnlRange>> index) {
+	protected void printDebugMessage(SortedMap<LmnlRangeAddress, List<LmnlAnnotation>> index) {
 		if (LOG.isDebugEnabled()) {
 			final StringBuilder str = new StringBuilder();
 			for (LmnlRangeAddress segment : index.keySet()) {
 				str.append("[" + segment + ": { ");
 				boolean first = true;
-				for (LmnlRange annotation : index.get(segment)) {
+				for (LmnlAnnotation annotation : index.get(segment)) {
 					if (first) {
 						first = false;
 					} else {

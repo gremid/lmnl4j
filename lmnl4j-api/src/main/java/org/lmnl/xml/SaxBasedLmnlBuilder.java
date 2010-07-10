@@ -23,6 +23,7 @@ package org.lmnl.xml;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Stack;
 
 import javax.xml.XMLConstants;
@@ -30,9 +31,8 @@ import javax.xml.XMLConstants;
 import org.codehaus.jackson.JsonGenerator;
 import org.lmnl.lom.LmnlAnnotation;
 import org.lmnl.lom.LmnlLayer;
-import org.lmnl.lom.LmnlRange;
+import org.lmnl.lom.LmnlRangeAddress;
 import org.lmnl.lom.base.DefaultLmnlAnnotation;
-import org.lmnl.lom.base.DefaultLmnlRange;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -98,7 +98,7 @@ public class SaxBasedLmnlBuilder {
 		 *                {@link LmnlRange#address()}
 		 * @return a range annotation representing the XML element
 		 */
-		LmnlRange createElementRange(URI ns, String prefix, String localName, int startOffset);
+		LmnlAnnotation createElementRange(URI ns, String prefix, String localName, int startOffset);
 
 		/**
 		 * Creates an annotation corresponding to an XML attribute.
@@ -115,7 +115,7 @@ public class SaxBasedLmnlBuilder {
 		 *                the attribute's value
 		 * @return an annotation representing the XML attribute
 		 */
-		LmnlAnnotation createAttributeAnnotation(LmnlRange elementRange, URI ns, String prefix, String localName, String value);
+		LmnlAnnotation createAttributeAnnotation(LmnlAnnotation elementRange, URI ns, String prefix, String localName, String value);
 	}
 
 	/**
@@ -190,7 +190,7 @@ public class SaxBasedLmnlBuilder {
 	public void build(final InputSource source, final LmnlLayer destination) throws SAXException, IOException {
 		reader.setContentHandler(new DefaultHandler() {
 			private StringBuilder contentBuf = new StringBuilder();
-			private Stack<LmnlRange> openElements = new Stack<LmnlRange>();
+			private Stack<LmnlAnnotation> openElements = new Stack<LmnlAnnotation>();
 			private Stack<Integer> nodePosition = new Stack<Integer>();
 			private URI sourceDocument = null;
 
@@ -215,7 +215,7 @@ public class SaxBasedLmnlBuilder {
 					throw new SAXException("Parser is not namespace aware");
 				}
 				String prefix = (qName.contains(":") ? qName.substring(0, qName.indexOf(":")) : "");
-				LmnlRange lmnlElement = annotationFactory.createElementRange(URI.create(uri), prefix, localName, contentBuf.length());
+				LmnlAnnotation lmnlElement = annotationFactory.createElementRange(URI.create(uri), prefix, localName, contentBuf.length());
 				destination.add(lmnlElement);
 				openElements.push(lmnlElement);
 
@@ -243,7 +243,11 @@ public class SaxBasedLmnlBuilder {
 					}
 
 					if (attrUri.equals(XMLConstants.XML_NS_URI) && "id".equals(attrLocalName)) {
-						lmnlElement.setId(attrValue);
+						try {
+							lmnlElement.setId(new URI(null, null, attrValue));
+						} catch (URISyntaxException e) {
+							throw new SAXException("Invalid xml:id value (no URI fragment)", e);
+						}
 						continue;
 					}
 
@@ -285,21 +289,21 @@ public class SaxBasedLmnlBuilder {
 	private AnnotationFactory annotationFactory = new AnnotationFactory() {
 
 		@Override
-		public LmnlRange createElementRange(URI ns, String prefix, String localName, int startOffset) {
+		public LmnlAnnotation createElementRange(URI ns, String prefix, String localName, int startOffset) {
 			return new XmlElement(ns, prefix, localName, startOffset);
 		}
 
 		@Override
-		public LmnlAnnotation createAttributeAnnotation(LmnlRange elementRange, URI ns, String prefix, String localName, String value) {
+		public LmnlAnnotation createAttributeAnnotation(LmnlAnnotation elementRange, URI ns, String prefix, String localName, String value) {
 			return new XmlAttribute(ns, prefix, localName, value);
 		}
 	};
 
-	private static class XmlElement extends DefaultLmnlRange implements XmlNodeSourced {
+	private static class XmlElement extends DefaultLmnlAnnotation implements XmlNodeSourced {
 		protected XmlNodeAddress xmlNodeAddress;
 
 		public XmlElement(URI uri, String prefix, String localName, int start) {
-			super(uri, prefix, localName, null, start, start);
+			super(uri, prefix, localName, null, new LmnlRangeAddress(start, start));
 		}
 
 		@Override
@@ -330,7 +334,7 @@ public class SaxBasedLmnlBuilder {
 		protected XmlNodeAddress xmlNodeAddress;
 
 		public XmlAttribute(URI uri, String prefix, String localName, String text) {
-			super(uri, prefix, localName, text);
+			super(uri, prefix, localName, text, new LmnlRangeAddress(0, 0));
 		}
 
 		public XmlNodeAddress getXmlNodeAddress() {

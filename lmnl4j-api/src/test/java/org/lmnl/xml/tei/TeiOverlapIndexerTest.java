@@ -23,7 +23,7 @@ package org.lmnl.xml.tei;
 
 import org.junit.Test;
 import org.lmnl.AbstractXmlSourcedTest;
-import org.lmnl.lom.LmnlRange;
+import org.lmnl.lom.LmnlAnnotation;
 import org.lmnl.lom.util.OverlapIndexer;
 
 import com.google.common.base.Predicate;
@@ -42,10 +42,10 @@ public class TeiOverlapIndexerTest extends AbstractXmlSourcedTest {
 	 */
 	@Test
 	public void indexBySegment() {
-		printDebugMessage(new OverlapIndexer(new Predicate<LmnlRange>() {
+		printDebugMessage(new OverlapIndexer(new Predicate<LmnlAnnotation>() {
 
 			@Override
-			public boolean apply(LmnlRange input) {
+			public boolean apply(LmnlAnnotation input) {
 				return "seg".equals(input.getLocalName());
 			}
 		}).apply(document()));
@@ -56,10 +56,10 @@ public class TeiOverlapIndexerTest extends AbstractXmlSourcedTest {
 	 */
 	@Test
 	public void indexByPageBreak() throws Exception {
-		printDebugMessage(new OverlapIndexer(new Predicate<LmnlRange>() {
+		printDebugMessage(new OverlapIndexer(new Predicate<LmnlAnnotation>() {
 
 			@Override
-			public boolean apply(LmnlRange input) {
+			public boolean apply(LmnlAnnotation input) {
 				return "pb".equals(input.getLocalName());
 			}
 		}).apply(document("george-algabal-tei.xml")));

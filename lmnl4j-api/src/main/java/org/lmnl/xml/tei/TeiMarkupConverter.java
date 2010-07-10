@@ -23,6 +23,7 @@ package org.lmnl.xml.tei;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -34,10 +35,9 @@ import org.codehaus.jackson.JsonGenerator;
 import org.lmnl.lom.LmnlAnnotation;
 import org.lmnl.lom.LmnlDocument;
 import org.lmnl.lom.LmnlLayer;
-import org.lmnl.lom.LmnlRange;
 import org.lmnl.lom.LmnlRangeAddress;
 import org.lmnl.lom.base.AbstractLmnlLayer;
-import org.lmnl.lom.base.DefaultLmnlRange;
+import org.lmnl.lom.base.DefaultLmnlAnnotation;
 import org.lmnl.lom.util.OverlapIndexer;
 
 import com.google.common.base.Predicate;
@@ -137,18 +137,18 @@ public class TeiMarkupConverter {
 	private void convertSimpleMilestones(LmnlLayer layer, String msElementName, String elementName) {
 		TeiElementPredicate msPredicate = new TeiElementPredicate(msElementName);
 
-		Iterable<LmnlRange> ranges = Iterables.filter(Iterables.filter(layer, LmnlRange.class), msPredicate);
+		Iterable<LmnlAnnotation> ranges = Iterables.filter(layer, msPredicate);
 		ranges = Iterables.concat(ranges, Collections.singletonList(new LayerCoveringRange(layer)));
 
-		SortedMap<LmnlRangeAddress, List<LmnlRange>> msIndex = new OverlapIndexer(msPredicate).apply(ranges);
+		SortedMap<LmnlRangeAddress, List<LmnlAnnotation>> msIndex = new OverlapIndexer(msPredicate).apply(ranges);
 		for (LmnlRangeAddress segment : msIndex.keySet()) {
-			for (LmnlRange milestone : msIndex.get(segment)) {
+			for (LmnlAnnotation milestone : msIndex.get(segment)) {
 				if (milestone instanceof LayerCoveringRange) {
 					continue;
 				}
 				if (milestone.address().start == segment.start) {
 					// FIXME: factory pattern!
-					LmnlRange element = new DefaultLmnlRange(LmnlDocument.LMNL_NS_URI, "lmnl", elementName, null, segment.start, segment.end);
+					LmnlAnnotation element = new DefaultLmnlAnnotation(LmnlDocument.LMNL_NS_URI, "lmnl", elementName, null, new LmnlRangeAddress(segment));
 					layer.add(element);
 					for (LmnlAnnotation annotation : milestone) {
 						element.add(annotation);
@@ -160,15 +160,15 @@ public class TeiMarkupConverter {
 	}
 
 	private void convertSpanningElements(LmnlLayer layer) {
-		final Map<String, LmnlRange> ids = new HashMap<String, LmnlRange>();
+		final Map<URI, LmnlAnnotation> ids = new HashMap<URI, LmnlAnnotation>();
 
 		// collecting and indexing of identifyable ranges
 		layer.visit(new LmnlLayer.Visitor() {
 
 			@Override
 			public void visit(LmnlLayer layer) {
-				if ((layer instanceof LmnlRange) && layer.getId() != null) {
-					ids.put(layer.getId(), (LmnlRange) layer);
+				if (layer instanceof LmnlAnnotation && layer.getId() != null) {
+					ids.put(layer.getId(), (LmnlAnnotation) layer);
 				}
 
 			}
@@ -179,11 +179,10 @@ public class TeiMarkupConverter {
 
 			@Override
 			public void visit(LmnlLayer layer) {
-				if (!(layer instanceof LmnlRange)) {
+				if (!(layer instanceof LmnlAnnotation)) {
 					return;
 				}
-
-				LmnlRange range = (LmnlRange) layer;
+				LmnlAnnotation range = (LmnlAnnotation) layer;
 				String localName = range.getLocalName();
 				if (!localName.endsWith("Span") && !localName.equals("index")) {
 					return;
@@ -198,8 +197,7 @@ public class TeiMarkupConverter {
 						}
 					});
 
-					String idRef = to.getText();
-					LmnlRange end = ids.get(idRef.startsWith("#") ? idRef.substring(1) : idRef);
+					LmnlAnnotation end = ids.get(new URI(to.getText()));
 					if (end == null) {
 						return;
 					}
@@ -211,12 +209,13 @@ public class TeiMarkupConverter {
 					range.remove(to);
 
 				} catch (NoSuchElementException e) {
+				} catch (URISyntaxException e) {
 				}
 			}
 		});
 	}
 
-	private static class TeiElementPredicate implements Predicate<LmnlRange> {
+	private static class TeiElementPredicate implements Predicate<LmnlAnnotation> {
 
 		private String localName;
 
@@ -225,7 +224,7 @@ public class TeiMarkupConverter {
 		}
 
 		@Override
-		public boolean apply(LmnlRange input) {
+		public boolean apply(LmnlAnnotation input) {
 			if (!TEI_NS.equals(input.getNamespace())) {
 				return false;
 			}
@@ -235,7 +234,7 @@ public class TeiMarkupConverter {
 
 	}
 
-	private static class LayerCoveringRange extends AbstractLmnlLayer implements LmnlRange {
+	private static class LayerCoveringRange extends AbstractLmnlLayer implements LmnlAnnotation {
 		private final LmnlLayer layer;
 		private final LmnlRangeAddress rangeAddress;
 

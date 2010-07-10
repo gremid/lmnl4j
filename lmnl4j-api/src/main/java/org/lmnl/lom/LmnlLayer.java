@@ -24,7 +24,6 @@ package org.lmnl.lom;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.codehaus.jackson.JsonGenerator;
@@ -112,7 +111,7 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 * 
 	 * @see #getUri()
 	 */
-	String getId();
+	URI getId();
 
 	/**
 	 * Assigns a unique textual key identifying this layer.
@@ -123,7 +122,7 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 * 
 	 * @see #getUri()
 	 */
-	void setId(String id);
+	void setId(URI id);
 
 	/**
 	 * Constructs the URI of this layer.
@@ -140,43 +139,6 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 *                 in case the layer is not associated with a document
 	 */
 	URI getUri();
-
-	/**
-	 * Registered mappings from name prefixes to namespace URIs in this
-	 * layer.
-	 * 
-	 * <p/>
-	 * 
-	 * In a LOM, namespace mapping are aggregated at the lowest layer with
-	 * higher layers delegating namespace handling to their owner. This is
-	 * achieved by merging namespace registers upon addition of layer to
-	 * others.
-	 * 
-	 * @return a map of registered namespaces, either originating from the
-	 *         layer itself, if it happens to be the lowest, or from a layer
-	 *         up the {@link #getOwner() chain} of owners.
-	 * 
-	 * @see #add(LmnlAnnotation)
-	 */
-	Map<String, URI> getNamespaceContext();
-
-	/**
-	 * Assigns a map of registered namespaces to this layer.
-	 * 
-	 * <p/>
-	 * 
-	 * As namespace handling is handled internally to a large extent during
-	 * {@link #add(LmnlAnnotation) LOM construction}, for example by
-	 * propagating mappings up the layer hierarchy, this method should
-	 * normally not be called by users.
-	 * 
-	 * @param context
-	 *                a map of namespaces registered in this layer and its
-	 *                descendants or <code>null</code> in case the namespace
-	 *                context of this layer shall be removed and further
-	 *                lookups be delegated to its owner
-	 */
-	void setNamespaceContext(Map<String, URI> context);
 
 	/**
 	 * Name prefix of this layer, referring to the namespace it is in.
@@ -230,6 +192,8 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 */
 	URI getNamespace();
 
+	void setNamespace(URI uri);
+	
 	/**
 	 * Delivers the qualified name of this layer.
 	 * 
@@ -250,6 +214,16 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 */
 	String getText();
 
+	/**
+	 * Does this annotation layer has a text of its own, or does it annotate
+	 * the text of its owning layer.
+	 * 
+	 * @return <code>true</code> or <code>false</code>
+	 */
+	boolean hasText();
+
+	LmnlRangeAddress getCoveringRange();
+	
 	/**
 	 * Associates text with this layer.
 	 * 
@@ -311,6 +285,8 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 */
 	LmnlAnnotation remove(LmnlAnnotation annotation);
 
+	void flatten();
+	
 	/**
 	 * Recursively visits all descendants of this layer and calls back the
 	 * visitor.
