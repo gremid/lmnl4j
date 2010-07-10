@@ -28,7 +28,6 @@ import java.util.Map;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.lmnl.lom.LmnlDocument;
-import org.lmnl.lom.LmnlRangeAddress;
 
 public class DefaultLmnlDocument extends AbstractLmnlLayer implements LmnlDocument {
 	protected Map<String, URI> namespaceContext = new HashMap<String, URI>();

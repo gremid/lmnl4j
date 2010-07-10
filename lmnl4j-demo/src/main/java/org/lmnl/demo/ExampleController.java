@@ -45,7 +45,7 @@ import org.lmnl.lom.LmnlRangeAddress;
 import org.lmnl.lom.base.DefaultLmnlAnnotation;
 import org.lmnl.lom.util.OverlapIndexer;
 import org.lmnl.xml.LmnlXmlUtils;
-import org.lmnl.xml.PlainTextXmlFilter;
+import org.lmnl.xml.sax.PlainTextXmlFilter;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;

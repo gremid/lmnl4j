@@ -52,7 +52,7 @@ import com.google.common.collect.Sets;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class Partitioning implements Function<Iterable<? extends LmnlAnnotation>, SortedSet<LmnlRangeAddress>> {
+public class Partitioning implements Function<Iterable<LmnlAnnotation>, SortedSet<LmnlRangeAddress>> {
 
 	private final Predicate<LmnlAnnotation> filterPredicate;
 
@@ -79,7 +79,7 @@ public class Partitioning implements Function<Iterable<? extends LmnlAnnotation>
 	}
 
 	@Override
-	public SortedSet<LmnlRangeAddress> apply(Iterable<? extends LmnlAnnotation> from) {
+	public SortedSet<LmnlRangeAddress> apply(Iterable<LmnlAnnotation> from) {
 		SortedSet<Integer> offsets = Sets.newTreeSet();
 
 		if (filterPredicate != null) {

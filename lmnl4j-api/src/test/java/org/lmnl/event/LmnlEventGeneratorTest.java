@@ -5,7 +5,7 @@ import org.lmnl.AbstractXmlSourcedTest;
 import org.lmnl.lom.LmnlAnnotation;
 import org.lmnl.lom.LmnlDocument;
 import org.lmnl.lom.LmnlRangeAddress;
-import org.lmnl.xml.XmlNodeSourced;
+import org.lmnl.xml.XmlElementAnnotation;
 
 import com.google.common.collect.Ordering;
 
@@ -22,8 +22,8 @@ public class LmnlEventGeneratorTest extends AbstractXmlSourcedTest {
 
 			@Override
 			public int compare(LmnlAnnotation o1, LmnlAnnotation o2) {
-				if (o1 instanceof XmlNodeSourced && o2 instanceof XmlNodeSourced) {
-					return XmlNodeSourced.COMPARATOR.compare((XmlNodeSourced) o1, (XmlNodeSourced) o2);
+				if (o1 instanceof XmlElementAnnotation && o2 instanceof XmlElementAnnotation) {
+					return ((XmlElementAnnotation)o1).getXmlNodeAddress().compareTo(((XmlElementAnnotation)o2).getXmlNodeAddress());
 				}
 
 				return o1.address().compareTo(o2.address());

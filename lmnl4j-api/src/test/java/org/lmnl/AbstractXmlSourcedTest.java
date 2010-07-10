@@ -26,9 +26,9 @@ import java.util.Map;
 import java.util.SortedSet;
 
 import org.lmnl.lom.base.DefaultLmnlDocument;
-import org.lmnl.xml.GenericXmlBasedLmnlAnnotationFactory;
+import org.lmnl.xml.DefaultXmlElementAnnotationFactory;
 import org.lmnl.xml.LmnlXmlUtils;
-import org.lmnl.xml.PlainTextXmlFilter;
+import org.lmnl.xml.sax.PlainTextXmlFilter;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -84,7 +84,7 @@ public abstract class AbstractXmlSourcedTest extends AbstractTest {
 			if (RESOURCES.contains(resource) && !documents.containsKey(resource)) {
 				URI uri = AbstractXmlSourcedTest.class.getResource("/" + resource).toURI();
 				DefaultLmnlDocument document = new DefaultLmnlDocument(uri);
-				GenericXmlBasedLmnlAnnotationFactory factory = new GenericXmlBasedLmnlAnnotationFactory(document);
+				DefaultXmlElementAnnotationFactory factory = new DefaultXmlElementAnnotationFactory(document);
 				LmnlXmlUtils.build(createXMLReader(), new InputSource(uri.toASCIIString()), factory);
 				documents.put(resource, document);
 			}

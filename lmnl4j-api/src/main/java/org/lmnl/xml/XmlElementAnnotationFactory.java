@@ -3,6 +3,7 @@ package org.lmnl.xml;
 import java.net.URI;
 
 import org.lmnl.lom.LmnlAnnotation;
+import org.xml.sax.Attributes;
 
 /**
  * Interface to factories used to create corresponding annotations for XML
@@ -18,7 +19,7 @@ import org.lmnl.lom.LmnlAnnotation;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public interface XmlBasedLmnlAnnotationFactory {
+public interface XmlElementAnnotationFactory {
 	/**
 	 * Creates an annotation corresponding to an XML element.
 	 * 
@@ -34,24 +35,10 @@ public interface XmlBasedLmnlAnnotationFactory {
 	 *                accessing it via {@link LmnlRange#address()}
 	 * @return a range annotation representing the XML element
 	 */
-	LmnlAnnotation createElementRange(URI ns, String prefix, String localName, int startOffset);
+	LmnlAnnotation startElement(URI ns, String prefix, String localName, Attributes attrs, XPathAddress address, int startOffset);
 
-	/**
-	 * Creates an annotation corresponding to an XML attribute.
-	 * 
-	 * @param ns
-	 *                the namespace URI of the XML attribute, defaulting to
-	 *                the attribute's element namespace
-	 * @param prefix
-	 *                the attribute's namespace prefix
-	 * @param localName
-	 *                the local name of the attribute
-	 * @param value
-	 *                the attribute's value
-	 * @return an annotation representing the XML attribute
-	 */
-	LmnlAnnotation createAttributeAnnotation(LmnlAnnotation elementAnnotation, URI ns, String prefix, String localName, String value);
-
+	void endElement(LmnlAnnotation element, int endOffset);
+	
 	/**
 	 * Hands over the text collected by the XML processor during model
 	 * creation.

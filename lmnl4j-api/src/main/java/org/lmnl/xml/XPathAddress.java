@@ -42,7 +42,7 @@ import org.codehaus.jackson.JsonGenerator;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class XmlNodeAddress implements Comparable<XmlNodeAddress> {
+public class XPathAddress implements Comparable<XPathAddress> {
 	private final int[] address;
 
 	/**
@@ -51,7 +51,7 @@ public class XmlNodeAddress implements Comparable<XmlNodeAddress> {
 	 * @param address
 	 *                the node's path
 	 */
-	public XmlNodeAddress(int[] address) {
+	public XPathAddress(int[] address) {
 		this.address = address;
 	}
 
@@ -63,7 +63,7 @@ public class XmlNodeAddress implements Comparable<XmlNodeAddress> {
 	 *                the potential descendant node
 	 * @return <code>true</code>/<code>false</code>
 	 */
-	public boolean isAncestorOf(XmlNodeAddress other) {
+	public boolean isAncestorOf(XPathAddress other) {
 		final int[] otherAddress = other.address;
 		for (int ai = 0; ai < address.length; ai++) {
 			if (ai == otherAddress.length || address[ai] != otherAddress[ai]) {
@@ -114,7 +114,7 @@ public class XmlNodeAddress implements Comparable<XmlNodeAddress> {
 	}
 
 	@Override
-	public int compareTo(XmlNodeAddress o) {
+	public int compareTo(XPathAddress o) {
 		int i = 0;
 		int oi = 0;
 

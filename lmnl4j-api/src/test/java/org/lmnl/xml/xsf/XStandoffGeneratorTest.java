@@ -34,7 +34,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.junit.Test;
 import org.lmnl.AbstractXmlSourcedTest;
-import org.lmnl.lom.LmnlAnnotation;
+import org.lmnl.xml.XmlElementAnnotation;
 import org.w3c.dom.Document;
 
 import com.google.common.base.Predicate;
@@ -62,19 +62,19 @@ public class XStandoffGeneratorTest extends AbstractXmlSourcedTest {
 		Document dom = domBuilder.newDocument();
 
 		XStandoffMarkupGenerator xsf = new XStandoffMarkupGenerator(document(), dom);
-		xsf.addLevel(new Predicate<LmnlAnnotation>() {
+		xsf.addLevel(new Predicate<XmlElementAnnotation>() {
 
 			@Override
-			public boolean apply(LmnlAnnotation input) {
+			public boolean apply(XmlElementAnnotation input) {
 				return "seg".equals(input.getLocalName());
 			}
 
 		});
-		xsf.addLevel(new Predicate<LmnlAnnotation>() {
+		xsf.addLevel(new Predicate<XmlElementAnnotation>() {
 			private Pattern names = Pattern.compile("(choice)|(abbr)|(expan)");
 
 			@Override
-			public boolean apply(LmnlAnnotation input) {
+			public boolean apply(XmlElementAnnotation input) {
 				return names.matcher(input.getLocalName()).matches();
 			}
 

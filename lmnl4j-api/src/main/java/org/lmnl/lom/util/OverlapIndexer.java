@@ -50,7 +50,7 @@ import com.google.common.collect.Lists;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class OverlapIndexer implements Function<Iterable<? extends LmnlAnnotation>, SortedMap<LmnlRangeAddress, List<LmnlAnnotation>>> {
+public class OverlapIndexer implements Function<Iterable<LmnlAnnotation>, SortedMap<LmnlRangeAddress, List<LmnlAnnotation>>> {
 
 	private final Predicate<LmnlAnnotation> partitioningFilter;
 
@@ -77,7 +77,7 @@ public class OverlapIndexer implements Function<Iterable<? extends LmnlAnnotatio
 	}
 
 	@Override
-	public SortedMap<LmnlRangeAddress, List<LmnlAnnotation>> apply(Iterable<? extends LmnlAnnotation> from) {
+	public SortedMap<LmnlRangeAddress, List<LmnlAnnotation>> apply(Iterable<LmnlAnnotation> from) {
 		return Functions.compose(new Indexer(from), new Partitioning(partitioningFilter)).apply(from);
 	}
 

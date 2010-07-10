@@ -22,19 +22,20 @@
 package org.lmnl.xml.xsf;
 
 import java.net.URI;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.Stack;
 
 import javax.xml.XMLConstants;
 
-import org.lmnl.lom.LmnlAnnotation;
 import org.lmnl.lom.LmnlLayer;
 import org.lmnl.lom.LmnlRangeAddress;
 import org.lmnl.lom.util.DefaultIdGenerator;
 import org.lmnl.lom.util.IdGenerator;
-import org.lmnl.xml.XmlNodeAddress;
-import org.lmnl.xml.XmlNodeSourced;
+import org.lmnl.xml.XPathAddress;
+import org.lmnl.xml.XmlAttribute;
+import org.lmnl.xml.XmlElementAnnotation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -120,7 +121,7 @@ public class XStandoffMarkupGenerator {
 	 *                of the new level
 	 * @return this generator instance (for method chaining)
 	 */
-	public XStandoffMarkupGenerator addLevel(Predicate<LmnlAnnotation> predicate) {
+	public XStandoffMarkupGenerator addLevel(Predicate<XmlElementAnnotation> predicate) {
 		if (corpusData == null) {
 			createCorpusDataContext();
 		}
@@ -130,18 +131,24 @@ public class XStandoffMarkupGenerator {
 		Stack<ElementMapping> nesting = new Stack<ElementMapping>();
 		nesting.push(new ElementMapping(null, level));
 
-		SortedSet<XmlNodeSourced> levelContents = Sets.newTreeSet(Iterables.filter(Iterables.filter(source, predicate),
-				XmlNodeSourced.class));
-		for (XmlNodeSourced nodeSourced : levelContents) {
-			final LmnlAnnotation lmnlElement = (LmnlAnnotation) nodeSourced;
-			final XmlNodeAddress addr = nodeSourced.getXmlNodeAddress();
+		SortedSet<XmlElementAnnotation> levelContents = Sets.newTreeSet(new Comparator<XmlElementAnnotation>() {
+
+			@Override
+			public int compare(XmlElementAnnotation o1, XmlElementAnnotation o2) {
+				return o1.getXmlNodeAddress().compareTo(o2.getXmlNodeAddress());
+			}
+		});
+		Iterables.addAll(levelContents, Iterables.filter(Iterables.filter(source, XmlElementAnnotation.class), predicate));
+		
+		for (XmlElementAnnotation lmnlElement : levelContents) {
+			final XPathAddress addr = lmnlElement.getXmlNodeAddress();
 
 			while (nesting.peek().lmnl != null && !nesting.peek().lmnl.address().encloses(lmnlElement.address())) {
 				nesting.pop();
 			}
 			while (nesting.peek().lmnl != null) {
-				LmnlAnnotation ancestor = nesting.peek().lmnl;
-				if (!((XmlNodeSourced) ancestor).getXmlNodeAddress().isAncestorOf(addr)) {
+				XmlElementAnnotation ancestor = nesting.peek().lmnl;
+				if (!ancestor.getXmlNodeAddress().isAncestorOf(addr)) {
 					nesting.pop();
 				} else {
 					break;
@@ -151,12 +158,11 @@ public class XStandoffMarkupGenerator {
 			Element domElement = targetDocument.createElementNS(lmnlElement.getNamespace().toASCIIString(), lmnlElement.getQName());
 			nesting.peek().dom.appendChild(domElement);
 
-			for (XmlNodeSourced xmlAttr : Iterables.filter(lmnlElement.getAnnotations(), XmlNodeSourced.class)) {
-				LmnlAnnotation lmnlAttr = (LmnlAnnotation) xmlAttr;
-				if (lmnlAttr.getPrefix().length() == 0) {
-					domElement.setAttribute(lmnlAttr.getQName(), lmnlAttr.getText());
+			for (XmlAttribute xmlAttr : lmnlElement.getAttributes()) {
+				if (xmlAttr.prefix.length() == 0) {
+					domElement.setAttribute(xmlAttr.localName, xmlAttr.value);
 				} else {
-					domElement.setAttributeNS(lmnlAttr.getNamespace().toASCIIString(), lmnlAttr.getQName(), lmnlAttr.getText());
+					domElement.setAttributeNS(xmlAttr.ns.toASCIIString(), xmlAttr.getQName(), xmlAttr.value);
 				}
 			}
 			if (lmnlElement.getId() != null) {
@@ -230,10 +236,10 @@ public class XStandoffMarkupGenerator {
 	}
 
 	private static class ElementMapping {
-		private final LmnlAnnotation lmnl;
+		private final XmlElementAnnotation lmnl;
 		private final Element dom;
 
-		private ElementMapping(LmnlAnnotation lmnl, Element dom) {
+		private ElementMapping(XmlElementAnnotation lmnl, Element dom) {
 			this.lmnl = lmnl;
 			this.dom = dom;
 		}
