@@ -6,9 +6,9 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.junit.Test;
-import org.lmnl.AbstractXmlSourcedTest;
+import org.lmnl.AbstractXmlTest;
 
-public class XLmnlGeneratorTest extends AbstractXmlSourcedTest {
+public class XLmnlGeneratorTest extends AbstractXmlTest {
 
 	@Test
 	public void serialize() throws Exception {

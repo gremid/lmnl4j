@@ -45,7 +45,7 @@ import com.google.common.collect.Sets;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public abstract class AbstractXmlSourcedTest extends AbstractTest {
+public abstract class AbstractXmlTest extends AbstractTest {
 	/**
 	 * Names of available XML test resources.
 	 */
@@ -82,7 +82,7 @@ public abstract class AbstractXmlSourcedTest extends AbstractTest {
 	protected synchronized DefaultLmnlDocument document(String resource) {
 		try {
 			if (RESOURCES.contains(resource) && !documents.containsKey(resource)) {
-				URI uri = AbstractXmlSourcedTest.class.getResource("/" + resource).toURI();
+				URI uri = AbstractXmlTest.class.getResource("/" + resource).toURI();
 				DefaultLmnlDocument document = new DefaultLmnlDocument(uri);
 				DefaultXmlElementAnnotationFactory factory = new DefaultXmlElementAnnotationFactory(document);
 				LmnlXmlUtils.build(createXMLReader(), new InputSource(uri.toASCIIString()), factory);

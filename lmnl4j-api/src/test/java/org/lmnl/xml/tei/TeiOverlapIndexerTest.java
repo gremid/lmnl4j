@@ -22,7 +22,7 @@
 package org.lmnl.xml.tei;
 
 import org.junit.Test;
-import org.lmnl.AbstractXmlSourcedTest;
+import org.lmnl.AbstractXmlTest;
 import org.lmnl.LmnlAnnotation;
 import org.lmnl.util.OverlapIndexer;
 
@@ -35,7 +35,7 @@ import com.google.common.base.Predicate;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class TeiOverlapIndexerTest extends AbstractXmlSourcedTest {
+public class TeiOverlapIndexerTest extends AbstractXmlTest {
 
 	/**
 	 * Indexes a test document by segment (<code>&lt;seg/></code>).

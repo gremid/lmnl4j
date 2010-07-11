@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.lom;
+package org.lmnl.base;
 
 import java.net.URI;
 import java.util.regex.Pattern;
@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.lmnl.AbstractXmlSourcedTest;
+import org.lmnl.AbstractXmlTest;
 import org.lmnl.LmnlAnnotation;
 import org.lmnl.LmnlRange;
 import org.lmnl.base.DefaultLmnlAnnotation;
@@ -44,7 +44,7 @@ import com.google.common.collect.Lists;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class LmnlLayerTest extends AbstractXmlSourcedTest {
+public class DefaultLmnlLayerTest extends AbstractXmlTest {
 	/**
 	 * Extracts a subset of annotations from a test document by using
 	 * {@link Predicate predicates}.

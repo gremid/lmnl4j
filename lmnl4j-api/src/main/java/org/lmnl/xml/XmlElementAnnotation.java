@@ -1,10 +1,6 @@
 package org.lmnl.xml;
 
-import java.util.Set;
-
-import org.lmnl.LmnlAnnotation;
-
-public interface XmlElementAnnotation extends LmnlAnnotation {
+public interface XmlElementAnnotation extends XmlAttributedAnnotation {
 
 	/**
 	 * Yields the address of the XML node, which served as the source for an
@@ -13,6 +9,4 @@ public interface XmlElementAnnotation extends LmnlAnnotation {
 	 * @return the XML node's address
 	 */
 	XPathAddress getXmlNodeAddress();
-
-	Set<XmlAttribute> getAttributes();
 }

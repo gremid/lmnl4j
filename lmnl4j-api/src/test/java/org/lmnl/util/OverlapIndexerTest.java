@@ -19,28 +19,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.xml;
+package org.lmnl.util;
 
 import org.junit.Test;
-import org.lmnl.AbstractXmlSourcedTest;
-import org.lmnl.base.DefaultLmnlDocument;
+import org.lmnl.AbstractDefaultLmnlDocumentTest;
+import org.lmnl.util.OverlapIndexer;
 
 /**
- * Tests the generation of LOMs from XML sources.
+ * Tests the calculation of overlap indizes.
  * 
  * @author <a href="http://gregor.middell.net/"
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class SaxBasedLmnlBuilderTest extends AbstractXmlSourcedTest {
+public class OverlapIndexerTest extends AbstractDefaultLmnlDocumentTest {
 
 	/**
-	 * Builds a test LOM.
+	 * Indexes a very simple document.
 	 */
 	@Test
-	public void buildLom() {
-		DefaultLmnlDocument document = document("george-algabal-tei.xml");
-		printDebugMessage(document.getText());
+	public void indexsegmentSimpleDocument() {
+		addTestRange("a", 0, 2);
+		addTestRange("b", 1, 4);
+		addTestRange("c", 0, 1);
+		addTestRange("d", 0, 6);
+		addTestRange("e", 2, 3);
+
 		printDebugMessage(document);
+		printDebugMessage(new OverlapIndexer().apply(document));
+	}
+
+	@Override
+	protected String documentText() {
+		return "abcdef";
 	}
 }

@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.lom;
+package org.lmnl.base;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,7 +32,7 @@ import org.lmnl.LmnlRange;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class LmnlRangeAddressTest {
+public class DefaultLmnlRangeTest {
 
 	/**
 	 * Tests generation of ranges relative to another.

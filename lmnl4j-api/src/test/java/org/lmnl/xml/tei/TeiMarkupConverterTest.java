@@ -24,7 +24,7 @@ package org.lmnl.xml.tei;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.lmnl.AbstractXmlSourcedTest;
+import org.lmnl.AbstractXmlTest;
 import org.lmnl.LmnlAnnotation;
 import org.lmnl.base.DefaultLmnlDocument;
 import org.lmnl.xml.tei.TeiMarkupConverter;
@@ -40,7 +40,7 @@ import com.google.common.collect.Iterables;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class TeiMarkupConverterTest extends AbstractXmlSourcedTest {
+public class TeiMarkupConverterTest extends AbstractXmlTest {
 
 	/**
 	 * Converts a TEI-P5-based document.

@@ -77,12 +77,12 @@ public class TeiMarkupConverter {
 	 * Shall pagebreak elements (<code>&lt;pb/></code>) be converted to
 	 * <code>lmnl:page</code> ranges.
 	 * 
-	 * @param connvertPageBreaks
+	 * @param convertPageBreaks
 	 *                <code>true</code> (yes, default) or <code>false</code>
 	 *                (no)
 	 */
-	public void setConvertPageBreaks(boolean connvertPageBreaks) {
-		this.convertPageBreaks = connvertPageBreaks;
+	public void setConvertPageBreaks(boolean convertPageBreaks) {
+		this.convertPageBreaks = convertPageBreaks;
 	}
 
 	/**

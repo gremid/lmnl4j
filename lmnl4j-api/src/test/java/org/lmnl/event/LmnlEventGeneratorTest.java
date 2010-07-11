@@ -1,7 +1,7 @@
 package org.lmnl.event;
 
 import org.junit.Test;
-import org.lmnl.AbstractXmlSourcedTest;
+import org.lmnl.AbstractXmlTest;
 import org.lmnl.LmnlAnnotation;
 import org.lmnl.LmnlDocument;
 import org.lmnl.LmnlRange;
@@ -9,7 +9,7 @@ import org.lmnl.xml.XmlElementAnnotation;
 
 import com.google.common.collect.Ordering;
 
-public class LmnlEventGeneratorTest extends AbstractXmlSourcedTest {
+public class LmnlEventGeneratorTest extends AbstractXmlTest {
 
 	@Test
 	public void serializeWithRangeOrder() throws LmnlEventHandlerException {

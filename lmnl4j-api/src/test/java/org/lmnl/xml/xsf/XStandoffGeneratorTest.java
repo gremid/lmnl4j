@@ -33,7 +33,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.junit.Test;
-import org.lmnl.AbstractXmlSourcedTest;
+import org.lmnl.AbstractXmlTest;
 import org.lmnl.xml.XmlElementAnnotation;
 import org.w3c.dom.Document;
 
@@ -46,7 +46,7 @@ import com.google.common.base.Predicate;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class XStandoffGeneratorTest extends AbstractXmlSourcedTest {
+public class XStandoffGeneratorTest extends AbstractXmlTest {
 
 	/**
 	 * Generates a XStandoff document from a TEI-P5 source by isolating two

@@ -14,11 +14,11 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.junit.Test;
-import org.lmnl.AbstractXmlSourcedTest;
+import org.lmnl.AbstractXmlTest;
 import org.lmnl.event.LmnlEventGenerator;
 import org.w3c.dom.Document;
 
-public class StaxGeneratingLmnlEventHandlerTest extends AbstractXmlSourcedTest {
+public class StaxGeneratingLmnlEventHandlerTest extends AbstractXmlTest {
 
 	@Test
 	public void serialize() throws Exception {
