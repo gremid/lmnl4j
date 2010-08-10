@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.lmnl</groupId>
 	<artifactId>lmnl4j-project</artifactId>
@@ -8,12 +9,13 @@
 	<description>Java implementation of LMNL, a markup language supporting layered and/or overlapping annotations.</description>
 	<url>http://www.middell.net/lmnl4j/</url>
 	<organization>
-                <name>Gregor Middell</name>
-                <url>http://gregor.middell.net/</url>
-        </organization>
+		<name>Gregor Middell</name>
+		<url>http://gregor.middell.net/</url>
+	</organization>
 	<modules>
 		<module>lmnl4j-api</module>
 		<module>lmnl4j-demo</module>
+		<module>lmnl4j-goddag</module>
 	</modules>
 	<dependencies>
 		<dependency>
@@ -54,6 +56,16 @@
 				<groupId>log4j</groupId>
 				<artifactId>log4j</artifactId>
 				<version>1.2.14</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j</groupId>
+				<artifactId>neo4j-kernel</artifactId>
+				<version>${neo4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j</groupId>
+				<artifactId>neo4j-utils</artifactId>
+				<version>${neo4j.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -196,6 +208,11 @@
 			<name>lmnl4j Maven Repository</name>
 			<url>http://www.middell.net/lmnl4j/repository</url>
 		</repository>
+		<repository>
+			<id>neo4j</id>
+			<name>Neo4J Public Maven Repository</name>
+			<url>http://m2.neo4j.org</url>
+		</repository>
 	</repositories>
 	<distributionManagement>
 		<repository>
@@ -206,5 +223,6 @@
 	</distributionManagement>
 	<properties>
 		<slf4j.version>1.5.11</slf4j.version>
+		<neo4j.version>1.1</neo4j.version>
 	</properties>
 </project>
