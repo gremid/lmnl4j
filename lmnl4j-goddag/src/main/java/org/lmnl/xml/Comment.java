@@ -23,6 +23,10 @@ public class Comment extends XmlAnnotationNode {
 	}
 
 	@Override
+	public String toString() {
+		return "<!-- " + getComment() + " --> [" + getUnderlyingNode() + "]";
+	}
+	@Override
 	public void exportToStream(XMLStreamWriter destination) throws XMLStreamException {
 		destination.writeComment(getComment());
 	}

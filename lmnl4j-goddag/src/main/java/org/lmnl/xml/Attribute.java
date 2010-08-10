@@ -18,12 +18,17 @@ public class Attribute extends XmlNamedAnnotationNode {
 	public String getValue() {
 		return (String) getUnderlyingNode().getProperty("value");
 	}
-	
+
 	@Override
 	public String getTextContent() {
 		return getValue();
 	}
-	
+
+	@Override
+	public String toString() {
+		return "@" + getName() + " [" + getUnderlyingNode() + "]";
+	}
+
 	@Override
 	public void copyProperties(AnnotationNode other) {
 		super.copyProperties(other);

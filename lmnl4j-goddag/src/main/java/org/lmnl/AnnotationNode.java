@@ -5,27 +5,38 @@ import static org.lmnl.AnnotationTree.SIBLING;
 import static org.neo4j.graphdb.Direction.INCOMING;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipExpander;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.FilteringIterable;
 import org.neo4j.helpers.collection.IterableWrapper;
+import org.neo4j.kernel.Traversal;
 import org.neo4j.util.NodeWrapperImpl;
 
 public class AnnotationNode extends NodeWrapperImpl implements Iterable<AnnotationNode> {
 	public static final long SELF_OWNED = -1;
+	private static final Collection<AnnotationNode> EMPTY_RESULT_SET = new HashSet<AnnotationNode>();
+
 	protected final AnnotationNodeFactory nodeFactory;
-	private long owner;
+	private final long owner;
+	private final TraversalDescription traversal;
 
 	public AnnotationNode(AnnotationNodeFactory nodeFactory, Node node, long owner) {
 		super(node);
 		this.nodeFactory = nodeFactory;
 		this.owner = (owner < 0 ? node.getId() : owner);
+		this.traversal = Traversal.description().filter(new NodeFactorySupportedPredicate());
 	}
 
 	public AnnotationNodeFactory getNodeFactory() {
@@ -43,43 +54,65 @@ public class AnnotationNode extends NodeWrapperImpl implements Iterable<Annotati
 	public void copyProperties(AnnotationNode other) {
 	}
 
+	public Iterable<AnnotationNode> traverseWith(TraversalDescription traversal) {
+		return new NodeFactoryBasedWrapper(traversal.traverse(getUnderlyingNode()).nodes());
+	}
+
 	public AnnotationNode getNextSibling() {
-		Relationship nextSibling = siblingRelationshipOf(getUnderlyingNode(), owner, OUTGOING);
-		return (nextSibling == null ? null : nodeFactory.wrapNode(nextSibling.getEndNode(), owner));
+		Iterator<AnnotationNode> siblings = traverseWith(
+				traversal.expand(new OwnedRelationshipExpander(SIBLING, OUTGOING))
+						.prune(Traversal.pruneAfterDepth(1)).filter(Traversal.returnAllButStartNode()))
+				.iterator();
+		return (siblings.hasNext() ? siblings.next() : null);
 	}
 
 	public AnnotationNode getPreviousSibling() {
-		Relationship previousSibling = siblingRelationshipOf(getUnderlyingNode(), owner, INCOMING);
-		return (previousSibling == null ? null : nodeFactory.wrapNode(previousSibling.getStartNode(), owner));
+		Iterator<AnnotationNode> siblings = traverseWith(
+				traversal.expand(new OwnedRelationshipExpander(SIBLING, INCOMING))
+						.prune(Traversal.pruneAfterDepth(1)).filter(Traversal.returnAllButStartNode()))
+				.iterator();
+		return (siblings.hasNext() ? siblings.next() : null);
 	}
 
 	public AnnotationNode getFirstChild() {
-		for (Relationship r : childRelationshipsOf(getUnderlyingNode(), owner)) {
-			if (!r.getEndNode().hasRelationship(SIBLING, INCOMING)) {
-				return nodeFactory.wrapNode(r.getEndNode(), owner);
+		AnnotationNode firstChild = null;
+		for (AnnotationNode childNode : traverseWith(traversal.depthFirst().prune(Traversal.pruneAfterDepth(1))
+				.expand(new OwnedRelationshipExpander(CHILD, OUTGOING)).filter(Traversal.returnAllButStartNode()))) {
+			firstChild = childNode;
+			for (Relationship r : childNode.getUnderlyingNode().getRelationships(SIBLING, INCOMING)) {
+				if (r.hasProperty("owner") && r.getProperty("owner").equals(owner)) {
+					firstChild = null;
+				}
+			}
+			if (firstChild != null) {
+				break;
 			}
 		}
-		return null;
+		return firstChild;
 	}
 
 	public AnnotationNode getLastChild() {
-		for (Relationship r : childRelationshipsOf(getUnderlyingNode(), owner)) {
-			if (siblingRelationshipOf(r.getEndNode(), owner, OUTGOING) == null) {
-				return nodeFactory.wrapNode(r.getEndNode(), owner);
+		AnnotationNode lastChild = null;
+		for (AnnotationNode childNode : traverseWith(traversal.depthFirst().prune(Traversal.pruneAfterDepth(1))
+				.expand(new OwnedRelationshipExpander(CHILD, OUTGOING)).filter(Traversal.returnAllButStartNode()))) {
+			lastChild = childNode;
+			for (Relationship r : childNode.getUnderlyingNode().getRelationships(SIBLING, OUTGOING)) {
+				if (r.hasProperty("owner") && r.getProperty("owner").equals(owner)) {
+					lastChild = null;
+				}
+			}
+			if (lastChild != null) {
+				break;
 			}
 		}
-		return null;
+		return lastChild;
 	}
 
 	@Override
 	public Iterator<AnnotationNode> iterator() {
-		return new IterableWrapper<AnnotationNode, Relationship>(childRelationshipsOf(getUnderlyingNode(), owner)) {
-
-			@Override
-			protected AnnotationNode underlyingObjectToObject(Relationship object) {
-				return nodeFactory.wrapNode(object.getEndNode(), owner);
-			}
-		}.iterator();
+		AnnotationNode firstChild = getFirstChild();
+		return (firstChild == null ? EMPTY_RESULT_SET : firstChild.traverseWith(traversal.depthFirst().expand(
+				new OwnedRelationshipExpander(SIBLING, OUTGOING)))).iterator();
 	}
 
 	public Iterable<AnnotationNode> getChildNodes() {
@@ -91,12 +124,13 @@ public class AnnotationNode extends NodeWrapperImpl implements Iterable<Annotati
 	}
 
 	public AnnotationNode getParentNode() {
-		for (Relationship r : getUnderlyingNode().getRelationships(CHILD, INCOMING)) {
-			if (r.getProperty("owner").equals(owner)) {
-				return nodeFactory.wrapNode(r.getStartNode(), owner);
-			}
-		}
-		return null;
+		Iterator<AnnotationNode> ancestors = getAncestorNodes().iterator();
+		return (ancestors.hasNext() ? ancestors.next() : null);
+	}
+
+	public Iterable<AnnotationNode> getAncestorNodes() {
+		return traverseWith(traversal.depthFirst().expand(new OwnedRelationshipExpander(CHILD, INCOMING))
+				.filter(Traversal.returnAllButStartNode()));
 	}
 
 	public AnnotationNode add(AnnotationNode newChild) {
@@ -193,9 +227,9 @@ public class AnnotationNode extends NodeWrapperImpl implements Iterable<Annotati
 	public String toString() {
 		return getClass().toString() + "[" + getUnderlyingNode().toString() + "]";
 	}
-	
-	protected static Iterable<Relationship> childRelationshipsOf(Node node, final long owner) {
-		return new FilteringIterable<Relationship>(node.getRelationships(CHILD, OUTGOING), new Predicate<Relationship>() {
+
+	protected static Iterable<Relationship> childRelationshipsOf(Node node, final long owner, Direction direction) {
+		return new FilteringIterable<Relationship>(node.getRelationships(CHILD, direction), new Predicate<Relationship>() {
 
 			@Override
 			public boolean accept(Relationship item) {
@@ -211,5 +245,52 @@ public class AnnotationNode extends NodeWrapperImpl implements Iterable<Annotati
 			}
 		}
 		return null;
+	}
+
+	protected class NodeFactoryBasedWrapper extends IterableWrapper<AnnotationNode, Node> {
+
+		public NodeFactoryBasedWrapper(Iterable<Node> iterableToWrap) {
+			super(iterableToWrap);
+		}
+
+		@Override
+		protected AnnotationNode underlyingObjectToObject(Node object) {
+			return nodeFactory.wrapNode(object, owner);
+		}
+	}
+
+	protected class NodeFactorySupportedPredicate implements Predicate<Path> {
+
+		@Override
+		public boolean accept(Path item) {
+			return nodeFactory.supports(item.endNode());
+		}
+	}
+
+	protected class OwnedRelationshipExpander implements RelationshipExpander {
+		private final RelationshipType relationshipType;
+		private final Direction direction;
+
+		protected OwnedRelationshipExpander(RelationshipType relationshipType, Direction direction) {
+			this.relationshipType = relationshipType;
+			this.direction = direction;
+		}
+
+		@Override
+		public Iterable<Relationship> expand(Node node) {
+			return new FilteringIterable<Relationship>(node.getRelationships(relationshipType, direction),
+					new Predicate<Relationship>() {
+
+						@Override
+						public boolean accept(Relationship item) {
+							return item.hasProperty("owner") && item.getProperty("owner").equals(owner);
+						}
+					});
+		}
+
+		@Override
+		public RelationshipExpander reversed() {
+			return new OwnedRelationshipExpander(relationshipType, direction.reverse());
+		}
 	}
 }

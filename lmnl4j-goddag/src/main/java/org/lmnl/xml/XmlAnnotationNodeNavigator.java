@@ -2,14 +2,14 @@ package org.lmnl.xml;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.jaxen.DefaultNavigator;
 import org.jaxen.UnsupportedAxisException;
 import org.jaxen.XPath;
 import org.jaxen.saxpath.SAXPathException;
 import org.lmnl.AnnotationNode;
+import org.neo4j.helpers.Predicate;
+import org.neo4j.helpers.collection.FilteringIterable;
 
 public class XmlAnnotationNodeNavigator extends DefaultNavigator {
 
@@ -24,13 +24,15 @@ public class XmlAnnotationNodeNavigator extends DefaultNavigator {
 	@Override
 	public Iterator<?> getChildAxisIterator(Object contextNode) throws UnsupportedAxisException {
 		if (contextNode instanceof XmlAnnotationNode) {
-			XmlAnnotationNode node = (XmlAnnotationNode) contextNode;
-			List<AnnotationNode> children = new LinkedList<AnnotationNode>();
-			for (AnnotationNode child : node) {
-				if (child instanceof Attribute) {
-					continue;
-				}
-				children.add(child);
+			Iterable<AnnotationNode> children = new XmlAnnotationNodeFilter((XmlAnnotationNode) contextNode);
+			if (contextNode instanceof Element) {
+				children = new FilteringIterable<AnnotationNode>(children, new Predicate<AnnotationNode>() {
+
+					@Override
+					public boolean accept(AnnotationNode item) {
+						return !(item instanceof Attribute);
+					}
+				});
 			}
 			return children.iterator();
 		}
@@ -44,6 +46,14 @@ public class XmlAnnotationNodeNavigator extends DefaultNavigator {
 			return Collections.singleton(((XmlAnnotationNode) contextNode).getParentNode()).iterator();
 		}
 		return super.getParentAxisIterator(contextNode);
+	}
+
+	@Override
+	public Iterator<?> getAncestorAxisIterator(Object contextNode) throws UnsupportedAxisException {
+		if (contextNode instanceof XmlAnnotationNode) {
+			return new XmlAnnotationNodeFilter(((XmlAnnotationNode) contextNode).getAncestorNodes()).iterator();
+		}
+		return super.getAncestorAxisIterator(contextNode);
 	}
 
 	@Override
@@ -82,7 +92,7 @@ public class XmlAnnotationNodeNavigator extends DefaultNavigator {
 		}
 		return super.getProcessingInstructionTarget(obj);
 	}
-	
+
 	@Override
 	public String getAttributeName(Object node) {
 		if (node instanceof Attribute) {
@@ -205,6 +215,18 @@ public class XmlAnnotationNodeNavigator extends DefaultNavigator {
 	@Override
 	public XPath parseXPath(String xpath) throws SAXPathException {
 		return new XmlAnnotationNodeXPath(xpath, owner);
+	}
+
+	private static class XmlAnnotationNodeFilter extends FilteringIterable<AnnotationNode> {
+
+		public XmlAnnotationNodeFilter(Iterable<AnnotationNode> source) {
+			super(source, new Predicate<AnnotationNode>() {
+				@Override
+				public boolean accept(AnnotationNode item) {
+					return (item instanceof XmlAnnotationNode);
+				}
+			});
+		}
 	}
 
 }

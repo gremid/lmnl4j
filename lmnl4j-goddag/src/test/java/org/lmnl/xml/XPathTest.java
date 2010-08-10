@@ -10,6 +10,14 @@ public class XPathTest extends XmlTest {
 		Document algabal = documents.get(1);
 		XmlAnnotationNodeXPath xpath = algabal.xpath("/tei:TEI/tei:text");
 		xpath.addNamespace("tei", "http://www.tei-c.org/ns/1.0");
-		Assert.assertNotSame(0, algabal.selectAllNodes(xpath).size());		
+		Assert.assertNotSame(0, algabal.selectAllNodes(xpath).size());
+	}
+
+	@Test
+	public void basicAttributeTest() throws Exception {
+		Document algabal = documents.get(1);
+		XmlAnnotationNodeXPath xpath = algabal.xpath("//tei:lg/attribute::*");
+		xpath.addNamespace("tei", "http://www.tei-c.org/ns/1.0");
+		Assert.assertNotSame(0, algabal.selectAllNodes(xpath).size());
 	}
 }

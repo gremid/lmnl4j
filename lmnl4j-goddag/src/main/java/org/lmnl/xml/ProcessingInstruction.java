@@ -35,6 +35,11 @@ public class ProcessingInstruction extends XmlAnnotationNode {
 	}
 
 	@Override
+	public String toString() {
+		return "<?" + getTarget() + "> [" + getUnderlyingNode() + "]";
+	}
+	
+	@Override
 	public void exportToStream(XMLStreamWriter destination) throws XMLStreamException {
 		String piData = getData();
 		if (piData == null) {

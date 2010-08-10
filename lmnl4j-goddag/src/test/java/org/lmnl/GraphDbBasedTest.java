@@ -8,7 +8,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
-public class GraphDbBasedTest {
+public abstract class GraphDbBasedTest {
 	protected static GraphDatabaseService db;
 	protected Transaction transaction;
 

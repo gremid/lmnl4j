@@ -12,12 +12,14 @@ public class LayerTest extends XmlTest {
 	@Test
 	public void extractLayer() throws Exception {
 		Document document = documents.get(0);
+
+		XmlAnnotationNode text = document.selectSingleNode("//*[local-name(.) = 'text']");
+		
 		Document layer = nodeFactory.createNode(Document.class, AnnotationNode.SELF_OWNED);
 		db.getReferenceNode().createRelationshipTo(layer.getUnderlyingNode(), TEST_REL);
+		text.multiply(new MirrorPredicate(), layer);
 
-		document.selectSingleNode("//*[local-name(.) = 'text']").multiply(new MirrorPredicate(), layer);
-
-		print(document);
+		print(text);
 		print(layer);
 
 	}

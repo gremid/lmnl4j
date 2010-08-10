@@ -10,6 +10,8 @@ import javax.xml.stream.XMLStreamWriter;
 import org.lmnl.AnnotationNode;
 import org.lmnl.AnnotationNodeFactory;
 import org.neo4j.graphdb.Node;
+import org.neo4j.helpers.Predicate;
+import org.neo4j.helpers.collection.FilteringIterable;
 
 public class Element extends XmlNamedAnnotationNode {
 	public static final String NODE_TYPE = "xml:element";
@@ -18,14 +20,14 @@ public class Element extends XmlNamedAnnotationNode {
 		super(nodeFactory, node, owner);
 	}
 
-	public Iterable<Attribute> getAttributes() {
-		List<Attribute> attributes = new LinkedList<Attribute>();
-		for (AnnotationNode child : this) {
-			if (child instanceof Attribute) {
-				attributes.add((Attribute) child);
+	public Iterable<AnnotationNode> getAttributes() {
+		return new FilteringIterable<AnnotationNode>((Iterable<AnnotationNode>) this, new Predicate<AnnotationNode>() {
+
+			@Override
+			public boolean accept(AnnotationNode item) {
+				return (item instanceof Attribute);
 			}
-		}
-		return attributes;
+		});
 	}
 
 	@Override
@@ -37,6 +39,11 @@ public class Element extends XmlNamedAnnotationNode {
 			}
 		}
 		return str.toString();
+	}
+	
+	@Override
+	public String toString() {
+		return "<" + getName() + "/> [" + getUnderlyingNode() + "]";
 	}
 
 	@Override
