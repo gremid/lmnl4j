@@ -13,15 +13,15 @@ public class LayerTest extends XmlTest {
 	public void extractLayer() throws Exception {
 		Document document = documents.get(0);
 
-		XmlAnnotationNode text = document.selectSingleNode("//*[local-name(.) = 'text']");
-		
-		Document layer = nodeFactory.createNode(Document.class, AnnotationNode.SELF_OWNED);
+		XmlAnnotationNode text = (XmlAnnotationNode) document.newXPathContext().selectSingleNode(
+				"//*[local-name(.) = 'text']");
+
+		Document layer = nodeFactory.createNode(Document.class);
 		db.getReferenceNode().createRelationshipTo(layer.getUnderlyingNode(), TEST_REL);
 		text.multiply(new MirrorPredicate(), layer);
-
-		print(text);
+		
 		print(layer);
-
+		print(text);
 	}
 
 	private static class MirrorPredicate implements Predicate<AnnotationNode> {

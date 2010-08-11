@@ -10,8 +10,8 @@ import org.neo4j.graphdb.Node;
 public class Text extends XmlAnnotationNode {
 	public static final String NODE_TYPE = "lmnl:text";
 
-	public Text(AnnotationNodeFactory nodeFactory, Node node, long owner) {
-		super(nodeFactory, node, owner);
+	public Text(AnnotationNodeFactory nodeFactory, Node node, AnnotationNode root) {
+		super(nodeFactory, node, root);
 	}
 
 	public String getContent() {

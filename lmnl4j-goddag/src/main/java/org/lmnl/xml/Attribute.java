@@ -7,8 +7,8 @@ import org.neo4j.graphdb.Node;
 public class Attribute extends XmlNamedAnnotationNode {
 	public static final String NODE_TYPE = "xml:attribute";
 
-	public Attribute(AnnotationNodeFactory nodeFactory, Node node, long owner) {
-		super(nodeFactory, node, owner);
+	public Attribute(AnnotationNodeFactory nodeFactory, Node node, AnnotationNode root) {
+		super(nodeFactory, node, root);
 	}
 
 	public void setValue(String value) {

@@ -11,9 +11,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.jaxen.JaxenException;
 import org.junit.Before;
-import org.lmnl.AnnotationNode;
 import org.lmnl.GraphDbBasedTest;
 import org.neo4j.graphdb.RelationshipType;
 
@@ -26,7 +24,7 @@ public abstract class XmlTest extends GraphDbBasedTest {
 	protected List<Document> documents;
 
 	@Before
-	public void readTestResources() throws XMLStreamException, JaxenException, IOException {
+	public void readTestResources() throws XMLStreamException, IOException {
 		inputFactory = XMLInputFactory.newInstance();
 		
 		outputFactory = XMLOutputFactory.newInstance();
@@ -39,7 +37,7 @@ public abstract class XmlTest extends GraphDbBasedTest {
 			InputStream xmlStream = null;
 			XMLStreamReader xmlStreamReader = null;
 			try {
-				Document document = nodeFactory.createNode(Document.class, AnnotationNode.SELF_OWNED);
+				Document document = nodeFactory.createNode(Document.class);
 				db.getReferenceNode().createRelationshipTo(document.getUnderlyingNode(), TEST_REL);
 
 				xmlStream = getClass().getResourceAsStream(xmlResource);

@@ -6,10 +6,11 @@ public interface AnnotationNodeFactory {
 
 	boolean supports(Node item);
 
-	<T extends AnnotationNode> T createNode(Class<T> clazz, long owner);
+	<T extends AnnotationNode> T createNode(Class<T> clazz);
+
+	<T extends AnnotationNode> T createNode(Class<T> clazz, AnnotationNode root);	
 
 	AnnotationNode cloneNode(AnnotationNode child);
 
-	AnnotationNode wrapNode(Node node, long owner);
-
+	AnnotationNode wrapNode(Node node, AnnotationNode root);
 }

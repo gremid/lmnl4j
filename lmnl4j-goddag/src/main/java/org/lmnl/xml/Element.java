@@ -12,22 +12,30 @@ import org.lmnl.AnnotationNodeFactory;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.FilteringIterable;
+import org.neo4j.helpers.collection.IterableWrapper;
 
 public class Element extends XmlNamedAnnotationNode {
 	public static final String NODE_TYPE = "xml:element";
 
-	public Element(AnnotationNodeFactory nodeFactory, Node node, long owner) {
-		super(nodeFactory, node, owner);
+	public Element(AnnotationNodeFactory nodeFactory, Node node, AnnotationNode root) {
+		super(nodeFactory, node, root);
 	}
 
-	public Iterable<AnnotationNode> getAttributes() {
-		return new FilteringIterable<AnnotationNode>((Iterable<AnnotationNode>) this, new Predicate<AnnotationNode>() {
+	public Iterable<Attribute> getAttributes() {
+		return new IterableWrapper<Attribute, AnnotationNode>(new FilteringIterable<AnnotationNode>(
+				(Iterable<AnnotationNode>) this, new Predicate<AnnotationNode>() {
+
+					@Override
+					public boolean accept(AnnotationNode item) {
+						return (item instanceof Attribute);
+					}
+				})) {
 
 			@Override
-			public boolean accept(AnnotationNode item) {
-				return (item instanceof Attribute);
+			protected Attribute underlyingObjectToObject(AnnotationNode object) {
+				return (Attribute) object;
 			}
-		});
+		};
 	}
 
 	@Override
@@ -40,7 +48,7 @@ public class Element extends XmlNamedAnnotationNode {
 		}
 		return str.toString();
 	}
-	
+
 	@Override
 	public String toString() {
 		return "<" + getName() + "/> [" + getUnderlyingNode() + "]";
@@ -50,7 +58,7 @@ public class Element extends XmlNamedAnnotationNode {
 	public void exportToStream(XMLStreamWriter destination) throws XMLStreamException {
 		boolean hasChildren = false;
 		List<Attribute> attributes = new LinkedList<Attribute>();
-		for (AnnotationNode child : getChildNodes()) {
+		for (XmlAnnotationNode child : XmlAnnotationNodeFilter.filter(getChildNodes())) {
 			if (child instanceof Attribute) {
 				attributes.add((Attribute) child);
 			} else {
@@ -90,8 +98,8 @@ public class Element extends XmlNamedAnnotationNode {
 			}
 
 		}
-		exportToStream(getChildNodes(), destination);
 		if (hasChildren) {
+			exportToStream(getChildNodes(), destination);
 			destination.writeEndElement();
 		}
 	}

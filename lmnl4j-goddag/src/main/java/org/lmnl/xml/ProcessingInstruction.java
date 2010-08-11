@@ -10,8 +10,8 @@ import org.neo4j.graphdb.Node;
 public class ProcessingInstruction extends XmlAnnotationNode {
 	public static final String NODE_TYPE = "xml:pi";
 
-	public ProcessingInstruction(AnnotationNodeFactory nodeFactory, Node node, long owner) {
-		super(nodeFactory, node, owner);
+	public ProcessingInstruction(AnnotationNodeFactory nodeFactory, Node node, AnnotationNode root) {
+		super(nodeFactory, node, root);
 	}
 
 	public String getTarget() {
@@ -38,7 +38,7 @@ public class ProcessingInstruction extends XmlAnnotationNode {
 	public String toString() {
 		return "<?" + getTarget() + "> [" + getUnderlyingNode() + "]";
 	}
-	
+
 	@Override
 	public void exportToStream(XMLStreamWriter destination) throws XMLStreamException {
 		String piData = getData();

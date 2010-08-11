@@ -1,6 +1,5 @@
 package org.lmnl.xml;
 
-import java.util.List;
 import java.util.Stack;
 
 import javax.xml.stream.XMLStreamConstants;
@@ -8,50 +7,35 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.jaxen.JaxenException;
+import org.apache.commons.jxpath.JXPathContext;
+import org.apache.commons.jxpath.ri.JXPathContextReferenceImpl;
 import org.lmnl.AnnotationNode;
 import org.lmnl.AnnotationNodeFactory;
 import org.neo4j.graphdb.Node;
 
 public abstract class XmlAnnotationNode extends AnnotationNode {
-	public XmlAnnotationNode(AnnotationNodeFactory nodeFactory, Node node, long owner) {
-		super(nodeFactory, node, owner);
+	static {
+		JXPathContextReferenceImpl.addNodePointerFactory(new XmlAnnotationNodePointerFactory());
 	}
 
+	public XmlAnnotationNode(AnnotationNodeFactory nodeFactory, Node node, AnnotationNode root) {
+		super(nodeFactory, node, root);
+	}
+
+	public JXPathContext newXPathContext() {
+		return JXPathContext.newContext(this);
+	}
+	
 	public String getTextContent() {
 		StringBuilder text = new StringBuilder();
-		for (AnnotationNode child : this) {
-			if (child instanceof XmlAnnotationNode) {
-				text.append(((XmlAnnotationNode) child).getTextContent());
-			}
+		for (XmlAnnotationNode child : XmlAnnotationNodeFilter.filter(this)) {
+			text.append(child.getTextContent());
 		}
 		return text.toString();
 	}
 
-	public XmlAnnotationNodeXPath xpath(String xpath) throws JaxenException {
-		// FIXME: Jaxen does not obey document order in returning result node sets!
-		return new XmlAnnotationNodeXPath(xpath, getOwner());
-	}
-	@SuppressWarnings("unchecked")
-	public List<XmlAnnotationNode> selectAllNodes(XmlAnnotationNodeXPath xpath) throws JaxenException {
-		return xpath.selectNodes(this);
-	}
-
-	public List<XmlAnnotationNode> selectAllNodes(String xpath) throws JaxenException {
-		return selectAllNodes(xpath(xpath));
-	}
-
-	public XmlAnnotationNode selectSingleNode(XmlAnnotationNodeXPath xpath) throws JaxenException {
-		return (XmlAnnotationNode) xpath.selectSingleNode(this);
-	}
-
-	public XmlAnnotationNode selectSingleNode(String xpath) throws JaxenException {
-		return selectSingleNode(xpath(xpath));
-	}
-
 	public void importFromStream(XMLStreamReader source) throws XMLStreamException {
 		final XmlAnnotationNodeFactory factory = (XmlAnnotationNodeFactory) getNodeFactory();
-		final long owner = getOwner();
 
 		StringBuilder characterBuf = null;
 		Stack<XmlAnnotationNode> parents = new Stack<XmlAnnotationNode>();
@@ -61,18 +45,18 @@ public abstract class XmlAnnotationNode extends AnnotationNode {
 			switch (source.getEventType()) {
 			case XMLStreamConstants.START_ELEMENT:
 				if (characterBuf != null) {
-					Text text = factory.createNode(Text.class, owner);
+					Text text = factory.createNode(Text.class, getRoot());
 					text.setContent(characterBuf.toString());
 
 					parents.peek().add(text);
 					characterBuf = null;
 				}
 				String ns = defaultNamespace(source.getNamespaceURI(), "");
-				Element element = factory.createNode(Element.class, owner);
+				Element element = factory.createNode(Element.class, getRoot());
 				element.setNamespace(ns);
 				element.setName(source.getLocalName());
 				for (int ac = 0; ac < source.getAttributeCount(); ac++) {
-					Attribute attr = factory.createNode(Attribute.class, owner);
+					Attribute attr = factory.createNode(Attribute.class, getRoot());
 					attr.setNamespace(defaultNamespace(source.getAttributeNamespace(ac), ns));
 					attr.setName(source.getAttributeLocalName(ac));
 					attr.setValue(source.getAttributeValue(ac));
@@ -83,7 +67,7 @@ public abstract class XmlAnnotationNode extends AnnotationNode {
 				break;
 			case XMLStreamConstants.END_ELEMENT:
 				if (characterBuf != null) {
-					Text text = factory.createNode(Text.class, owner);
+					Text text = factory.createNode(Text.class, getRoot());
 					text.setContent(characterBuf.toString());
 
 					parents.peek().add(text);
@@ -100,13 +84,13 @@ public abstract class XmlAnnotationNode extends AnnotationNode {
 				characterBuf.append(source.getText());
 				break;
 			case XMLStreamConstants.COMMENT:
-				Comment comment = factory.createNode(Comment.class, owner);
+				Comment comment = factory.createNode(Comment.class, getRoot());
 				comment.setComment(source.getText());
 
 				parents.peek().add(comment);
 				break;
 			case XMLStreamConstants.PROCESSING_INSTRUCTION:
-				ProcessingInstruction pi = factory.createNode(ProcessingInstruction.class, owner);
+				ProcessingInstruction pi = factory.createNode(ProcessingInstruction.class, getRoot());
 				pi.setTarget(source.getPITarget());
 				pi.setData(source.getPIData());
 
@@ -121,13 +105,11 @@ public abstract class XmlAnnotationNode extends AnnotationNode {
 	}
 
 	public static void exportToStream(Iterable<AnnotationNode> sources, XMLStreamWriter destination) throws XMLStreamException {
-		for (AnnotationNode node : sources) {
+		for (XmlAnnotationNode node : XmlAnnotationNodeFilter.filter(sources)) {
 			if (node instanceof Attribute) {
 				continue;
-			} else if (node instanceof XmlAnnotationNode) {
-				((XmlAnnotationNode) node).exportToStream(destination);
 			}
-
+			node.exportToStream(destination);
 		}
 	}
 

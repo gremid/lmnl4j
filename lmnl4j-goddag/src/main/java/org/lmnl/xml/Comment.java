@@ -10,8 +10,8 @@ import org.neo4j.graphdb.Node;
 public class Comment extends XmlAnnotationNode {
 	public static final String NODE_TYPE = "xml:comment";
 
-	public Comment(AnnotationNodeFactory nodeFactory, Node node, long owner) {
-		super(nodeFactory, node, owner);
+	public Comment(AnnotationNodeFactory nodeFactory, Node node, AnnotationNode root) {
+		super(nodeFactory, node, root);
 	}
 
 	public void setComment(String value) {

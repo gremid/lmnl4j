@@ -6,8 +6,8 @@ import org.neo4j.graphdb.Node;
 
 public abstract class XmlNamedAnnotationNode extends XmlAnnotationNode {
 	
-	public XmlNamedAnnotationNode(AnnotationNodeFactory nodeFactory, Node node, long owner) {
-		super(nodeFactory, node, owner);
+	public XmlNamedAnnotationNode(AnnotationNodeFactory nodeFactory, Node node, AnnotationNode root) {
+		super(nodeFactory, node, root);
 	}
 
 	public String getNamespace() {

@@ -9,12 +9,13 @@ import org.neo4j.graphdb.Node;
 
 public class NodePropertyBasedAnnotationNodeFactory implements AnnotationNodeFactory {
 	private static final String NODE_TYPE_PROPERTY = "nodeType";
-	
+
 	protected final GraphDatabaseService db;
 	private final Map<String, Class<? extends AnnotationNode>> nodeTypes;
 	private final Map<Class<? extends AnnotationNode>, String> nodeTypesReversed;
 
-	public NodePropertyBasedAnnotationNodeFactory(GraphDatabaseService db, Map<String, Class<? extends AnnotationNode>> nodeTypes) {
+	public NodePropertyBasedAnnotationNodeFactory(GraphDatabaseService db,
+			Map<String, Class<? extends AnnotationNode>> nodeTypes) {
 		this.db = db;
 		this.nodeTypes = nodeTypes;
 		this.nodeTypesReversed = new HashMap<Class<? extends AnnotationNode>, String>(nodeTypes.size());
@@ -28,32 +29,38 @@ public class NodePropertyBasedAnnotationNodeFactory implements AnnotationNodeFac
 		return item.hasProperty(NODE_TYPE_PROPERTY) && nodeTypes.keySet().contains(item.getProperty(NODE_TYPE_PROPERTY));
 	}
 
+	@Override
+	public <T extends AnnotationNode> T createNode(Class<T> clazz) {
+		return createNode(clazz, null);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends AnnotationNode> T createNode(Class<T> clazz, long owner) {
+	public <T extends AnnotationNode> T createNode(Class<T> clazz, AnnotationNode root) {
 		if (!nodeTypesReversed.containsKey(clazz)) {
 			throw new IllegalArgumentException(clazz.toString());
 		}
 		Node node = db.createNode();
 		setNodeType(node, nodeTypesReversed.get(clazz));
-		return (T) wrapNode(node, owner);
+		return (T) wrapNode(node, root);
 	}
 
 	@Override
 	public AnnotationNode cloneNode(AnnotationNode child) {
-		AnnotationNode cloned = createNode(child.getClass(), child.getOwner());
+		AnnotationNode cloned = createNode(child.getClass(), child.getRoot());
 		cloned.copyProperties(child);
 		return cloned;
 	}
 
 	@Override
-	public AnnotationNode wrapNode(Node node, long owner) {
+	public AnnotationNode wrapNode(Node node, AnnotationNode root) {
 		if (!supports(node)) {
 			throw new IllegalArgumentException(node.toString());
 		}
 		try {
-			return nodeTypes.get(getNodeType(node)).getConstructor(AnnotationNodeFactory.class, Node.class, long.class)
-					.newInstance(this, node, owner);
+			return nodeTypes.get(getNodeType(node))
+					.getConstructor(AnnotationNodeFactory.class, Node.class, AnnotationNode.class)
+					.newInstance(this, node, root);
 		} catch (SecurityException e) {
 			throw new AnnotationNodeFactoryException(e);
 		} catch (NoSuchMethodException e) {
