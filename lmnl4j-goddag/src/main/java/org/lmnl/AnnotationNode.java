@@ -7,11 +7,14 @@ import static org.lmnl.AnnotationTree.SIBLING;
 import static org.neo4j.graphdb.Direction.INCOMING;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -33,11 +36,20 @@ public class AnnotationNode extends NodeWrapperImpl implements Iterable<Annotati
 	private final AnnotationNode root;
 	private final TraversalDescription traversal;
 
+	private TraversalDescription ancestors;
+	private TraversalDescription descendants;
+	private TraversalDescription nextSiblings;
+	private TraversalDescription previousSiblings;
+
 	public AnnotationNode(AnnotationNodeFactory nodeFactory, Node node, AnnotationNode root) {
 		super(node);
 		this.nodeFactory = nodeFactory;
 		this.root = (root == null ? this : root);
-		this.traversal = Traversal.description().filter(new NodeFactorySupportedPredicate());
+		this.traversal = Traversal.description().depthFirst().filter(new NodeFactorySupportedPredicate());
+		this.ancestors = traversal.expand(new RootedRelationshipExpander(CHILD, INCOMING));
+		this.descendants = traversal.expand(new RootedRelationshipExpander(CHILD, OUTGOING));
+		this.nextSiblings = traversal.expand(new RootedRelationshipExpander(SIBLING, OUTGOING));
+		this.previousSiblings = traversal.expand(new RootedRelationshipExpander(SIBLING, INCOMING));
 	}
 
 	public AnnotationNodeFactory getNodeFactory() {
@@ -59,18 +71,19 @@ public class AnnotationNode extends NodeWrapperImpl implements Iterable<Annotati
 		return new NodeFactoryBasedWrapper(traversal.traverse(getUnderlyingNode()).nodes());
 	}
 
+	public Iterable<AnnotationNode> walk() {
+		return new NodeFactoryBasedWrapper(traversal.expand(new DocumentOrderRelationshipExpander())
+				.traverse(getUnderlyingNode()).nodes());
+	}
+
 	public AnnotationNode getNextSibling() {
-		Iterator<AnnotationNode> siblings = traverse(traversal//
-				.expand(new RootedRelationshipExpander(SIBLING, OUTGOING))//
-				.prune(Traversal.pruneAfterDepth(1))//
+		Iterator<AnnotationNode> siblings = traverse(nextSiblings.prune(Traversal.pruneAfterDepth(1))//
 				.filter(Traversal.returnAllButStartNode())).iterator();
 		return (siblings.hasNext() ? siblings.next() : null);
 	}
 
 	public AnnotationNode getPreviousSibling() {
-		Iterator<AnnotationNode> siblings = traverse(traversal//
-				.expand(new RootedRelationshipExpander(SIBLING, INCOMING))//
-				.prune(Traversal.pruneAfterDepth(1))//
+		Iterator<AnnotationNode> siblings = traverse(previousSiblings.prune(Traversal.pruneAfterDepth(1))//
 				.filter(Traversal.returnAllButStartNode())).iterator();
 		return (siblings.hasNext() ? siblings.next() : null);
 	}
@@ -91,14 +104,56 @@ public class AnnotationNode extends NodeWrapperImpl implements Iterable<Annotati
 		return (lastChildren.hasNext() ? lastChildren.next() : null);
 	}
 
+	public Iterable<AnnotationNode> getPrecedingNodes() {
+		final Set<Node> ancestorNodes = new HashSet<Node>();
+		for (Node ancestor : ancestors.filter(Traversal.returnAllButStartNode()).traverse(getUnderlyingNode()).nodes()) {
+			ancestorNodes.add(ancestor);
+		}
+
+		return new FilteringIterable<AnnotationNode>(getRoot().traverse(
+				traversal.expand(new DocumentOrderRelationshipExpander())), new Predicate<AnnotationNode>() {
+			boolean afterThisNode = false;
+
+			@Override
+			public boolean accept(AnnotationNode item) {
+				if (AnnotationNode.this.equals(item)) {
+					afterThisNode = true;
+					return false;
+				}
+				return (!afterThisNode && !ancestorNodes.contains(item.getUnderlyingNode()));
+			}
+		});
+	}
+
+	public Iterable<AnnotationNode> getFollowingNodes() {
+		final Set<Node> descendantNodes = new HashSet<Node>();
+		for (Node descendant : descendants.filter(Traversal.returnAllButStartNode()).traverse(getUnderlyingNode()).nodes()) {
+			descendantNodes.add(descendant);
+		}
+
+		return new FilteringIterable<AnnotationNode>(getRoot().traverse(
+				traversal.expand(new DocumentOrderRelationshipExpander())), new Predicate<AnnotationNode>() {
+
+			boolean afterThisNode = false;
+
+			@Override
+			public boolean accept(AnnotationNode item) {
+				if (AnnotationNode.this.equals(item)) {
+					afterThisNode = true;
+					return false;
+				}
+				return (afterThisNode && !descendantNodes.contains(item.getUnderlyingNode()));
+			}
+		});
+	}
+
 	@Override
 	public Iterator<AnnotationNode> iterator() {
 		AnnotationNode firstChild = getFirstChild();
 		if (firstChild == null) {
 			return EMPTY_RESULT_SET.iterator();
 		}
-		return firstChild.traverse(traversal//
-				.depthFirst().expand(new RootedRelationshipExpander(SIBLING, OUTGOING))).iterator();
+		return firstChild.traverse(nextSiblings).iterator();
 	}
 
 	public Iterable<AnnotationNode> getChildNodes() {
@@ -115,8 +170,7 @@ public class AnnotationNode extends NodeWrapperImpl implements Iterable<Annotati
 	}
 
 	public Iterable<AnnotationNode> getAncestorNodes() {
-		return traverse(traversal.depthFirst().expand(new RootedRelationshipExpander(CHILD, INCOMING))
-				.filter(Traversal.returnAllButStartNode()));
+		return traverse(ancestors.filter(Traversal.returnAllButStartNode()));
 	}
 
 	public AnnotationNode add(AnnotationNode newChild) {
@@ -142,10 +196,7 @@ public class AnnotationNode extends NodeWrapperImpl implements Iterable<Annotati
 			if (lastChild != null) {
 				Node lastChildNode = lastChild.getUnderlyingNode();
 				AnnotationTree.setRootId(lastChildNode.createRelationshipTo(newChildNode, SIBLING), rootId);
-				Relationship lastRel = singleRootedRelationshipOf(lastChildNode, LAST, OUTGOING);
-				if (lastRel != null) {
-					lastRel.delete();
-				}
+				singleRootedRelationshipOf(lastChildNode, LAST, OUTGOING).delete();
 			}
 			AnnotationTree.setRootId(newChildNode.createRelationshipTo(getUnderlyingNode(), LAST), rootId);
 			AnnotationNode firstChild = getFirstChild();
@@ -173,8 +224,7 @@ public class AnnotationNode extends NodeWrapperImpl implements Iterable<Annotati
 				AnnotationTree.setRootId(getUnderlyingNode().createRelationshipTo(newChildNode, FIRST), rootId);
 			}
 		}
-		Relationship childRel = getUnderlyingNode().createRelationshipTo(newChildNode, CHILD);
-		AnnotationTree.setRootId(childRel, rootId);
+		AnnotationTree.setRootId(getUnderlyingNode().createRelationshipTo(newChildNode, CHILD), rootId);
 
 		return newChild;
 	}
@@ -190,8 +240,7 @@ public class AnnotationNode extends NodeWrapperImpl implements Iterable<Annotati
 		Relationship prev = singleRootedRelationshipOf(nodeToRemove, SIBLING, INCOMING);
 		Relationship next = singleRootedRelationshipOf(nodeToRemove, SIBLING, OUTGOING);
 		if (prev != null && next != null) {
-			Relationship newSiblingRel = prev.getStartNode().createRelationshipTo(next.getEndNode(), SIBLING);
-			AnnotationTree.setRootId(newSiblingRel, rootId);
+			AnnotationTree.setRootId(prev.getStartNode().createRelationshipTo(next.getEndNode(), SIBLING), rootId);
 		}
 		Node prevNode = null;
 		if (prev != null) {
@@ -200,20 +249,20 @@ public class AnnotationNode extends NodeWrapperImpl implements Iterable<Annotati
 		} else {
 			singleRootedRelationshipOf(nodeToRemove, FIRST, INCOMING).delete();
 			if (next != null) {
-				getUnderlyingNode().createRelationshipTo(next.getEndNode(), FIRST);
+				AnnotationTree.setRootId(getUnderlyingNode().createRelationshipTo(next.getEndNode(), FIRST), rootId);
 			}
 		}
-		
+
 		if (next != null) {
 			next.delete();
 		} else {
 			singleRootedRelationshipOf(nodeToRemove, LAST, OUTGOING).delete();
 			if (prevNode != null) {
-				prevNode.createRelationshipTo(getUnderlyingNode(), LAST);
+				AnnotationTree.setRootId(prevNode.createRelationshipTo(getUnderlyingNode(), LAST), rootId);
 			}
 		}
 		singleRootedRelationshipOf(nodeToRemove, CHILD, INCOMING).delete();
-		
+
 		if (recursive) {
 			for (AnnotationNode child : toRemove.getChildNodes()) {
 				toRemove.remove(child, recursive);
@@ -316,6 +365,54 @@ public class AnnotationNode extends NodeWrapperImpl implements Iterable<Annotati
 		@Override
 		public RelationshipExpander reversed() {
 			return new RootedRelationshipExpander(relationshipType, direction.reverse());
+		}
+	}
+
+	protected class DocumentOrderRelationshipExpander implements RelationshipExpander {
+		private final Direction direction;
+		private final long rootId;
+
+		public DocumentOrderRelationshipExpander() {
+			this(OUTGOING);
+		}
+
+		public DocumentOrderRelationshipExpander(Direction direction) {
+			this.direction = direction;
+			this.rootId = root.getUnderlyingNode().getId();
+		}
+
+		@Override
+		public Iterable<Relationship> expand(Node node) {
+			List<Relationship> expand = new ArrayList<Relationship>();
+
+			for (Relationship firstChildRel : node.getRelationships(FIRST, direction)) {
+				if (AnnotationTree.getRootId(firstChildRel) == rootId) {
+					expand.add(firstChildRel);
+				}
+			}
+
+			for (Relationship nextSiblingRel : node.getRelationships(SIBLING, direction)) {
+				if (AnnotationTree.getRootId(nextSiblingRel) == rootId) {
+					expand.add(nextSiblingRel);
+				}
+			}
+
+			for (Relationship lastChildRel : node.getRelationships(LAST, direction)) {
+				if (AnnotationTree.getRootId(lastChildRel) == rootId) {
+					expand.add(lastChildRel);
+				}
+
+			}
+
+			if (direction.equals(INCOMING)) {
+				Collections.reverse(expand);
+			}
+			return expand;
+		}
+
+		@Override
+		public RelationshipExpander reversed() {
+			return new DocumentOrderRelationshipExpander(direction.reverse());
 		}
 	}
 }

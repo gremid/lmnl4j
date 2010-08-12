@@ -4,7 +4,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
+import org.lmnl.AnnotationNode;
 import org.lmnl.xml.Element;
+import org.lmnl.xml.Text;
 import org.lmnl.xml.XmlAnnotationNode;
 import org.lmnl.xml.XmlAnnotationNodeFilter;
 
@@ -20,11 +22,23 @@ public abstract class MilestoneTranslator {
 
 	public void translate(XmlAnnotationNode from, XmlAnnotationNode to) {
 		for (MilestoneInterval interval : findIntervals(from)) {
-			XmlAnnotationNode start = (XmlAnnotationNode) interval.startMilestone().newXPathContext().selectSingleNode("following::text()");
+
+			XmlAnnotationNode start = null;
+			for (AnnotationNode succ : interval.start.getFollowingNodes()) {
+				if (succ instanceof Text) {
+					start = (XmlAnnotationNode) succ;
+					break;
+				}
+			}
 			if (start == null) {
 				continue;
 			}
-			XmlAnnotationNode end = (XmlAnnotationNode) interval.endMilestone().newXPathContext().selectSingleNode("preceding::text()");
+			XmlAnnotationNode end = null;
+			for (AnnotationNode pred : interval.end.getPrecedingNodes()) {
+				if (pred instanceof Text) {
+					end = (XmlAnnotationNode) pred;
+				}
+			}
 			if (end == null) {
 				continue;
 			}
@@ -47,9 +61,7 @@ public abstract class MilestoneTranslator {
 			start = (startAncestors.isEmpty() ? start : startAncestors.peek());
 			end = (endAncestors.isEmpty() ? end : endAncestors.peek());
 
-			Element element = to.getNodeFactory().createNode(Element.class);
-			element.setNamespace(namespace);
-			element.setName(name);
+			Element element = createTranslatedElement(to, interval);
 
 			boolean collect = false;
 			List<XmlAnnotationNode> childrenToMove = new LinkedList<XmlAnnotationNode>();
@@ -71,6 +83,25 @@ public abstract class MilestoneTranslator {
 		}
 	}
 
+	protected Element createTranslatedElement(XmlAnnotationNode in, MilestoneInterval forInterval) {
+		Element element = in.getNodeFactory().createNode(Element.class, in.getRoot());
+		element.setNamespace(namespace);
+		element.setName(name);
+		return element;
+	}
+
+	protected abstract Iterable<MilestoneInterval> findIntervals(XmlAnnotationNode from);
+
+	protected class MilestoneInterval {
+		Element start;
+		Element end;
+
+		protected MilestoneInterval(Element start, Element end) {
+			this.start = start;
+			this.end = end;
+		}
+	}
+
 	private Stack<XmlAnnotationNode> ancestorStack(XmlAnnotationNode node) {
 		Stack<XmlAnnotationNode> ancestors = new Stack<XmlAnnotationNode>();
 		for (XmlAnnotationNode ancestor : XmlAnnotationNodeFilter.filter(node.getAncestorNodes())) {
@@ -80,11 +111,4 @@ public abstract class MilestoneTranslator {
 
 	}
 
-	protected abstract Iterable<MilestoneInterval> findIntervals(XmlAnnotationNode from);
-
-	public interface MilestoneInterval {
-		public Element startMilestone();
-
-		public Element endMilestone();
-	}
 }
