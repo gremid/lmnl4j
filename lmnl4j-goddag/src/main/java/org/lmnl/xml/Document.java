@@ -1,8 +1,5 @@
 package org.lmnl.xml;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-
 import org.lmnl.AnnotationNode;
 import org.lmnl.AnnotationNodeFactory;
 import org.neo4j.graphdb.Node;
@@ -12,12 +9,5 @@ public class Document extends XmlAnnotationNode {
 
 	public Document(AnnotationNodeFactory nodeFactory, Node node, AnnotationNode root) {
 		super(nodeFactory, node, root);
-	}
-
-	@Override
-	public void exportToStream(XMLStreamWriter destination) throws XMLStreamException {
-		destination.writeStartDocument();
-		exportToStream(getChildNodes(), destination);
-		destination.writeEndDocument();
 	}
 }

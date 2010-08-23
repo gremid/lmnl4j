@@ -1,4 +1,4 @@
-package org.lmnl.xml;
+package org.lmnl.xml.xpath;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +19,14 @@ import org.apache.commons.jxpath.ri.model.NodeIterator;
 import org.apache.commons.jxpath.ri.model.NodePointer;
 import org.apache.commons.jxpath.ri.model.beans.NullPointer;
 import org.lmnl.AnnotationNode;
+import org.lmnl.xml.Attribute;
+import org.lmnl.xml.Comment;
+import org.lmnl.xml.Element;
+import org.lmnl.xml.ProcessingInstruction;
+import org.lmnl.xml.Text;
+import org.lmnl.xml.XmlAnnotationNode;
+import org.lmnl.xml.XmlAnnotationNodeFilter;
+import org.lmnl.xml.XmlNamedAnnotationNode;
 
 public class XmlAnnotationNodePointer extends NodePointer {
 

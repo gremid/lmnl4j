@@ -1,8 +1,5 @@
 package org.lmnl.xml;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-
 import org.lmnl.AnnotationNode;
 import org.lmnl.AnnotationNodeFactory;
 import org.neo4j.graphdb.Node;
@@ -37,16 +34,6 @@ public class ProcessingInstruction extends XmlAnnotationNode {
 	@Override
 	public String toString() {
 		return "<?" + getTarget() + "> [" + getUnderlyingNode() + "]";
-	}
-
-	@Override
-	public void exportToStream(XMLStreamWriter destination) throws XMLStreamException {
-		String piData = getData();
-		if (piData == null) {
-			destination.writeProcessingInstruction(getTarget());
-		} else {
-			destination.writeProcessingInstruction(getTarget(), piData);
-		}
 	}
 
 	@Override

@@ -13,6 +13,7 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.junit.Before;
 import org.lmnl.GraphDbBasedTest;
+import org.lmnl.xml.io.StaxUtil;
 import org.neo4j.graphdb.RelationshipType;
 
 public abstract class XmlTest extends GraphDbBasedTest {
@@ -43,7 +44,7 @@ public abstract class XmlTest extends GraphDbBasedTest {
 				xmlStream = getClass().getResourceAsStream(xmlResource);
 
 				xmlStreamReader = inputFactory.createXMLStreamReader(xmlStream);
-				document.importFromStream(xmlStreamReader);
+				StaxUtil.importFromStream(xmlStreamReader, document);
 				documents.add(document);
 			} finally {
 				if (xmlStreamReader != null) {
@@ -59,7 +60,7 @@ public abstract class XmlTest extends GraphDbBasedTest {
 	protected void print(XmlAnnotationNode node) throws Exception {
 		XMLStreamWriter writer = outputFactory.createXMLStreamWriter(System.out);
 		writer.setPrefix("tei", "http://www.tei-c.org/ns/1.0");
-		node.exportToStream(writer);
+		StaxUtil.exportToStream(node, writer);
 		
 		System.out.println();
 

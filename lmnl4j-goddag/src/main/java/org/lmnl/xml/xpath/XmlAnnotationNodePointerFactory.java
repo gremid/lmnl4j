@@ -1,4 +1,4 @@
-package org.lmnl.xml;
+package org.lmnl.xml.xpath;
 
 import java.util.Locale;
 
@@ -7,6 +7,8 @@ import org.apache.commons.jxpath.ri.model.NodePointer;
 import org.apache.commons.jxpath.ri.model.NodePointerFactory;
 import org.apache.commons.jxpath.ri.model.dom.DOMPointerFactory;
 import org.lmnl.AnnotationNode;
+import org.lmnl.xml.XmlAnnotationNode;
+import org.lmnl.xml.XmlNamedAnnotationNode;
 
 public class XmlAnnotationNodePointerFactory implements NodePointerFactory {
 	public static final int ORDER = (DOMPointerFactory.DOM_POINTER_FACTORY_ORDER - 1);

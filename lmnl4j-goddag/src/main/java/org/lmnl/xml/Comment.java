@@ -1,8 +1,5 @@
 package org.lmnl.xml;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-
 import org.lmnl.AnnotationNode;
 import org.lmnl.AnnotationNodeFactory;
 import org.neo4j.graphdb.Node;
@@ -26,11 +23,6 @@ public class Comment extends XmlAnnotationNode {
 	public String toString() {
 		return "<!-- " + getComment() + " --> [" + getUnderlyingNode() + "]";
 	}
-	@Override
-	public void exportToStream(XMLStreamWriter destination) throws XMLStreamException {
-		destination.writeComment(getComment());
-	}
-
 	@Override
 	public void copyProperties(AnnotationNode other) {
 		super.copyProperties(other);
