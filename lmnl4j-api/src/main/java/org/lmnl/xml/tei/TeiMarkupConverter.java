@@ -30,15 +30,15 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.SortedMap;
 
-import org.lmnl.LmnlAnnotation;
-import org.lmnl.LmnlDocument;
-import org.lmnl.LmnlLayer;
-import org.lmnl.LmnlRange;
-import org.lmnl.base.DefaultLmnlAnnotation;
+import org.lmnl.Annotation;
+import org.lmnl.Document;
+import org.lmnl.Layer;
+import org.lmnl.Range;
+import org.lmnl.base.DefaultAnnotation;
 import org.lmnl.util.OverlapIndexer;
-import org.lmnl.xml.LmnlXmlUtils;
-import org.lmnl.xml.XmlAttribute;
-import org.lmnl.xml.XmlElementAnnotation;
+import org.lmnl.xml.XMLUtils;
+import org.lmnl.xml.XMLAttribute;
+import org.lmnl.xml.XMLElement;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -54,7 +54,7 @@ import com.google.common.collect.Iterables;
  * @author <a href="http://gregor.middell.net/" title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class TeiMarkupConverter {
+public class TEIMarkupConverter {
 	private static final URI TEI_NS = URI.create("http://www.tei-c.org/ns/1.0");
 	private boolean convertLineBreaks = true;
 	private boolean convertPageBreaks = true;
@@ -108,7 +108,7 @@ public class TeiMarkupConverter {
 	 * @param layer
 	 *                the layer whose contents shall be converted
 	 */
-	public void convert(LmnlLayer layer) {
+	public void convert(Layer layer) {
 		if (convertLineBreaks) {
 			convertSimpleMilestones(layer, "lb", "line");
 		}
@@ -123,26 +123,26 @@ public class TeiMarkupConverter {
 		}
 	}
 
-	private void convertSimpleMilestones(LmnlLayer layer, String msElementName, String elementName) {
-		final DefaultLmnlAnnotation covering = layer.add(LmnlDocument.LMNL_PREFIX, "all", null, new LmnlRange(0, layer
-				.getText().length()), DefaultLmnlAnnotation.class);
+	private void convertSimpleMilestones(Layer layer, String msElementName, String elementName) {
+		final DefaultAnnotation covering = layer.add(Document.LMNL_PREFIX, "all", null, new Range(0, layer
+				.getText().length()), DefaultAnnotation.class);
 		final TeiElementPredicate msPredicate = new TeiElementPredicate(msElementName);
 
-		Iterable<LmnlAnnotation> ranges = Iterables.concat(Iterables.filter(layer, msPredicate),
+		Iterable<Annotation> ranges = Iterables.concat(Iterables.filter(layer, msPredicate),
 				Collections.singletonList(covering));
 
-		SortedMap<LmnlRange, List<LmnlAnnotation>> msIndex = new OverlapIndexer(msPredicate).apply(ranges);
-		for (LmnlRange segment : msIndex.keySet()) {
-			for (LmnlAnnotation milestone : msIndex.get(segment)) {
+		SortedMap<Range, List<Annotation>> msIndex = new OverlapIndexer(msPredicate).apply(ranges);
+		for (Range segment : msIndex.keySet()) {
+			for (Annotation milestone : msIndex.get(segment)) {
 				if (milestone.equals(covering)) {
 					continue;
 				}
 				if (milestone.address().start == segment.start) {
-					final LmnlAnnotation element = layer.add(LmnlDocument.LMNL_PREFIX, elementName, null,
-							new LmnlRange(segment), XmlElementAnnotation.class);
-					for (XmlElementAnnotation annotation : Iterables.filter(milestone,
-							XmlElementAnnotation.class)) {
-						element.add(annotation, XmlElementAnnotation.class);
+					final Annotation element = layer.add(Document.LMNL_PREFIX, elementName, null,
+							new Range(segment), XMLElement.class);
+					for (XMLElement annotation : Iterables.filter(milestone,
+							XMLElement.class)) {
+						element.add(annotation, XMLElement.class);
 					}
 					layer.remove(milestone);
 				}
@@ -152,25 +152,25 @@ public class TeiMarkupConverter {
 		layer.remove(covering);
 	}
 
-	private void convertSpanningElements(LmnlLayer layer) {
+	private void convertSpanningElements(Layer layer) {
 		// indexing of identifyable ranges
-		final Map<URI, LmnlAnnotation> ids = new HashMap<URI, LmnlAnnotation>();
-		for (LmnlAnnotation annotation : layer) {
+		final Map<URI, Annotation> ids = new HashMap<URI, Annotation>();
+		for (Annotation annotation : layer) {
 			if (annotation.getId() != null) {
 				ids.put(annotation.getId(), annotation);
 			}
 		}
 
 		// collecting spanning elements and their new ranges
-		final Map<XmlElementAnnotation, LmnlRange> spans = new HashMap<XmlElementAnnotation, LmnlRange>();
-		for (XmlElementAnnotation range : layer.select(XmlElementAnnotation.class)) {
+		final Map<XMLElement, Range> spans = new HashMap<XMLElement, Range>();
+		for (XMLElement range : layer.select(XMLElement.class)) {
 			String localName = range.getLocalName();
 			if (!localName.endsWith("Span") && !localName.equals("index")) {
 				continue;
 			}
 			try {
-				final XmlAttribute to = Iterables.find(range.getAttributes(), new Predicate<XmlAttribute>() {
-					public boolean apply(XmlAttribute input) {
+				final XMLAttribute to = Iterables.find(range.getAttributes(), new Predicate<XMLAttribute>() {
+					public boolean apply(XMLAttribute input) {
 						return "spanTo".equals(input.localName) && (input.value != null);
 					}
 				});
@@ -178,31 +178,31 @@ public class TeiMarkupConverter {
 					continue;
 				}
 				
-				final LmnlAnnotation end = ids.get(new URI(to.value));
+				final Annotation end = ids.get(new URI(to.value));
 				if (end == null) {
 					continue;
 				}
 
-				spans.put(range, new LmnlRange(range.address().start, end.address().start));
+				spans.put(range, new Range(range.address().start, end.address().start));
 			} catch (NoSuchElementException e) {
 			} catch (URISyntaxException e) {
 			}
 		}
 		// transformation of spanning elements
-		for (Map.Entry<XmlElementAnnotation, LmnlRange> span : spans.entrySet()) {
-			final XmlElementAnnotation sa = span.getKey();
+		for (Map.Entry<XMLElement, Range> span : spans.entrySet()) {
+			final XMLElement sa = span.getKey();
 			String localName = sa.getLocalName();
 			if (localName.endsWith("Span")) {
 				localName = localName.substring(0, localName.length() - 4);
 			}
 			
-			final XmlElementAnnotation na = layer.add(sa.getPrefix(), localName, sa.getText(), span.getValue(), XmlElementAnnotation.class);
-			LmnlXmlUtils.copyProperties(sa, na);
+			final XMLElement na = layer.add(sa.getPrefix(), localName, sa.getText(), span.getValue(), XMLElement.class);
+			XMLUtils.copyProperties(sa, na);
 			layer.remove(sa);
 		}
 	}
 
-	private static class TeiElementPredicate implements Predicate<LmnlAnnotation> {
+	private static class TeiElementPredicate implements Predicate<Annotation> {
 
 		private String localName;
 
@@ -210,7 +210,7 @@ public class TeiMarkupConverter {
 			this.localName = localName;
 		}
 
-		public boolean apply(LmnlAnnotation input) {
+		public boolean apply(Annotation input) {
 			if (!TEI_NS.equals(input.getNamespace())) {
 				return false;
 			}

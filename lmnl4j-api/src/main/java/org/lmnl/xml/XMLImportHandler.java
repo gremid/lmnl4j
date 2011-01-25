@@ -1,4 +1,4 @@
-package org.lmnl.xml.sax;
+package org.lmnl.xml;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -8,23 +8,20 @@ import java.util.Stack;
 
 import javax.xml.XMLConstants;
 
-import org.lmnl.LmnlDocument;
-import org.lmnl.LmnlRange;
-import org.lmnl.xml.XmlElementAnnotation;
-import org.lmnl.xml.XPathAddress;
-import org.lmnl.xml.XmlAttribute;
+import org.lmnl.Document;
+import org.lmnl.Range;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class LmnlBuildingDefaultHandler extends DefaultHandler {
-	private LmnlDocument document;
+public class XMLImportHandler extends DefaultHandler {
+	private Document document;
 
 	private StringBuilder contentBuf;
 	private Stack<StartedAnnotation> openElements;
 	private Stack<Integer> nodePosition;
 
-	public LmnlBuildingDefaultHandler(LmnlDocument document) {
+	public XMLImportHandler(Document document) {
 		this.document = document;
 	}
 
@@ -65,7 +62,7 @@ public class LmnlBuildingDefaultHandler extends DefaultHandler {
 			document.addNamespace(prefix, ns);
 		}
 		
-		final Set<XmlAttribute> attributes = new HashSet<XmlAttribute>();
+		final Set<XMLAttribute> attributes = new HashSet<XMLAttribute>();
 		for (int ac = 0; ac < attrs.getLength(); ac++) {
 			String attrQName = attrs.getQName(ac);
 			String attrUri = attrs.getURI(ac);
@@ -86,21 +83,21 @@ public class LmnlBuildingDefaultHandler extends DefaultHandler {
 			final String attrLocalName = attrs.getLocalName(ac);
 			final String attrValue = attrs.getValue(ac);
 
-			attributes.add(new XmlAttribute(attrPrefix, attrLocalName, attrValue));
+			attributes.add(new XMLAttribute(attrPrefix, attrLocalName, attrValue));
 		}
 
-		openElements.push(new StartedAnnotation(prefix, localName, contentBuf.length(), attributes, new XPathAddress(address)));
+		openElements.push(new StartedAnnotation(prefix, localName, contentBuf.length(), attributes, new XPath(address)));
 		nodePosition.push(0);
 	}
 
 	@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
 		final StartedAnnotation sa = openElements.pop();
-		final XmlElementAnnotation annotation = document.add(sa.prefix, sa.localName, null, new LmnlRange(sa.start, contentBuf.length()), XmlElementAnnotation.class);
+		final XMLElement annotation = document.add(sa.prefix, sa.localName, null, new Range(sa.start, contentBuf.length()), XMLElement.class);
 		annotation.setXPathAddress(sa.xpath);
 		annotation.setAttributes(sa.attributes);
 		
-		for (XmlAttribute attr : sa.attributes) {
+		for (XMLAttribute attr : sa.attributes) {
 			if (document.getNamespace(attr.prefix).equals(XMLConstants.XML_NS_URI) && "id".equals(attr.localName)) {
 				try {
 					annotation.setId(new URI(null, null, attr.value));
@@ -123,10 +120,10 @@ public class LmnlBuildingDefaultHandler extends DefaultHandler {
 		private final String prefix;
 		private final String localName;
 		private final int start;
-		private final Set<XmlAttribute> attributes;
-		private final XPathAddress xpath;
+		private final Set<XMLAttribute> attributes;
+		private final XPath xpath;
 
-		private StartedAnnotation(String prefix, String localName, int start, Set<XmlAttribute> attributes, XPathAddress xpath) {
+		private StartedAnnotation(String prefix, String localName, int start, Set<XMLAttribute> attributes, XPath xpath) {
 			this.prefix = prefix;
 			this.localName = localName;
 			this.start = start;

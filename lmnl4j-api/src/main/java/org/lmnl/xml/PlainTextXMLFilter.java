@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.xml.sax;
+package org.lmnl.xml;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -49,7 +49,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class PlainTextXmlFilter extends XMLFilterImpl {
+public class PlainTextXMLFilter extends XMLFilterImpl {
 	private static final Pattern WHITESPACE = Pattern.compile("\\s+");
 	private Set<String> lineElements = new HashSet<String>();
 	private Set<String> elementOnlyElements = new HashSet<String>();
@@ -65,7 +65,7 @@ public class PlainTextXmlFilter extends XMLFilterImpl {
 	 *                 if an XML-related error occurs while creating the
 	 *                 default XML reader
 	 */
-	public PlainTextXmlFilter() throws SAXException {
+	public PlainTextXMLFilter() throws SAXException {
 		super(XMLReaderFactory.createXMLReader());
 	}
 
@@ -75,7 +75,7 @@ public class PlainTextXmlFilter extends XMLFilterImpl {
 	 * @param parent
 	 *                the parent reader
 	 */
-	public PlainTextXmlFilter(XMLReader parent) {
+	public PlainTextXMLFilter(XMLReader parent) {
 		super(parent);
 	}
 
@@ -87,7 +87,7 @@ public class PlainTextXmlFilter extends XMLFilterImpl {
 	 *                a set of local names identifying line elements
 	 * @return this filter instance (for method chaining)
 	 */
-	public PlainTextXmlFilter withLineElements(Set<String> lineElements) {
+	public PlainTextXMLFilter withLineElements(Set<String> lineElements) {
 		this.lineElements = lineElements;
 		return this;
 	}
@@ -103,7 +103,7 @@ public class PlainTextXmlFilter extends XMLFilterImpl {
 	 *                indentation)
 	 * @return this filter instance (for method chaining)
 	 */
-	public PlainTextXmlFilter withElementOnlyElements(Set<String> elementOnlyElements) {
+	public PlainTextXMLFilter withElementOnlyElements(Set<String> elementOnlyElements) {
 		this.elementOnlyElements = elementOnlyElements;
 		return this;
 	}

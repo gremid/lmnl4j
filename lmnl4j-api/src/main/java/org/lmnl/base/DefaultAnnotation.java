@@ -22,23 +22,23 @@
 package org.lmnl.base;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.lmnl.LmnlAnnotation;
-import org.lmnl.LmnlLayer;
-import org.lmnl.LmnlRange;
-import org.lmnl.json.LmnlAnnotationSerializer;
+import org.lmnl.Annotation;
+import org.lmnl.Layer;
+import org.lmnl.Range;
+import org.lmnl.json.AnnotationSerializer;
 
 import com.google.common.base.Objects;
 
-@JsonSerialize(using = LmnlAnnotationSerializer.class)
-public class DefaultLmnlAnnotation extends AbstractLmnlLayer implements LmnlAnnotation {
-	protected LmnlRange address;
+@JsonSerialize(using = AnnotationSerializer.class)
+public class DefaultAnnotation extends AbstractLayer implements Annotation {
+	protected Range address;
 
-	protected DefaultLmnlAnnotation(LmnlLayer owner, String prefix, String localName, String text, LmnlRange address) {
+	protected DefaultAnnotation(Layer owner, String prefix, String localName, String text, Range address) {
 		super(owner, prefix, localName, text);
 		this.address = address;
 	}
 
-	public LmnlRange address() {
+	public Range address() {
 		return address;
 	}
 

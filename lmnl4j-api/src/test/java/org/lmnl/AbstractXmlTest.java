@@ -21,13 +21,13 @@
 
 package org.lmnl;
 
-import static org.lmnl.xml.LmnlXmlUtils.buildDocument;
+import static org.lmnl.xml.XMLUtils.buildDocument;
 
 import java.net.URI;
 import java.util.Map;
 import java.util.SortedSet;
 
-import org.lmnl.xml.sax.PlainTextXmlFilter;
+import org.lmnl.xml.PlainTextXMLFilter;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -44,14 +44,14 @@ import com.google.common.collect.Sets;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public abstract class AbstractXmlTest extends AbstractTest {
+public abstract class AbstractXMLTest extends AbstractTest {
 	/**
 	 * Names of available XML test resources.
 	 */
 	protected static final SortedSet<String> RESOURCES = Sets.newTreeSet(Lists.newArrayList(//
 			"archimedes-palimpsest-tei.xml", "george-algabal-tei.xml", "homer-iliad-tei.xml"));
 
-	private static Map<String, LmnlDocument> documents = Maps.newHashMap();
+	private static Map<String, Document> documents = Maps.newHashMap();
 
 	/**
 	 * Creates an XML reader for parsing text-centric XML test resources.
@@ -60,7 +60,7 @@ public abstract class AbstractXmlTest extends AbstractTest {
 	 *                 if an XML related parser error occurs
 	 */
 	public XMLReader createXMLReader() throws SAXException {
-		return new PlainTextXmlFilter()//
+		return new PlainTextXMLFilter()//
 				.withLineElements(Sets.newHashSet("lg", "l", "sp", "speaker", "stage", "div", "head", "p"))//
 				.withElementOnlyElements(Sets.newHashSet("document", "surface", "zone", "subst"));
 	}
@@ -78,11 +78,11 @@ public abstract class AbstractXmlTest extends AbstractTest {
 	 * @return the corresponding test document
 	 * @see #RESOURCES
 	 */
-	protected synchronized LmnlDocument document(String resource) {
+	protected synchronized Document document(String resource) {
 		try {
 			if (RESOURCES.contains(resource) && !documents.containsKey(resource)) {
-				URI uri = AbstractXmlTest.class.getResource("/" + resource).toURI();
-				LmnlDocument document = buildDocument(createXMLReader(), new InputSource(uri.toASCIIString()));
+				URI uri = AbstractXMLTest.class.getResource("/" + resource).toURI();
+				Document document = buildDocument(createXMLReader(), new InputSource(uri.toASCIIString()));
 				document.addNamespace(TEST_NS_PREFIX, TEST_NS);
 				documents.put(resource, document);
 			}
@@ -98,7 +98,7 @@ public abstract class AbstractXmlTest extends AbstractTest {
 	 * 
 	 * @return the document generated from the first available test resource
 	 */
-	protected LmnlDocument document() {
+	protected Document document() {
 		return document(RESOURCES.first());
 	}
 }

@@ -26,12 +26,12 @@ import java.util.regex.Pattern;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.lmnl.AbstractXmlTest;
-import org.lmnl.LmnlAnnotation;
-import org.lmnl.LmnlDocument;
-import org.lmnl.LmnlRange;
-import org.lmnl.xml.LmnlXmlUtils;
-import org.lmnl.xml.XmlElementAnnotation;
+import org.lmnl.AbstractXMLTest;
+import org.lmnl.Annotation;
+import org.lmnl.Document;
+import org.lmnl.Range;
+import org.lmnl.xml.XMLUtils;
+import org.lmnl.xml.XMLElement;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -44,42 +44,42 @@ import com.google.common.collect.Lists;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class DefaultLmnlLayerTest extends AbstractXmlTest {
+public class DefaultLayerTest extends AbstractXMLTest {
 	/**
 	 * Extracts a subset of annotations from a test document by using
 	 * {@link Predicate predicates}.
 	 */
 	@Test
 	public void extractViews() {
-		LmnlDocument d = document("george-algabal-tei.xml");
+		Document d = document("george-algabal-tei.xml");
 
-		LmnlAnnotation drama = d.add("test", "drama", null, new LmnlRange(0, d.getText().length()), XmlElementAnnotation.class);
-		for (XmlElementAnnotation a : Iterables.filter(Iterables.filter(d, XmlElementAnnotation.class), DRAMA_ANNOTATIONS)) {
-			LmnlXmlUtils.copy(a, drama);
+		Annotation drama = d.add("test", "drama", null, new Range(0, d.getText().length()), XMLElement.class);
+		for (XMLElement a : Iterables.filter(Iterables.filter(d, XMLElement.class), DRAMA_ANNOTATIONS)) {
+			XMLUtils.copy(a, drama);
 			
 		}
 
 		Assert.assertFalse("Extracted dramatic text structure", Iterables.isEmpty(drama));
 
 		printDebugMessage(drama);
-		final LmnlAnnotation spans = d.add("test", "spans", null, new LmnlRange(0, d.getText().length()), LmnlAnnotation.class);
-		for (XmlElementAnnotation a : Lists.newArrayList(Iterables.filter(Iterables.filter(d, XmlElementAnnotation.class), SPANNING_ANNOTATIONS))) {
-			LmnlXmlUtils.copy(a, spans);
+		final Annotation spans = d.add("test", "spans", null, new Range(0, d.getText().length()), Annotation.class);
+		for (XMLElement a : Lists.newArrayList(Iterables.filter(Iterables.filter(d, XMLElement.class), SPANNING_ANNOTATIONS))) {
+			XMLUtils.copy(a, spans);
 		}
 	}
 
-	private static Predicate<XmlElementAnnotation> DRAMA_ANNOTATIONS = new Predicate<XmlElementAnnotation>() {
+	private static Predicate<XMLElement> DRAMA_ANNOTATIONS = new Predicate<XMLElement>() {
 		Pattern dramaTags = Pattern.compile("(lg)|(l)|(stage)|(speaker)|(sp)");
 
-		public boolean apply(XmlElementAnnotation input) {
+		public boolean apply(XMLElement input) {
 			return dramaTags.matcher(input.getLocalName()).matches();
 		}
 	};
 
-	private static Predicate<XmlElementAnnotation> SPANNING_ANNOTATIONS = new Predicate<XmlElementAnnotation>() {
+	private static Predicate<XMLElement> SPANNING_ANNOTATIONS = new Predicate<XMLElement>() {
 		Pattern spanningTags = Pattern.compile(".+Span$");
 
-		public boolean apply(XmlElementAnnotation input) {
+		public boolean apply(XMLElement input) {
 			return spanningTags.matcher(input.getLocalName()).matches();
 		}
 	};

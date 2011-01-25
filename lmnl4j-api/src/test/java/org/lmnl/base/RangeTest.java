@@ -23,7 +23,7 @@ package org.lmnl.base;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.lmnl.LmnlRange;
+import org.lmnl.Range;
 
 /**
  * Tests operations on range addresses like offset manipulation.
@@ -32,7 +32,7 @@ import org.lmnl.LmnlRange;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class DefaultLmnlRangeTest {
+public class RangeTest {
 
 	/**
 	 * Tests generation of ranges relative to another.
@@ -59,28 +59,28 @@ public class DefaultLmnlRangeTest {
 	 */
 	@Test
 	public void substraction() {
-		Assert.assertEquals("Predecessor #1", new LmnlRange(0, 20), new LmnlRange(0, 20).substract(new LmnlRange(20, 40)));
-		Assert.assertEquals("Predecessor #2", new LmnlRange(0, 20), new LmnlRange(0, 20).substract(new LmnlRange(21, 40)));
-		Assert.assertEquals("Successor #1", new LmnlRange(0, 10), new LmnlRange(10, 20).substract(new LmnlRange(0, 10)));
-		Assert.assertEquals("Successor #2", new LmnlRange(1, 11), new LmnlRange(10, 20).substract(new LmnlRange(0, 9)));
+		Assert.assertEquals("Predecessor #1", new Range(0, 20), new Range(0, 20).substract(new Range(20, 40)));
+		Assert.assertEquals("Predecessor #2", new Range(0, 20), new Range(0, 20).substract(new Range(21, 40)));
+		Assert.assertEquals("Successor #1", new Range(0, 10), new Range(10, 20).substract(new Range(0, 10)));
+		Assert.assertEquals("Successor #2", new Range(1, 11), new Range(10, 20).substract(new Range(0, 9)));
 
-		Assert.assertEquals("Start deleted", new LmnlRange(0, 10), new LmnlRange(0, 20).substract(new LmnlRange(0, 10)));
-		Assert.assertEquals("End deleted", new LmnlRange(0, 10), new LmnlRange(0, 20).substract(new LmnlRange(10, 20)));
-		Assert.assertEquals("Middle deleted", new LmnlRange(0, 10), new LmnlRange(0, 20).substract(new LmnlRange(5, 15)));
-		Assert.assertEquals("End overlap deleted", new LmnlRange(0, 10), new LmnlRange(0, 20).substract(new LmnlRange(10, 30)));
-		Assert.assertEquals("Start overlap deleted", new LmnlRange(5, 10), new LmnlRange(10, 20).substract(new LmnlRange(5, 15)));
+		Assert.assertEquals("Start deleted", new Range(0, 10), new Range(0, 20).substract(new Range(0, 10)));
+		Assert.assertEquals("End deleted", new Range(0, 10), new Range(0, 20).substract(new Range(10, 20)));
+		Assert.assertEquals("Middle deleted", new Range(0, 10), new Range(0, 20).substract(new Range(5, 15)));
+		Assert.assertEquals("End overlap deleted", new Range(0, 10), new Range(0, 20).substract(new Range(10, 30)));
+		Assert.assertEquals("Start overlap deleted", new Range(5, 10), new Range(10, 20).substract(new Range(5, 15)));
 
-		Assert.assertEquals("Overlap", new LmnlRange(0, 5), new LmnlRange(0, 10).substract(new LmnlRange(5, 26)));
-		Assert.assertEquals("Full substraction", new LmnlRange(0, 0), new LmnlRange(0, 20).substract(new LmnlRange(0, 20)));
+		Assert.assertEquals("Overlap", new Range(0, 5), new Range(0, 10).substract(new Range(5, 26)));
+		Assert.assertEquals("Full substraction", new Range(0, 0), new Range(0, 20).substract(new Range(0, 20)));
 
 		try {
 
-			Assert.fail("Enclosing substraction: " + new LmnlRange(0, 20).substract(new LmnlRange(0, 40)));
+			Assert.fail("Enclosing substraction: " + new Range(0, 20).substract(new Range(0, 40)));
 		} catch (IllegalArgumentException e) {
 		}
 
 		try {
-			Assert.fail("Strictly enclosing substraction: " + new LmnlRange(10, 20).substract(new LmnlRange(0, 40)));
+			Assert.fail("Strictly enclosing substraction: " + new Range(10, 20).substract(new Range(0, 40)));
 		} catch (IllegalArgumentException e) {
 		}
 

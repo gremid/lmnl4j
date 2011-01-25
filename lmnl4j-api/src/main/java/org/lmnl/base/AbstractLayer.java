@@ -26,39 +26,39 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.lmnl.LmnlAnnotation;
-import org.lmnl.LmnlDocument;
-import org.lmnl.LmnlLayer;
-import org.lmnl.LmnlRange;
+import org.lmnl.Annotation;
+import org.lmnl.Document;
+import org.lmnl.Layer;
+import org.lmnl.Range;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 
-public abstract class AbstractLmnlLayer implements LmnlLayer {
-	protected LmnlLayer owner;
+public abstract class AbstractLayer implements Layer {
+	protected Layer owner;
 	protected URI id;
 	protected String prefix;
 	protected String localName;
 	protected String text;
-	protected List<LmnlAnnotation> annotations = new ArrayList<LmnlAnnotation>();
+	protected List<Annotation> annotations = new ArrayList<Annotation>();
 
-	protected AbstractLmnlLayer(LmnlLayer owner, String prefix, String localName, String text) {
+	protected AbstractLayer(Layer owner, String prefix, String localName, String text) {
 		this.owner = owner;
 		this.prefix = prefix;
 		this.localName = localName;
 		this.text = text;
 	}
 
-	public LmnlDocument getDocument() {
-		for (LmnlLayer current = this; current != null; current = current.getOwner()) {
-			if (current instanceof LmnlDocument) {
-				return (LmnlDocument) current;
+	public Document getDocument() {
+		for (Layer current = this; current != null; current = current.getOwner()) {
+			if (current instanceof Document) {
+				return (Document) current;
 			}
 		}
 		throw new IllegalStateException();
 	}
 
-	public LmnlLayer getOwner() {
+	public Layer getOwner() {
 		return owner;
 	}
 
@@ -74,7 +74,7 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 		if (id == null) {
 			return null;
 		}
-		LmnlDocument document = getDocument();
+		Document document = getDocument();
 		return (document == null ? id : (document.getId() == null ? id : document.getId().resolve(id)));
 	}
 
@@ -114,11 +114,11 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 		this.text = text;
 	}
 
-	public Iterator<LmnlAnnotation> iterator() {
+	public Iterator<Annotation> iterator() {
 		return annotations.iterator();
 	}
 
-	public <T extends LmnlAnnotation> T add(String prefix, String localName, String text, LmnlRange address, Class<T> type) {
+	public <T extends Annotation> T add(String prefix, String localName, String text, Range address, Class<T> type) {
 		Preconditions.checkArgument(getDocument().getNamespaceContext().containsKey(prefix), prefix + " not mapped");
 		
 		final T annotation = getDocument().getAnnotationFactory().create(this, prefix, localName, text, address, type);
@@ -126,7 +126,7 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 		return annotation;
 	}
 
-	public <T extends LmnlAnnotation> T add(T annotation, Class<T> type) {
+	public <T extends Annotation> T add(T annotation, Class<T> type) {
 		return add(annotation.getPrefix(), annotation.getLocalName(), annotation.getText(), annotation.address(), type);
 	}
 	
@@ -135,11 +135,11 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 		annotations = null;
 	}
 	
-	public void remove(LmnlAnnotation annotation) {
+	public void remove(Annotation annotation) {
 		Preconditions.checkArgument(equals(annotation.getOwner()), annotation + " not a child of " + this);
 		Preconditions.checkArgument(annotations.remove(annotation), annotation + " not a child of " + this);
 		
-		for (LmnlAnnotation child : annotation) {
+		for (Annotation child : annotation) {
 			annotation.remove(child);
 		}
 		
@@ -147,15 +147,15 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 	}
 
 	public void visit(Visitor visitor) {
-		for (LmnlAnnotation a : annotations) {
+		for (Annotation a : annotations) {
 			visitor.visit(a);
 		}
-		for (LmnlAnnotation a : annotations) {
+		for (Annotation a : annotations) {
 			a.visit(visitor);
 		}
 	}
 
-	public <T extends LmnlAnnotation> Iterable<T> select(Class<T> annotationType) {
+	public <T extends Annotation> Iterable<T> select(Class<T> annotationType) {
 		return Iterables.filter(this, annotationType);
 	}
 	

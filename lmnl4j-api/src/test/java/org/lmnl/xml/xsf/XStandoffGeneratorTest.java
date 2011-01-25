@@ -34,8 +34,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.junit.Test;
-import org.lmnl.AbstractXmlTest;
-import org.lmnl.xml.XmlElementAnnotation;
+import org.lmnl.AbstractXMLTest;
+import org.lmnl.xml.XMLElement;
 import org.w3c.dom.Document;
 
 import com.google.common.base.Predicate;
@@ -47,7 +47,7 @@ import com.google.common.base.Predicate;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class XStandoffGeneratorTest extends AbstractXmlTest {
+public class XStandoffGeneratorTest extends AbstractXMLTest {
 
 	/**
 	 * Generates a XStandoff document from a TEI-P5 source by isolating two
@@ -63,17 +63,17 @@ public class XStandoffGeneratorTest extends AbstractXmlTest {
 		Document dom = domBuilder.newDocument();
 
 		XStandoffMarkupGenerator xsf = new XStandoffMarkupGenerator(document(), dom);
-		xsf.addLevel(new Predicate<XmlElementAnnotation>() {
+		xsf.addLevel(new Predicate<XMLElement>() {
 
-			public boolean apply(XmlElementAnnotation input) {
+			public boolean apply(XMLElement input) {
 				return "seg".equals(input.getLocalName());
 			}
 
 		});
-		xsf.addLevel(new Predicate<XmlElementAnnotation>() {
+		xsf.addLevel(new Predicate<XMLElement>() {
 			private Pattern names = Pattern.compile("(choice)|(abbr)|(expan)");
 
-			public boolean apply(XmlElementAnnotation input) {
+			public boolean apply(XMLElement input) {
 				return names.matcher(input.getLocalName()).matches();
 			}
 

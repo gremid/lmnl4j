@@ -22,7 +22,7 @@
 package org.lmnl.util;
 
 import org.junit.Test;
-import org.lmnl.AbstractDefaultLmnlDocumentTest;
+import org.lmnl.AbstractDefaultDocumentTest;
 import org.lmnl.util.OverlapIndexer;
 
 /**
@@ -32,7 +32,7 @@ import org.lmnl.util.OverlapIndexer;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class OverlapIndexerTest extends AbstractDefaultLmnlDocumentTest {
+public class OverlapIndexerTest extends AbstractDefaultDocumentTest {
 
 	/**
 	 * Indexes a very simple document.

@@ -39,15 +39,15 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.codehaus.jackson.map.ObjectMapper;
-import org.lmnl.LmnlAnnotation;
-import org.lmnl.LmnlDocument;
-import org.lmnl.LmnlRange;
-import org.lmnl.base.DefaultLmnlAnnotation;
+import org.lmnl.Annotation;
+import org.lmnl.Document;
+import org.lmnl.Range;
+import org.lmnl.base.DefaultAnnotation;
 import org.lmnl.util.OverlapIndexer;
-import org.lmnl.xml.LmnlXmlUtils;
-import org.lmnl.xml.XmlAttribute;
-import org.lmnl.xml.XmlElementAnnotation;
-import org.lmnl.xml.sax.PlainTextXmlFilter;
+import org.lmnl.xml.PlainTextXMLFilter;
+import org.lmnl.xml.XMLUtils;
+import org.lmnl.xml.XMLAttribute;
+import org.lmnl.xml.XMLElement;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -99,12 +99,12 @@ public class ExampleController implements ApplicationContextAware {
 		return new ModelAndView(new LmnlJsonView(get(id)));
 	}
 
-	protected LmnlDocument get(String id) throws SAXException, URISyntaxException, IOException {
-		XMLReader xmlReader = new PlainTextXmlFilter()//
+	protected Document get(String id) throws SAXException, URISyntaxException, IOException {
+		XMLReader xmlReader = new PlainTextXMLFilter()//
 				.withLineElements(Sets.newHashSet("front", "titlePart", "pb", "div", "head", "lg", "l", "sp", "speaker", "stage", "lb", "zone", "line"))//
 				.withElementOnlyElements(Sets.newHashSet("TEI", "text", "document", "surface", "zone", "subst", "overw"));
 
-		LmnlDocument document = null;
+		Document document = null;
 		InputStream inputStream = null;
 		try {
 			Resource example = getResource(id);
@@ -113,30 +113,30 @@ public class ExampleController implements ApplicationContextAware {
 			xmlInput.setSystemId(new URI("lmnl", id, null).toASCIIString());
 			xmlInput.setByteStream(inputStream = example.getInputStream());
 
-			document = LmnlXmlUtils.buildDocument(xmlReader, xmlInput);
+			document = XMLUtils.buildDocument(xmlReader, xmlInput);
 		} finally {
 			if (inputStream != null) {
 				inputStream.close();
 			}
 		}
 
-		Iterable<LmnlAnnotation> handShifts = Iterables.filter(document, HANDSHIFT_PREDICATE);
-		SortedMap<LmnlRange, List<LmnlAnnotation>> handIndex = new OverlapIndexer(HANDSHIFT_PREDICATE).apply(handShifts);
-		for (LmnlRange handSegment : handIndex.keySet()) {
-			List<LmnlAnnotation> currentHandShifts = handIndex.get(handSegment);
+		Iterable<Annotation> handShifts = Iterables.filter(document, HANDSHIFT_PREDICATE);
+		SortedMap<Range, List<Annotation>> handIndex = new OverlapIndexer(HANDSHIFT_PREDICATE).apply(handShifts);
+		for (Range handSegment : handIndex.keySet()) {
+			List<Annotation> currentHandShifts = handIndex.get(handSegment);
 			if (currentHandShifts.isEmpty()) {
 				continue;
 			}
-			LmnlAnnotation handShift = currentHandShifts.iterator().next();
+			Annotation handShift = currentHandShifts.iterator().next();
 			if (handShift.address().start == handSegment.start) {
 				String handValue = "";
-				for (XmlAttribute attr : ((XmlElementAnnotation) handShift).getAttributes()) {
+				for (XMLAttribute attr : ((XMLElement) handShift).getAttributes()) {
 					if ("new".equals(attr.localName)) {
 						handValue = attr.value;
 						break;
 					}
 				}
-				document.add(LmnlDocument.LMNL_PREFIX, "hand", handValue, new LmnlRange(handSegment), DefaultLmnlAnnotation.class);
+				document.add(Document.LMNL_PREFIX, "hand", handValue, new Range(handSegment), DefaultAnnotation.class);
 			}
 		}
 		return document;
@@ -148,9 +148,9 @@ public class ExampleController implements ApplicationContextAware {
 
 	private static class LmnlJsonView extends AbstractView {
 		private static final ObjectMapper OM = new ObjectMapper();
-		private final LmnlDocument document;
+		private final Document document;
 
-		public LmnlJsonView(LmnlDocument document) {
+		public LmnlJsonView(Document document) {
 			this.document = document;
 		}
 
@@ -164,9 +164,9 @@ public class ExampleController implements ApplicationContextAware {
 		}
 	}
 
-	private static final Predicate<LmnlAnnotation> HANDSHIFT_PREDICATE = new Predicate<LmnlAnnotation>() {
+	private static final Predicate<Annotation> HANDSHIFT_PREDICATE = new Predicate<Annotation>() {
 
-		public boolean apply(LmnlAnnotation input) {
+		public boolean apply(Annotation input) {
 			return "handShift".equals(input.getLocalName());
 		}
 	};

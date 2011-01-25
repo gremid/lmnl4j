@@ -6,19 +6,19 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.lmnl.xml.XPathAddress;
-import org.lmnl.xml.XmlAttribute;
-import org.lmnl.xml.XmlElementAnnotation;
+import org.lmnl.xml.XPath;
+import org.lmnl.xml.XMLAttribute;
+import org.lmnl.xml.XMLElement;
 
-public class XmlElementAnnotationSerializer extends JsonSerializer<XmlElementAnnotation> {
+public class XMLElementSerializer extends JsonSerializer<XMLElement> {
 
 	@Override
-	public void serialize(XmlElementAnnotation value, JsonGenerator jgen, SerializerProvider provider) throws IOException,
+	public void serialize(XMLElement value, JsonGenerator jgen, SerializerProvider provider) throws IOException,
 			JsonProcessingException {
 		jgen.writeStartObject();
-		LmnlAnnotationSerializer.doSerialize(value, jgen, provider);
+		AnnotationSerializer.doSerialize(value, jgen, provider);
 
-		final XPathAddress xpath = value.getXPathAddress();
+		final XPath xpath = value.getXPathAddress();
 		if (xpath != null) {
 			jgen.writeArrayFieldStart("xmlNode");
 			for (int pos : xpath.get()) {
@@ -28,7 +28,7 @@ public class XmlElementAnnotationSerializer extends JsonSerializer<XmlElementAnn
 		}
 		if (!value.getAttributes().isEmpty()) {
 			jgen.writeArrayFieldStart("attributes");
-			for (XmlAttribute attr : value.getAttributes()) {
+			for (XMLAttribute attr : value.getAttributes()) {
 				jgen.writeStartObject();
 				jgen.writeStringField("prefix", attr.prefix);
 				jgen.writeStringField("localName", attr.localName);

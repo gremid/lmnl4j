@@ -29,15 +29,14 @@ import java.util.Stack;
 
 import javax.xml.XMLConstants;
 
-import org.lmnl.LmnlDocument;
-import org.lmnl.LmnlLayer;
-import org.lmnl.LmnlRange;
+import org.lmnl.Document;
+import org.lmnl.Layer;
+import org.lmnl.Range;
 import org.lmnl.util.DefaultIdGenerator;
 import org.lmnl.util.IdGenerator;
-import org.lmnl.xml.XPathAddress;
-import org.lmnl.xml.XmlAttribute;
-import org.lmnl.xml.XmlElementAnnotation;
-import org.w3c.dom.Document;
+import org.lmnl.xml.XPath;
+import org.lmnl.xml.XMLAttribute;
+import org.lmnl.xml.XMLElement;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -75,10 +74,10 @@ public class XStandoffMarkupGenerator {
 	private static final String XSTANDOFF_SCHEMA_URI = "http://www.xstandoff.net/2009/xstandoff/1.1/xsf.xsd";
 	private static final String XSTANDOFF_VERSION = "1.0";
 
-	private final LmnlLayer source;
+	private final Layer source;
 	private final Node target;
-	private final Document targetDocument;
-	private final BiMap<String, LmnlRange> segments = HashBiMap.create();
+	private final org.w3c.dom.Document targetDocument;
+	private final BiMap<String, Range> segments = HashBiMap.create();
 	private IdGenerator idGenerator = new DefaultIdGenerator();
 	private Element corpusData;
 	private Element annotationRoot;
@@ -93,10 +92,10 @@ public class XStandoffMarkupGenerator {
 	 *                the DOM node to which the XStandoff tree will be
 	 *                serialized
 	 */
-	public XStandoffMarkupGenerator(LmnlLayer source, Node target) {
+	public XStandoffMarkupGenerator(Layer source, Node target) {
 		this.source = source;
 		this.target = target;
-		this.targetDocument = (target instanceof Document ? (Document) target : target.getOwnerDocument());
+		this.targetDocument = (target instanceof org.w3c.dom.Document ? (org.w3c.dom.Document) target : target.getOwnerDocument());
 	}
 
 	/**
@@ -122,7 +121,7 @@ public class XStandoffMarkupGenerator {
 	 *                of the new level
 	 * @return this generator instance (for method chaining)
 	 */
-	public XStandoffMarkupGenerator addLevel(Predicate<XmlElementAnnotation> predicate) {
+	public XStandoffMarkupGenerator addLevel(Predicate<XMLElement> predicate) {
 		if (corpusData == null) {
 			createCorpusDataContext();
 		}
@@ -132,22 +131,22 @@ public class XStandoffMarkupGenerator {
 		Stack<ElementMapping> nesting = new Stack<ElementMapping>();
 		nesting.push(new ElementMapping(null, level));
 
-		SortedSet<XmlElementAnnotation> levelContents = Sets.newTreeSet(new Comparator<XmlElementAnnotation>() {
+		SortedSet<XMLElement> levelContents = Sets.newTreeSet(new Comparator<XMLElement>() {
 
-			public int compare(XmlElementAnnotation o1, XmlElementAnnotation o2) {
+			public int compare(XMLElement o1, XMLElement o2) {
 				return o1.getXPathAddress().compareTo(o2.getXPathAddress());
 			}
 		});
-		Iterables.addAll(levelContents, Iterables.filter(Iterables.filter(source, XmlElementAnnotation.class), predicate));
+		Iterables.addAll(levelContents, Iterables.filter(Iterables.filter(source, XMLElement.class), predicate));
 		
-		for (XmlElementAnnotation lmnlElement : levelContents) {
-			final XPathAddress addr = lmnlElement.getXPathAddress();
+		for (XMLElement lmnlElement : levelContents) {
+			final XPath addr = lmnlElement.getXPathAddress();
 
 			while (nesting.peek().lmnl != null && !nesting.peek().lmnl.address().encloses(lmnlElement.address())) {
 				nesting.pop();
 			}
 			while (nesting.peek().lmnl != null) {
-				XmlElementAnnotation ancestor = nesting.peek().lmnl;
+				XMLElement ancestor = nesting.peek().lmnl;
 				if (!ancestor.getXPathAddress().isAncestorOf(addr)) {
 					nesting.pop();
 				} else {
@@ -158,8 +157,8 @@ public class XStandoffMarkupGenerator {
 			Element domElement = targetDocument.createElementNS(lmnlElement.getNamespace().toASCIIString(), lmnlElement.getQName());
 			nesting.peek().dom.appendChild(domElement);
 
-			final LmnlDocument document = lmnlElement.getDocument();
-			for (XmlAttribute xmlAttr : lmnlElement.getAttributes()) {
+			final Document document = lmnlElement.getDocument();
+			for (XMLAttribute xmlAttr : lmnlElement.getAttributes()) {
 				if (xmlAttr.prefix.length() == 0) {
 					domElement.setAttribute(xmlAttr.localName, xmlAttr.value);
 				} else {
@@ -175,7 +174,7 @@ public class XStandoffMarkupGenerator {
 				segmentId = segments.inverse().get(lmnlElement);
 			} else {
 				segmentId = idGenerator.next(lmnlElement.address());
-				segments.put(segmentId, new LmnlRange(lmnlElement.address()));
+				segments.put(segmentId, new Range(lmnlElement.address()));
 			}
 			domElement.setAttributeNS(XSTANDOFF_NS_URI, "xsf:segment", "#" + segmentId);
 
@@ -191,8 +190,8 @@ public class XStandoffMarkupGenerator {
 	public void close() {
 		Element segmentation = targetDocument.createElementNS(XSTANDOFF_NS_URI, "xsf:segmentation");
 
-		BiMap<LmnlRange, String> segments = this.segments.inverse();
-		for (LmnlRange segment : Sets.newTreeSet(segments.keySet())) {
+		BiMap<Range, String> segments = this.segments.inverse();
+		for (Range segment : Sets.newTreeSet(segments.keySet())) {
 			Element segmentEl = targetDocument.createElementNS(XSTANDOFF_NS_URI, "xsf:segment");
 			segmentEl.setAttributeNS(XSTANDOFF_NS_URI, "xsf:type", "char");
 			segmentEl.setAttributeNS(XSTANDOFF_NS_URI, "xsf:start", Integer.toString(segment.start));
@@ -237,10 +236,10 @@ public class XStandoffMarkupGenerator {
 	}
 
 	private static class ElementMapping {
-		private final XmlElementAnnotation lmnl;
+		private final XMLElement lmnl;
 		private final Element dom;
 
-		private ElementMapping(XmlElementAnnotation lmnl, Element dom) {
+		private ElementMapping(XMLElement lmnl, Element dom) {
 			this.lmnl = lmnl;
 			this.dom = dom;
 		}

@@ -94,13 +94,13 @@ public abstract class AbstractTest {
 	 * @param index
 	 *                the range index to output
 	 */
-	protected void printDebugMessage(SortedMap<LmnlRange, List<LmnlAnnotation>> index) {
+	protected void printDebugMessage(SortedMap<Range, List<Annotation>> index) {
 		if (LOG.isLoggable(Level.FINE)) {
 			final StringBuilder str = new StringBuilder();
-			for (LmnlRange segment : index.keySet()) {
+			for (Range segment : index.keySet()) {
 				str.append("[" + segment + ": { ");
 				boolean first = true;
-				for (LmnlAnnotation annotation : index.get(segment)) {
+				for (Annotation annotation : index.get(segment)) {
 					if (first) {
 						first = false;
 					} else {
@@ -130,7 +130,7 @@ public abstract class AbstractTest {
 	 * @param layer
 	 *                the layer to print
 	 */
-	protected void printDebugMessage(LmnlLayer layer) {
+	protected void printDebugMessage(Layer layer) {
 		if (LOG.isLoggable(Level.FINE)) {
 			try {
 				StringWriter out = new StringWriter();

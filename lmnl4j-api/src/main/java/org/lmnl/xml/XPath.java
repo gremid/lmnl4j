@@ -39,7 +39,7 @@ import java.net.URI;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class XPathAddress implements Comparable<XPathAddress> {
+public class XPath implements Comparable<XPath> {
 	private final int[] address;
 
 	/**
@@ -48,7 +48,7 @@ public class XPathAddress implements Comparable<XPathAddress> {
 	 * @param address
 	 *                the node's path
 	 */
-	public XPathAddress(int[] address) {
+	public XPath(int[] address) {
 		this.address = address;
 	}
 
@@ -64,7 +64,7 @@ public class XPathAddress implements Comparable<XPathAddress> {
 	 *                the potential descendant node
 	 * @return <code>true</code>/<code>false</code>
 	 */
-	public boolean isAncestorOf(XPathAddress other) {
+	public boolean isAncestorOf(XPath other) {
 		final int[] otherAddress = other.address;
 		for (int ai = 0; ai < address.length; ai++) {
 			if (ai == otherAddress.length || address[ai] != otherAddress[ai]) {
@@ -94,7 +94,7 @@ public class XPathAddress implements Comparable<XPathAddress> {
 		return xpath(null);
 	}
 
-	public int compareTo(XPathAddress o) {
+	public int compareTo(XPath o) {
 		int i = 0;
 		int oi = 0;
 

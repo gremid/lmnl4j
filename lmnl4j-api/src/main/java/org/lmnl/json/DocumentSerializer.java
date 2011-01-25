@@ -6,12 +6,12 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.lmnl.LmnlDocument;
+import org.lmnl.Document;
 
-public class LmnlDocumentSerializer extends JsonSerializer<LmnlDocument> {
+public class DocumentSerializer extends JsonSerializer<Document> {
 
 	@Override
-	public void serialize(LmnlDocument value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+	public void serialize(Document value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
 		jgen.writeStartObject();
 		jgen.writeArrayFieldStart("ns");
 		for (String prefix : value.getNamespaceContext().keySet()) {
@@ -21,7 +21,7 @@ public class LmnlDocumentSerializer extends JsonSerializer<LmnlDocument> {
 			jgen.writeEndObject();
 		}
 		jgen.writeEndArray();
-		LmnlLayerSerializer.doSerialize(value, jgen, provider);
+		LayerSerializer.doSerialize(value, jgen, provider);
 		jgen.writeEndObject();
 	}
 }

@@ -24,9 +24,9 @@ package org.lmnl.xml.tei;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.lmnl.AbstractXmlTest;
-import org.lmnl.LmnlAnnotation;
-import org.lmnl.LmnlDocument;
+import org.lmnl.AbstractXMLTest;
+import org.lmnl.Annotation;
+import org.lmnl.Document;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -39,26 +39,26 @@ import com.google.common.collect.Iterables;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class TeiMarkupConverterTest extends AbstractXmlTest {
+public class TEIMarkupConverterTest extends AbstractXMLTest {
 
 	/**
 	 * Converts a TEI-P5-based document.
 	 */
 	@Test
 	public void convertDocument() {
-		LmnlDocument d = document("george-algabal-tei.xml");
-		new TeiMarkupConverter().convert(d);
+		Document d = document("george-algabal-tei.xml");
+		new TEIMarkupConverter().convert(d);
 		printDebugMessage(d);
-		Assert.assertTrue("<*b/> substitutes in document", Iterables.any(d, new Predicate<LmnlAnnotation>() {
+		Assert.assertTrue("<*b/> substitutes in document", Iterables.any(d, new Predicate<Annotation>() {
 
-			public boolean apply(LmnlAnnotation input) {
+			public boolean apply(Annotation input) {
 				final String name = input.getLocalName();
 				return name.equals("page") || name.equals("line") || name.equals("column");
 			}
 		}));
-		Assert.assertFalse("No spans in document", Iterables.any(d, new Predicate<LmnlAnnotation>() {
+		Assert.assertFalse("No spans in document", Iterables.any(d, new Predicate<Annotation>() {
 
-			public boolean apply(LmnlAnnotation input) {
+			public boolean apply(Annotation input) {
 				return input.getLocalName().endsWith("Span");
 			}
 		}));

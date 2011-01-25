@@ -3,8 +3,8 @@ package org.lmnl.util;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.lmnl.LmnlLayer;
-import org.lmnl.LmnlRange;
+import org.lmnl.Layer;
+import org.lmnl.Range;
 
 /**
  * A default implementation of an identifier generator.
@@ -12,11 +12,11 @@ import org.lmnl.LmnlRange;
 public class DefaultIdGenerator implements IdGenerator {
 	private Map<String, Integer> layerIds = new HashMap<String, Integer>();
 
-	public String next(LmnlRange range) {
+	public String next(Range range) {
 		return ("seg_" + range.start + "_" + range.end);
 	}
 
-	public String next(LmnlLayer layer) {
+	public String next(Layer layer) {
 		String qName = layer.getQName().replace(":", "_");
 		Integer id = layerIds.get(qName);
 		if (id == null) {

@@ -28,8 +28,8 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 
-import org.lmnl.LmnlAnnotation;
-import org.lmnl.LmnlRange;
+import org.lmnl.Annotation;
+import org.lmnl.Range;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -50,9 +50,9 @@ import com.google.common.collect.Lists;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class OverlapIndexer implements Function<Iterable<LmnlAnnotation>, SortedMap<LmnlRange, List<LmnlAnnotation>>> {
+public class OverlapIndexer implements Function<Iterable<Annotation>, SortedMap<Range, List<Annotation>>> {
 
-	private final Predicate<LmnlAnnotation> partitioningFilter;
+	private final Predicate<Annotation> partitioningFilter;
 
 	/**
 	 * Creates an indexing function, that fully partitions given range
@@ -72,32 +72,32 @@ public class OverlapIndexer implements Function<Iterable<LmnlAnnotation>, Sorted
 	 *                the filter predicate used for determining the index
 	 *                keys
 	 */
-	public OverlapIndexer(Predicate<LmnlAnnotation> partitioningFilter) {
+	public OverlapIndexer(Predicate<Annotation> partitioningFilter) {
 		this.partitioningFilter = partitioningFilter;
 	}
 
-	public SortedMap<LmnlRange, List<LmnlAnnotation>> apply(Iterable<LmnlAnnotation> from) {
+	public SortedMap<Range, List<Annotation>> apply(Iterable<Annotation> from) {
 		return Functions.compose(new Indexer(from), new Partitioning(partitioningFilter)).apply(from);
 	}
 
-	private static class Indexer implements Function<SortedSet<LmnlRange>, SortedMap<LmnlRange, List<LmnlAnnotation>>> {
+	private static class Indexer implements Function<SortedSet<Range>, SortedMap<Range, List<Annotation>>> {
 
-		private final Iterable<? extends LmnlAnnotation> entries;
+		private final Iterable<? extends Annotation> entries;
 
-		private Indexer(Iterable<? extends LmnlAnnotation> entries) {
+		private Indexer(Iterable<? extends Annotation> entries) {
 			this.entries = entries;
 
 		}
 
-		public SortedMap<LmnlRange, List<LmnlAnnotation>> apply(SortedSet<LmnlRange> from) {
-			List<LmnlAnnotation> annotations = Lists.newArrayList(entries);
-			final SortedMap<LmnlRange, List<LmnlAnnotation>> index = new TreeMap<LmnlRange, List<LmnlAnnotation>>();
+		public SortedMap<Range, List<Annotation>> apply(SortedSet<Range> from) {
+			List<Annotation> annotations = Lists.newArrayList(entries);
+			final SortedMap<Range, List<Annotation>> index = new TreeMap<Range, List<Annotation>>();
 
-			for (LmnlRange segment : from) {
-				ArrayList<LmnlAnnotation> overlapping = new ArrayList<LmnlAnnotation>();
-				for (Iterator<LmnlAnnotation> annotationIt = annotations.iterator(); annotationIt.hasNext();) {
-					LmnlAnnotation annotation = annotationIt.next();
-					LmnlRange tr = annotation.address();
+			for (Range segment : from) {
+				ArrayList<Annotation> overlapping = new ArrayList<Annotation>();
+				for (Iterator<Annotation> annotationIt = annotations.iterator(); annotationIt.hasNext();) {
+					Annotation annotation = annotationIt.next();
+					Range tr = annotation.address();
 
 					if (tr.hasOverlapWith(segment) || tr.start == segment.start) {
 						overlapping.add(annotation);

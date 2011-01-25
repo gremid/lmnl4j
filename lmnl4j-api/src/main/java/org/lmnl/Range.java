@@ -25,7 +25,7 @@ import com.google.common.base.Objects;
 
 /**
  * Adresses a text segment, for example a segment, that is annotated by some
- * {@link LmnlAnnotation annotation}.
+ * {@link Annotation annotation}.
  * 
  * <p/>
  * 
@@ -57,8 +57,8 @@ import com.google.common.base.Objects;
  * this class also have methods to apply <a href=
  * "http://www.mind-to-mind.com/library/papers/ara/core-range-algebra-03-2002.pdf"
  * title="Nicol: Core Range Algebra (PDF)">Gavin Nicols' Core Range Algebra</a>.
- * These methods like {@link #encloses(LmnlRange)} or
- * {@link #hasOverlapWith(LmnlRange)} define relationships between text
+ * These methods like {@link #encloses(Range)} or
+ * {@link #hasOverlapWith(Range)} define relationships between text
  * segments, which can be used for example to filter sets of range annotations.
  * 
  * @see CharSequence#subSequence(int, int)
@@ -67,8 +67,8 @@ import com.google.common.base.Objects;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class LmnlRange implements Comparable<LmnlRange> {
-	public static final LmnlRange NULL = new LmnlRange(0, 0);
+public class Range implements Comparable<Range> {
+	public static final Range NULL = new Range(0, 0);
 
 	/** The start offset of the segment (counted from zero, inclusive). */
 	public final int start;
@@ -88,7 +88,7 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	 *                 than zero, or if <code>start</code> is greather than
 	 *                 <code>end</code>
 	 */
-	public LmnlRange(int start, int end) {
+	public Range(int start, int end) {
 		if (start < 0 || end < 0 || start > end) {
 			throw new IllegalArgumentException(toString(start, end));
 		}
@@ -102,7 +102,7 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	 * @param b
 	 *                the segment address to be copied
 	 */
-	public LmnlRange(LmnlRange b) {
+	public Range(Range b) {
 		this(b.start, b.end);
 	}
 
@@ -134,7 +134,7 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	 *                b range
 	 * @return <code>true</code>/<code>false</code>
 	 */
-	public boolean encloses(LmnlRange b) {
+	public boolean encloses(Range b) {
 		return (start <= b.start) && (end >= b.end);
 	}
 
@@ -145,7 +145,7 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	 *                b range
 	 * @return <code>true</code>/<code>false</code>
 	 */
-	public boolean enclosesWithSuffix(LmnlRange b) {
+	public boolean enclosesWithSuffix(Range b) {
 		return (start == b.start) && (end > b.end);
 	}
 
@@ -156,7 +156,7 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	 *                b range
 	 * @return <code>true</code>/<code>false</code>
 	 */
-	public boolean enclosesWithPrefix(LmnlRange b) {
+	public boolean enclosesWithPrefix(Range b) {
 		return (start < b.start) && (end == b.end);
 	}
 
@@ -167,7 +167,7 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	 *                b range
 	 * @return <code>true</code>/<code>false</code>
 	 */
-	public boolean fitsWithin(LmnlRange b) {
+	public boolean fitsWithin(Range b) {
 		return !equals(b) && (start >= b.start) && (end <= b.end);
 	}
 
@@ -178,7 +178,7 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	 *                b range
 	 * @return <code>true</code>/<code>false</code>
 	 */
-	public boolean hasOverlapWith(LmnlRange b) {
+	public boolean hasOverlapWith(Range b) {
 		return overlapWith(b) > 0;
 	}
 
@@ -189,8 +189,8 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	 *                another segment
 	 * @return <i>[max(a.start, b.start), min(a.end, b.end)]</i>
 	 */
-	public LmnlRange intersectionWith(LmnlRange b) {
-		return new LmnlRange(Math.max(start, b.start), Math.min(end, b.end));
+	public Range intersectionWith(Range b) {
+		return new Range(Math.max(start, b.start), Math.min(end, b.end));
 	}
 
 	/**
@@ -200,7 +200,7 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	 *                b range
 	 * @return length of overlap
 	 */
-	public int overlapWith(LmnlRange b) {
+	public int overlapWith(Range b) {
 		return (Math.min(end, b.end) - Math.max(start, b.start));
 	}
 
@@ -211,7 +211,7 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	 *                b range
 	 * @return <code>true</code>/<code>false</code>
 	 */
-	public boolean precedes(LmnlRange b) {
+	public boolean precedes(Range b) {
 		return b.start >= end;
 	}
 
@@ -222,7 +222,7 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	 *                b range
 	 * @return <code>true</code>/<code>false</code>
 	 */
-	public boolean follows(LmnlRange b) {
+	public boolean follows(Range b) {
 		return (start >= (b.end - 1));
 	}
 
@@ -232,7 +232,7 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	 * 
 	 * @see Comparable#compareTo(Object)
 	 */
-	public int compareTo(LmnlRange o) {
+	public int compareTo(Range o) {
 		return (start == o.start ? o.end - end : start - o.start);
 	}
 
@@ -243,11 +243,11 @@ public class LmnlRange implements Comparable<LmnlRange> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null || !(obj instanceof LmnlRange)) {
+		if (obj == null || !(obj instanceof Range)) {
 			return super.equals(obj);
 		}
 
-		LmnlRange b = (LmnlRange) obj;
+		Range b = (Range) obj;
 		return (this.start == b.start) && (this.end == b.end);
 	}
 
@@ -269,22 +269,22 @@ public class LmnlRange implements Comparable<LmnlRange> {
 		return toString(start, end);
 	}
 
-	public LmnlRange substract(LmnlRange subtrahend) {
+	public Range substract(Range subtrahend) {
 		if (end <= subtrahend.start) {
 			// predecessor of deleted segment
-			return new LmnlRange(start, end);
+			return new Range(start, end);
 		}
 
 		int length = subtrahend.end - subtrahend.start;
 
 		if (start >= subtrahend.end) {
 			// successor of deleted range
-			return new LmnlRange(start - length, end - length);
+			return new Range(start - length, end - length);
 		}
 
 		int overlap = overlapWith(subtrahend);
 		int start = (this.start < subtrahend.start ? this.start : this.start - (length - overlap));
 		int end = (this.end >= subtrahend.end ? this.end - length : this.end - overlap);
-		return new LmnlRange(start, end);
+		return new Range(start, end);
 	}
 }

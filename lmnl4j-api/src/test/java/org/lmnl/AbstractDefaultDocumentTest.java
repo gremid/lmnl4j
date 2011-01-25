@@ -23,8 +23,8 @@ package org.lmnl;
 
 import org.junit.After;
 import org.junit.Before;
-import org.lmnl.base.DefaultLmnlAnnotation;
-import org.lmnl.base.DefaultLmnlDocument;
+import org.lmnl.base.DefaultAnnotation;
+import org.lmnl.base.DefaultDocument;
 
 /**
  * Base class for tests using an in-memory document model.
@@ -33,18 +33,18 @@ import org.lmnl.base.DefaultLmnlDocument;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public abstract class AbstractDefaultLmnlDocumentTest extends AbstractTest {
+public abstract class AbstractDefaultDocumentTest extends AbstractTest {
 	/**
 	 * The in-memory document model to run tests against.
 	 */
-	protected LmnlDocument document;
+	protected Document document;
 
 	/**
 	 * Creates a new document model before every test.
 	 */
 	@Before
 	public void createDocument() {
-		document = new DefaultLmnlDocument(TEST_DOCUMENT_URI, documentText());
+		document = new DefaultDocument(TEST_DOCUMENT_URI, documentText());
 		document.addNamespace(TEST_NS_PREFIX, TEST_NS);
 	}
 
@@ -57,7 +57,7 @@ public abstract class AbstractDefaultLmnlDocumentTest extends AbstractTest {
 	}
 
 	/**
-	 * Adds a simple {@link DefaultLmnlAnnotation annotation} to the test
+	 * Adds a simple {@link DefaultAnnotation annotation} to the test
 	 * document.
 	 * 
 	 * @param name
@@ -69,7 +69,7 @@ public abstract class AbstractDefaultLmnlDocumentTest extends AbstractTest {
 	 *                its end offset
 	 */
 	protected void addTestRange(String name, int start, int end) {
-		document.add(TEST_NS_PREFIX, name, null, new LmnlRange(start, end), LmnlAnnotation.class);
+		document.add(TEST_NS_PREFIX, name, null, new Range(start, end), Annotation.class);
 	}
 
 	/**

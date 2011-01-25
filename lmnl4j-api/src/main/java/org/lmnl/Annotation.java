@@ -19,28 +19,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.xml;
-
-import org.junit.Test;
-import org.lmnl.AbstractXmlTest;
-import org.lmnl.LmnlDocument;
+package org.lmnl;
 
 /**
- * Tests the generation of LOMs from XML sources.
+ * An annotation representing markup in a LOM.
  * 
  * @author <a href="http://gregor.middell.net/"
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class LmnlBuildingDefaultHandlerTest extends AbstractXmlTest {
-
+public interface Annotation extends Layer {
 	/**
-	 * Builds a test LOM.
+	 * The segment/ range of text being annotated.
+	 * 
+	 * @return a value object adressing the text segment, that is annotated
+	 *         by this range annotation
 	 */
-	@Test
-	public void buildLom() {
-		LmnlDocument document = document("george-algabal-tei.xml");
-		printDebugMessage(document.getText());
-		printDebugMessage(document);
-	}
+	Range address();
+	
+	/**
+	 * The actual text being annotated by this range.
+	 * 
+	 * @return the textual contents of the segment
+	 */
+	String getSegmentText();
 }

@@ -30,7 +30,7 @@ import org.codehaus.jackson.JsonGenerator;
  * 
  * <p/>
  * 
- * Layers are isomorphic to {@link LmnlDocument documents}, recursively
+ * Layers are isomorphic to {@link Document documents}, recursively
  * organized in a hierarchy and can either contain the marked up text themselves
  * or implicitely refer to a text of a lower layer they are attached to.
  * 
@@ -42,14 +42,14 @@ import org.codehaus.jackson.JsonGenerator;
  * this class, that actually comprise the markup, are documents, annotations and
  * ranges.
  * 
- * @see LmnlDocument
- * @see LmnlAnnotation
+ * @see Document
+ * @see Annotation
  * 
  * @author <a href="http://gregor.middell.net/"
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public interface LmnlLayer extends Iterable<LmnlAnnotation> {
+public interface Layer extends Iterable<Annotation> {
 
 	/**
 	 * The document, this layer ultimately belongs to.
@@ -58,7 +58,7 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 *         layers or <code>null</code> in case the layer is not attached
 	 *         to any document
 	 */
-	LmnlDocument getDocument();
+	Document getDocument();
 
 	/**
 	 * The layer owning this one.
@@ -71,10 +71,10 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 * administrative ones like {@link #getNamespaceContext() namespace
 	 * mappings} for example.
 	 * 
-	 * @return the owner of this layer, most probably a {@link LmnlDocument
-	 *         document} or an {@link LmnlAnnotation annotation}
+	 * @return the owner of this layer, most probably a {@link Document
+	 *         document} or an {@link Annotation annotation}
 	 */
-	LmnlLayer getOwner();
+	Layer getOwner();
 
 	/**
 	 * A textual key, uniquely identifying the layer within a document.
@@ -83,7 +83,7 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 * 
 	 * May provide for means of cross-referencing annotations, especially in
 	 * the context of {@link #serialize(JsonGenerator) serialized} LOMs, and
-	 * for naming layers by combining the {@link LmnlDocument#getBase() base
+	 * for naming layers by combining the {@link Document#getBase() base
 	 * URI} of the owning document and this layer's id.
 	 * 
 	 * <p/>
@@ -115,7 +115,7 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 * 
 	 * The URI is constructed by resolving the {@link #getId() identifier}
 	 * of this layer as a fragment identifier against the
-	 * {@link LmnlDocument#getBase() base URI} of the owning document.
+	 * {@link Document#getBase() base URI} of the owning document.
 	 * 
 	 * @return the URI or <code>null</code> in case, no identifier has been
 	 *         assigned to this layer
@@ -192,7 +192,7 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 * <p/>
 	 * 
 	 * Should the provided annotation already be owned by another layer, it
-	 * is {@link #remove(LmnlAnnotation) removed} from it first. Also in the
+	 * is {@link #remove(Annotation) removed} from it first. Also in the
 	 * course of adding the annotation, its {@link #getNamespaceContext()
 	 * namespace context}, should there be one, is merged with the context
 	 * of this layer.
@@ -201,9 +201,9 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 *                the annotation to be owned by this layer
 	 * @return the added annotation
 	 */
-	<T extends LmnlAnnotation> T add(String prefix, String localName, String text, LmnlRange address, Class<T> type);
+	<T extends Annotation> T add(String prefix, String localName, String text, Range address, Class<T> type);
 
-	<T extends LmnlAnnotation> T add(T annotation, Class<T> type);
+	<T extends Annotation> T add(T annotation, Class<T> type);
 	
 	/**
 	 * Detaches/ Removes an annotation from this layer.
@@ -219,9 +219,9 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 * @param annotation
 	 *                the annotation to be removed
 	 */
-	void remove(LmnlAnnotation annotation);
+	void remove(Annotation annotation);
 
-	<T extends LmnlAnnotation> Iterable<T> select(Class<T> annotationType);
+	<T extends Annotation> Iterable<T> select(Class<T> annotationType);
 	
 	/**
 	 * Recursively visits all descendants of this layer and calls back the
@@ -240,7 +240,7 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	/**
 	 * Callback interface for traversing layers.
 	 * 
-	 * @see LmnlLayer#visit(Visitor)
+	 * @see Layer#visit(Visitor)
 	 * 
 	 * @author <a href="http://gregor.middell.net/"
 	 *         title="Homepage of Gregor Middell">Gregor Middell</a>
@@ -255,6 +255,6 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 		 *                the layer (annotation, range etc.) being
 		 *                visited via some traversal algorithm
 		 */
-		void visit(LmnlLayer layer);
+		void visit(Layer layer);
 	}
 }

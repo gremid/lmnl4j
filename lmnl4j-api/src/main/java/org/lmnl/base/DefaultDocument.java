@@ -24,9 +24,9 @@ package org.lmnl.base;
 import java.net.URI;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.lmnl.LmnlAnnotationFactory;
-import org.lmnl.LmnlDocument;
-import org.lmnl.json.LmnlDocumentSerializer;
+import org.lmnl.AnnotationFactory;
+import org.lmnl.Document;
+import org.lmnl.json.DocumentSerializer;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -34,19 +34,19 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 
-@JsonSerialize(using = LmnlDocumentSerializer.class)
-public class DefaultLmnlDocument extends AbstractLmnlLayer implements LmnlDocument {
+@JsonSerialize(using = DocumentSerializer.class)
+public class DefaultDocument extends AbstractLayer implements Document {
 	protected BiMap<String, URI> namespaceContext = HashBiMap.create();
-	private final LmnlAnnotationFactory annotationFactory;
+	private final AnnotationFactory annotationFactory;
 
-	public DefaultLmnlDocument(URI id, String text, LmnlAnnotationFactory annotationFactory) {
+	public DefaultDocument(URI id, String text, AnnotationFactory annotationFactory) {
 		super(null, "lmnl", "document", text);
 		this.annotationFactory = annotationFactory;
 		setId(id);
-		addNamespace(LmnlDocument.LMNL_PREFIX, LmnlDocument.LMNL_NS_URI);
+		addNamespace(Document.LMNL_PREFIX, Document.LMNL_NS_URI);
 	}
 
-	public DefaultLmnlDocument(URI id, String text) {
+	public DefaultDocument(URI id, String text) {
 		this(id, text, DEFAULT_FACTORY);
 	}
 	
@@ -54,17 +54,17 @@ public class DefaultLmnlDocument extends AbstractLmnlLayer implements LmnlDocume
 		return Maps.unmodifiableBiMap(namespaceContext);
 	}
 
-	public LmnlAnnotationFactory getAnnotationFactory() {
+	public AnnotationFactory getAnnotationFactory() {
 		return annotationFactory;
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null || (!(obj instanceof DefaultLmnlDocument))) {
+		if (obj == null || (!(obj instanceof DefaultDocument))) {
 			return super.equals(obj);
 		}
 
-		return getId().equals(((DefaultLmnlDocument) obj).getId());
+		return getId().equals(((DefaultDocument) obj).getId());
 	}
 
 	@Override
@@ -90,5 +90,5 @@ public class DefaultLmnlDocument extends AbstractLmnlLayer implements LmnlDocume
 		return namespaceContext.inverse().get(ns);
 	}
 	
-	private static final LmnlAnnotationFactory DEFAULT_FACTORY = new DefaultLmnlAnnotationFactory();
+	private static final AnnotationFactory DEFAULT_FACTORY = new DefaultAnnotationFactory();
 }

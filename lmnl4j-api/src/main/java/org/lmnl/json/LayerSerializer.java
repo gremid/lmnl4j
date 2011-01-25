@@ -7,21 +7,21 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.lmnl.LmnlAnnotation;
-import org.lmnl.LmnlLayer;
+import org.lmnl.Annotation;
+import org.lmnl.Layer;
 
 import com.google.common.collect.Iterables;
 
-public class LmnlLayerSerializer extends JsonSerializer<LmnlLayer> {
+public class LayerSerializer extends JsonSerializer<Layer> {
 
 	@Override
-	public void serialize(LmnlLayer value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+	public void serialize(Layer value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
 		jgen.writeStartObject();
 		doSerialize(value, jgen, provider);
 		jgen.writeEndObject();
 	}
 
-	public static void doSerialize(LmnlLayer value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+	public static void doSerialize(Layer value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
 		URI id = value.getId();		
 		if (id != null) {
 			jgen.writeStringField("id", id.toASCIIString());
@@ -33,7 +33,7 @@ public class LmnlLayerSerializer extends JsonSerializer<LmnlLayer> {
 		}
 		if (!Iterables.isEmpty(value)) {
 			jgen.writeArrayFieldStart("annotations");
-			for (LmnlAnnotation annotation : value) {
+			for (Annotation annotation : value) {
 				provider.findValueSerializer(annotation.getClass()).serialize(annotation, jgen, provider);
 			}
 			jgen.writeEndArray();

@@ -21,8 +21,8 @@
 
 package org.lmnl.util;
 
-import org.lmnl.LmnlLayer;
-import org.lmnl.LmnlRange;
+import org.lmnl.Layer;
+import org.lmnl.Range;
 
 /**
  * Callback interface implemented by objects, which generate unique
@@ -41,9 +41,9 @@ public interface IdGenerator {
 	 *                needed
 	 * @return <code>xml:id</code>-compliant identifier value
 	 */
-	String next(LmnlLayer layer);
+	String next(Layer layer);
 
-	String next(LmnlRange address);
+	String next(Range address);
 
 	void reset();
 }

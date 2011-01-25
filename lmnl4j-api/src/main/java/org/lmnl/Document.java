@@ -31,13 +31,13 @@ import com.google.common.collect.BiMap;
  * <p/>
  * 
  * Documents form the lowest layer of LOMs, therefore they are necessarily
- * layers containing {@link LmnlLayer#getText() text}.
+ * layers containing {@link Layer#getText() text}.
  * 
  * @author <a href="http://gregor.middell.net/"
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public interface LmnlDocument extends LmnlLayer {
+public interface Document extends Layer {
 	/**
 	 * Registered mappings from name prefixes to namespace URIs in this
 	 * layer.
@@ -63,7 +63,7 @@ public interface LmnlDocument extends LmnlLayer {
 	
 	String getPrefix(URI ns);
 	
-	LmnlAnnotationFactory getAnnotationFactory();
+	AnnotationFactory getAnnotationFactory();
 
 	/**
 	 * The LMNL namespace, mainly used as a default.
