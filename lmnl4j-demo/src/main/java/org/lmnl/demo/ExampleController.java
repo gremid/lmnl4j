@@ -38,17 +38,11 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.lmnl.LmnlAnnotation;
 import org.lmnl.LmnlDocument;
 import org.lmnl.LmnlRange;
 import org.lmnl.base.DefaultLmnlAnnotation;
-import org.lmnl.json.LmnlAnnotationSerializer;
 import org.lmnl.util.OverlapIndexer;
 import org.lmnl.xml.LmnlXmlUtils;
 import org.lmnl.xml.XmlAttribute;
@@ -78,7 +72,6 @@ public class ExampleController implements ApplicationContextAware {
 
 	private ApplicationContext applicationContext;
 
-	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
@@ -143,7 +136,7 @@ public class ExampleController implements ApplicationContextAware {
 						break;
 					}
 				}
-				document.add(new HandAnnotation(new LmnlRange(handSegment), handValue));
+				document.add(LmnlDocument.LMNL_PREFIX, "hand", handValue, new LmnlRange(handSegment), DefaultLmnlAnnotation.class);
 			}
 		}
 		return document;
@@ -173,36 +166,8 @@ public class ExampleController implements ApplicationContextAware {
 
 	private static final Predicate<LmnlAnnotation> HANDSHIFT_PREDICATE = new Predicate<LmnlAnnotation>() {
 
-		@Override
 		public boolean apply(LmnlAnnotation input) {
 			return "handShift".equals(input.getLocalName());
 		}
 	};
-
-	@JsonSerialize(using = HandAnnotationSerializer.class)
-	private static class HandAnnotation extends DefaultLmnlAnnotation {
-
-		private final String value;
-
-		public HandAnnotation(LmnlRange address, String value) {
-			super(LmnlDocument.LMNL_NS_URI, "lmnl", "hand", null, address);
-			this.value = value;
-		}
-
-		public String getValue() {
-			return value;
-		}
-
-	}
-
-	private static class HandAnnotationSerializer extends JsonSerializer<HandAnnotation> {
-
-		@Override
-		public void serialize(HandAnnotation value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
-			jgen.writeStartObject();
-			LmnlAnnotationSerializer.doSerialize(value, jgen, provider);
-			jgen.writeStringField("value", value.getValue());
-			jgen.writeEndObject();
-		}
-	}
 }

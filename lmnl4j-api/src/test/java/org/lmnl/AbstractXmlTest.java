@@ -21,13 +21,12 @@
 
 package org.lmnl;
 
+import static org.lmnl.xml.LmnlXmlUtils.buildDocument;
+
 import java.net.URI;
 import java.util.Map;
 import java.util.SortedSet;
 
-import org.lmnl.base.DefaultLmnlDocument;
-import org.lmnl.xml.DefaultXmlElementAnnotationFactory;
-import org.lmnl.xml.LmnlXmlUtils;
 import org.lmnl.xml.sax.PlainTextXmlFilter;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -52,7 +51,7 @@ public abstract class AbstractXmlTest extends AbstractTest {
 	protected static final SortedSet<String> RESOURCES = Sets.newTreeSet(Lists.newArrayList(//
 			"archimedes-palimpsest-tei.xml", "george-algabal-tei.xml", "homer-iliad-tei.xml"));
 
-	private static Map<String, DefaultLmnlDocument> documents = Maps.newHashMap();
+	private static Map<String, LmnlDocument> documents = Maps.newHashMap();
 
 	/**
 	 * Creates an XML reader for parsing text-centric XML test resources.
@@ -79,13 +78,12 @@ public abstract class AbstractXmlTest extends AbstractTest {
 	 * @return the corresponding test document
 	 * @see #RESOURCES
 	 */
-	protected synchronized DefaultLmnlDocument document(String resource) {
+	protected synchronized LmnlDocument document(String resource) {
 		try {
 			if (RESOURCES.contains(resource) && !documents.containsKey(resource)) {
 				URI uri = AbstractXmlTest.class.getResource("/" + resource).toURI();
-				DefaultLmnlDocument document = new DefaultLmnlDocument(uri);
-				DefaultXmlElementAnnotationFactory factory = new DefaultXmlElementAnnotationFactory(document);
-				LmnlXmlUtils.build(createXMLReader(), new InputSource(uri.toASCIIString()), factory);
+				LmnlDocument document = buildDocument(createXMLReader(), new InputSource(uri.toASCIIString()));
+				document.addNamespace(TEST_NS_PREFIX, TEST_NS);
 				documents.put(resource, document);
 			}
 		} catch (Exception e) {
@@ -100,7 +98,7 @@ public abstract class AbstractXmlTest extends AbstractTest {
 	 * 
 	 * @return the document generated from the first available test resource
 	 */
-	protected DefaultLmnlDocument document() {
+	protected LmnlDocument document() {
 		return document(RESOURCES.first());
 	}
 }

@@ -15,13 +15,12 @@
 	<modules>
 		<module>lmnl4j-api</module>
 		<module>lmnl4j-demo</module>
-		<module>lmnl4j-goddag</module>
 	</modules>
 	<dependencies>
 		<dependency>
-			<groupId>com.google.collections</groupId>
-			<artifactId>google-collections</artifactId>
-			<version>1.0</version>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>r07</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -37,36 +36,6 @@
 				<artifactId>jackson-mapper-asl</artifactId>
 				<version>1.4.2</version>
 			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
-				<version>${slf4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-log4j12</artifactId>
-				<version>${slf4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>jcl-over-slf4j</artifactId>
-				<version>${slf4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>log4j</groupId>
-				<artifactId>log4j</artifactId>
-				<version>1.2.14</version>
-			</dependency>
-			<dependency>
-				<groupId>org.neo4j</groupId>
-				<artifactId>neo4j-kernel</artifactId>
-				<version>${neo4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.neo4j</groupId>
-				<artifactId>neo4j-utils</artifactId>
-				<version>${neo4j.version}</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	<build>
@@ -74,8 +43,8 @@
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.5</source>
+					<target>1.5</target>
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
@@ -208,11 +177,6 @@
 			<name>lmnl4j Maven Repository</name>
 			<url>http://www.middell.net/lmnl4j/repository</url>
 		</repository>
-		<repository>
-			<id>neo4j</id>
-			<name>Neo4J Public Maven Repository</name>
-			<url>http://m2.neo4j.org</url>
-		</repository>
 	</repositories>
 	<distributionManagement>
 		<repository>
@@ -221,8 +185,4 @@
 			<url>sftp://middell.net/var/www/lmnl4j/repository</url>
 		</repository>
 	</distributionManagement>
-	<properties>
-		<slf4j.version>1.5.11</slf4j.version>
-		<neo4j.version>1.1</neo4j.version>
-	</properties>
 </project>

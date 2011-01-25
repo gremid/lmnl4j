@@ -2,6 +2,8 @@ package org.lmnl.event;
 
 public class LmnlEventHandlerException extends Exception {
 
+	private static final long serialVersionUID = 1L;
+
 	public LmnlEventHandlerException() {
 		super();
 	}

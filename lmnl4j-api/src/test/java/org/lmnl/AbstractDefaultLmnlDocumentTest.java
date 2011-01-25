@@ -21,8 +21,6 @@
 
 package org.lmnl;
 
-import java.net.URI;
-
 import org.junit.After;
 import org.junit.Before;
 import org.lmnl.base.DefaultLmnlAnnotation;
@@ -37,32 +35,17 @@ import org.lmnl.base.DefaultLmnlDocument;
  */
 public abstract class AbstractDefaultLmnlDocumentTest extends AbstractTest {
 	/**
-	 * Base URI of the in-memory document
-	 */
-	protected static final URI TEST_DOCUMENT_URI = URI.create("urn:lmnl-test");
-
-	/**
-	 * Test namespace prefix.
-	 */
-	protected static final String TEST_NS_PREFIX = "test";
-
-	/**
-	 * Test namespace.
-	 */
-	protected static final URI TEST_NS = URI.create("urn:lmnl-test-ns");
-
-	/**
 	 * The in-memory document model to run tests against.
 	 */
-	protected DefaultLmnlDocument document;
+	protected LmnlDocument document;
 
 	/**
 	 * Creates a new document model before every test.
 	 */
 	@Before
 	public void createDocument() {
-		document = new DefaultLmnlDocument(TEST_DOCUMENT_URI);
-		document.setText(documentText());
+		document = new DefaultLmnlDocument(TEST_DOCUMENT_URI, documentText());
+		document.addNamespace(TEST_NS_PREFIX, TEST_NS);
 	}
 
 	/**
@@ -86,7 +69,7 @@ public abstract class AbstractDefaultLmnlDocumentTest extends AbstractTest {
 	 *                its end offset
 	 */
 	protected void addTestRange(String name, int start, int end) {
-		document.add(new DefaultLmnlAnnotation(TEST_NS, TEST_NS_PREFIX, name, null, new LmnlRange(start, end)));
+		document.add(TEST_NS_PREFIX, name, null, new LmnlRange(start, end), LmnlAnnotation.class);
 	}
 
 	/**

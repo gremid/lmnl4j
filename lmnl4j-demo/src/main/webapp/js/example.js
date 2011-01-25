@@ -49,6 +49,10 @@ function showTagContext(segmentNumber) {
 		segment.annotations.forEach(function(a) {
 			context.append($("<span/>").css("font-weight", "bold").text(a.name));
 			context.append($("<br/>"));
+			if (a.text) {
+				context.append($("<span/>").css("font-style", "italic").text(a.text));
+				context.append($("<br/>"));
+			}
 			if (a.xmlNode) {
 				context.append($("<span/>").text(a.xmlNode.xpath()));
 				context.append($("<br/>"));

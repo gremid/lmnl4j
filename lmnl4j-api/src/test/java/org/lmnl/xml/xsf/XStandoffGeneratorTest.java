@@ -22,6 +22,7 @@
 package org.lmnl.xml.xsf;
 
 import java.io.StringWriter;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -64,7 +65,6 @@ public class XStandoffGeneratorTest extends AbstractXmlTest {
 		XStandoffMarkupGenerator xsf = new XStandoffMarkupGenerator(document(), dom);
 		xsf.addLevel(new Predicate<XmlElementAnnotation>() {
 
-			@Override
 			public boolean apply(XmlElementAnnotation input) {
 				return "seg".equals(input.getLocalName());
 			}
@@ -73,7 +73,6 @@ public class XStandoffGeneratorTest extends AbstractXmlTest {
 		xsf.addLevel(new Predicate<XmlElementAnnotation>() {
 			private Pattern names = Pattern.compile("(choice)|(abbr)|(expan)");
 
-			@Override
 			public boolean apply(XmlElementAnnotation input) {
 				return names.matcher(input.getLocalName()).matches();
 			}
@@ -81,7 +80,7 @@ public class XStandoffGeneratorTest extends AbstractXmlTest {
 		});
 		xsf.close();
 
-		if (LOG.isDebugEnabled()) {
+		if (LOG.isLoggable(Level.FINE)) {
 			StringWriter out = new StringWriter();
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");

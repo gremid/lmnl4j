@@ -94,7 +94,6 @@ public class XPathAddress implements Comparable<XPathAddress> {
 		return xpath(null);
 	}
 
-	@Override
 	public int compareTo(XPathAddress o) {
 		int i = 0;
 		int oi = 0;

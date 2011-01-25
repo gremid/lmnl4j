@@ -28,7 +28,6 @@ public class LmnlEventGenerator {
 	public void generate(LmnlLayer layer, LmnlEventHandler eventHandler) throws LmnlEventHandlerException {
 		generate(layer, eventHandler, new Ordering<LmnlAnnotation>() {
 
-			@Override
 			public int compare(LmnlAnnotation o1, LmnlAnnotation o2) {
 				return o1.address().compareTo(o2.address());
 			}

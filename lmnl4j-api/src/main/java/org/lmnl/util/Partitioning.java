@@ -78,7 +78,6 @@ public class Partitioning implements Function<Iterable<LmnlAnnotation>, SortedSe
 		this.filterPredicate = filterPredicate;
 	}
 
-	@Override
 	public SortedSet<LmnlRange> apply(Iterable<LmnlAnnotation> from) {
 		SortedSet<Integer> offsets = Sets.newTreeSet();
 

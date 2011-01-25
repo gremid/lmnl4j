@@ -76,7 +76,6 @@ public class OverlapIndexer implements Function<Iterable<LmnlAnnotation>, Sorted
 		this.partitioningFilter = partitioningFilter;
 	}
 
-	@Override
 	public SortedMap<LmnlRange, List<LmnlAnnotation>> apply(Iterable<LmnlAnnotation> from) {
 		return Functions.compose(new Indexer(from), new Partitioning(partitioningFilter)).apply(from);
 	}
@@ -90,7 +89,6 @@ public class OverlapIndexer implements Function<Iterable<LmnlAnnotation>, Sorted
 
 		}
 
-		@Override
 		public SortedMap<LmnlRange, List<LmnlAnnotation>> apply(SortedSet<LmnlRange> from) {
 			List<LmnlAnnotation> annotations = Lists.newArrayList(entries);
 			final SortedMap<LmnlRange, List<LmnlAnnotation>> index = new TreeMap<LmnlRange, List<LmnlAnnotation>>();

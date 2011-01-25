@@ -12,12 +12,10 @@ import org.lmnl.LmnlRange;
 public class DefaultIdGenerator implements IdGenerator {
 	private Map<String, Integer> layerIds = new HashMap<String, Integer>();
 
-	@Override
 	public String next(LmnlRange range) {
 		return ("seg_" + range.start + "_" + range.end);
 	}
 
-	@Override
 	public String next(LmnlLayer layer) {
 		String qName = layer.getQName().replace(":", "_");
 		Integer id = layerIds.get(qName);
@@ -28,7 +26,6 @@ public class DefaultIdGenerator implements IdGenerator {
 		return qName + id;
 	}
 
-	@Override
 	public void reset() {
 		layerIds.clear();
 	}

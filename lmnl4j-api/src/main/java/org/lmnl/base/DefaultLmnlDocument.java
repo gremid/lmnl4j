@@ -22,32 +22,42 @@
 package org.lmnl.base;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.lmnl.LmnlAnnotationFactory;
 import org.lmnl.LmnlDocument;
 import org.lmnl.json.LmnlDocumentSerializer;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Maps;
+
 @JsonSerialize(using = LmnlDocumentSerializer.class)
 public class DefaultLmnlDocument extends AbstractLmnlLayer implements LmnlDocument {
-	protected Map<String, URI> namespaceContext = new HashMap<String, URI>();
+	protected BiMap<String, URI> namespaceContext = HashBiMap.create();
+	private final LmnlAnnotationFactory annotationFactory;
 
-	public DefaultLmnlDocument(URI id) {
-		super(LMNL_NS_URI, "lmnl", "document", null);
+	public DefaultLmnlDocument(URI id, String text, LmnlAnnotationFactory annotationFactory) {
+		super(null, "lmnl", "document", text);
+		this.annotationFactory = annotationFactory;
 		setId(id);
+		addNamespace(LmnlDocument.LMNL_PREFIX, LmnlDocument.LMNL_NS_URI);
 	}
 
-	@Override
-	public Map<String, URI> getNamespaceContext() {
-		return namespaceContext;
+	public DefaultLmnlDocument(URI id, String text) {
+		this(id, text, DEFAULT_FACTORY);
+	}
+	
+	public BiMap<String, URI> getNamespaceContext() {
+		return Maps.unmodifiableBiMap(namespaceContext);
 	}
 
-	@Override
-	public void setNamespaceContext(Map<String, URI> context) {
-		this.namespaceContext = context;
+	public LmnlAnnotationFactory getAnnotationFactory() {
+		return annotationFactory;
 	}
-
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null || (!(obj instanceof DefaultLmnlDocument))) {
@@ -61,4 +71,24 @@ public class DefaultLmnlDocument extends AbstractLmnlLayer implements LmnlDocume
 	public int hashCode() {
 		return getId().hashCode();
 	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this).addValue(getId()).toString();
+	}
+	
+	public void addNamespace(String prefix, URI ns) {
+		Preconditions.checkArgument(!namespaceContext.containsKey(prefix), prefix + " already mapped");
+		namespaceContext.put(prefix, ns);
+	}
+	
+	public URI getNamespace(String prefix) {
+		return namespaceContext.get(prefix);
+	}
+	
+	public String getPrefix(URI ns) {
+		return namespaceContext.inverse().get(ns);
+	}
+	
+	private static final LmnlAnnotationFactory DEFAULT_FACTORY = new DefaultLmnlAnnotationFactory();
 }

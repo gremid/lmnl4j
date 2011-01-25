@@ -22,7 +22,8 @@
 package org.lmnl;
 
 import java.net.URI;
-import java.util.Map;
+
+import com.google.common.collect.BiMap;
 
 /**
  * A document, the natural base layer of a LMNL object model (LOM).
@@ -54,28 +55,20 @@ public interface LmnlDocument extends LmnlLayer {
 	 * 
 	 * @see #add(LmnlAnnotation)
 	 */
-	Map<String, URI> getNamespaceContext();
+	BiMap<String, URI> getNamespaceContext();
 
-	/**
-	 * Assigns a map of registered namespaces to this layer.
-	 * 
-	 * <p/>
-	 * 
-	 * As namespace handling is handled internally to a large extent during
-	 * {@link #add(LmnlAnnotation) LOM construction}, for example by
-	 * propagating mappings up the layer hierarchy, this method should
-	 * normally not be called by users.
-	 * 
-	 * @param context
-	 *                a map of namespaces registered in this layer and its
-	 *                descendants or <code>null</code> in case the namespace
-	 *                context of this layer shall be removed and further
-	 *                lookups be delegated to its owner
-	 */
-	void setNamespaceContext(Map<String, URI> context);
+	void addNamespace(String prefix, URI ns);
+	
+	URI getNamespace(String prefix);
+	
+	String getPrefix(URI ns);
+	
+	LmnlAnnotationFactory getAnnotationFactory();
 
 	/**
 	 * The LMNL namespace, mainly used as a default.
 	 */
 	final URI LMNL_NS_URI = URI.create("http://lmnl.net/namespaces/lmnl");
+	
+	final String LMNL_PREFIX = "lmnl";
 }

@@ -21,29 +21,33 @@
 
 package org.lmnl.base;
 
-import java.net.URI;
-
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.lmnl.LmnlAnnotation;
+import org.lmnl.LmnlLayer;
 import org.lmnl.LmnlRange;
 import org.lmnl.json.LmnlAnnotationSerializer;
+
+import com.google.common.base.Objects;
 
 @JsonSerialize(using = LmnlAnnotationSerializer.class)
 public class DefaultLmnlAnnotation extends AbstractLmnlLayer implements LmnlAnnotation {
 	protected LmnlRange address;
 
-	public DefaultLmnlAnnotation(URI uri, String prefix, String localName, String text, LmnlRange address) {
-		super(uri, prefix, localName, text);
+	protected DefaultLmnlAnnotation(LmnlLayer owner, String prefix, String localName, String text, LmnlRange address) {
+		super(owner, prefix, localName, text);
 		this.address = address;
 	}
 
-	@Override
 	public LmnlRange address() {
 		return address;
 	}
 
-	@Override
 	public String getSegmentText() {
 		return address.applyTo(getOwner().getText());
+	}
+	
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this).addValue(getQName()).addValue(address).toString();
 	}
 }

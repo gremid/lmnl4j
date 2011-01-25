@@ -29,6 +29,7 @@ import java.util.Stack;
 
 import javax.xml.XMLConstants;
 
+import org.lmnl.LmnlDocument;
 import org.lmnl.LmnlLayer;
 import org.lmnl.LmnlRange;
 import org.lmnl.util.DefaultIdGenerator;
@@ -133,22 +134,21 @@ public class XStandoffMarkupGenerator {
 
 		SortedSet<XmlElementAnnotation> levelContents = Sets.newTreeSet(new Comparator<XmlElementAnnotation>() {
 
-			@Override
 			public int compare(XmlElementAnnotation o1, XmlElementAnnotation o2) {
-				return o1.getXmlNodeAddress().compareTo(o2.getXmlNodeAddress());
+				return o1.getXPathAddress().compareTo(o2.getXPathAddress());
 			}
 		});
 		Iterables.addAll(levelContents, Iterables.filter(Iterables.filter(source, XmlElementAnnotation.class), predicate));
 		
 		for (XmlElementAnnotation lmnlElement : levelContents) {
-			final XPathAddress addr = lmnlElement.getXmlNodeAddress();
+			final XPathAddress addr = lmnlElement.getXPathAddress();
 
 			while (nesting.peek().lmnl != null && !nesting.peek().lmnl.address().encloses(lmnlElement.address())) {
 				nesting.pop();
 			}
 			while (nesting.peek().lmnl != null) {
 				XmlElementAnnotation ancestor = nesting.peek().lmnl;
-				if (!ancestor.getXmlNodeAddress().isAncestorOf(addr)) {
+				if (!ancestor.getXPathAddress().isAncestorOf(addr)) {
 					nesting.pop();
 				} else {
 					break;
@@ -158,11 +158,12 @@ public class XStandoffMarkupGenerator {
 			Element domElement = targetDocument.createElementNS(lmnlElement.getNamespace().toASCIIString(), lmnlElement.getQName());
 			nesting.peek().dom.appendChild(domElement);
 
+			final LmnlDocument document = lmnlElement.getDocument();
 			for (XmlAttribute xmlAttr : lmnlElement.getAttributes()) {
 				if (xmlAttr.prefix.length() == 0) {
 					domElement.setAttribute(xmlAttr.localName, xmlAttr.value);
 				} else {
-					domElement.setAttributeNS(xmlAttr.ns.toASCIIString(), xmlAttr.getQName(), xmlAttr.value);
+					domElement.setAttributeNS(document.getNamespace(xmlAttr.prefix).toASCIIString(), xmlAttr.getQName(), xmlAttr.value);
 				}
 			}
 			if (lmnlElement.getId() != null) {

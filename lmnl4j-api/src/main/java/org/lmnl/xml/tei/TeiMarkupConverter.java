@@ -34,9 +34,11 @@ import org.lmnl.LmnlAnnotation;
 import org.lmnl.LmnlDocument;
 import org.lmnl.LmnlLayer;
 import org.lmnl.LmnlRange;
-import org.lmnl.base.AbstractLmnlLayer;
 import org.lmnl.base.DefaultLmnlAnnotation;
 import org.lmnl.util.OverlapIndexer;
+import org.lmnl.xml.LmnlXmlUtils;
+import org.lmnl.xml.XmlAttribute;
+import org.lmnl.xml.XmlElementAnnotation;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -46,12 +48,10 @@ import com.google.common.collect.Iterables;
  * 
  * <p/>
  * 
- * This converter aims to convert any TEI-P5 markup, that works around
- * XML-related constraints (like having a single, non-overlapping hierarchy) and
- * that can be expressed more easily in the LMNL realm.
+ * This converter aims to convert any TEI-P5 markup, that works around XML-related constraints (like having a single,
+ * non-overlapping hierarchy) and that can be expressed more easily in the LMNL realm.
  * 
- * @author <a href="http://gregor.middell.net/"
- *         title="Homepage of Gregor Middell">Gregor Middell</a>
+ * @author <a href="http://gregor.middell.net/" title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
 public class TeiMarkupConverter {
@@ -62,49 +62,41 @@ public class TeiMarkupConverter {
 	private boolean convertSpanningElements = true;
 
 	/**
-	 * Shall linebreak elements (<code>&lt;lb/></code>) be converted to
-	 * <code>lmnl:line</code> ranges.
+	 * Shall linebreak elements (<code>&lt;lb/></code>) be converted to <code>lmnl:line</code> ranges.
 	 * 
 	 * @param convertLinebreaks
-	 *                <code>true</code> (yes, default) or <code>false</code>
-	 *                (no)
+	 *                <code>true</code> (yes, default) or <code>false</code> (no)
 	 */
 	public void setConvertLineBreaks(boolean convertLinebreaks) {
 		this.convertLineBreaks = convertLinebreaks;
 	}
 
 	/**
-	 * Shall pagebreak elements (<code>&lt;pb/></code>) be converted to
-	 * <code>lmnl:page</code> ranges.
+	 * Shall pagebreak elements (<code>&lt;pb/></code>) be converted to <code>lmnl:page</code> ranges.
 	 * 
 	 * @param convertPageBreaks
-	 *                <code>true</code> (yes, default) or <code>false</code>
-	 *                (no)
+	 *                <code>true</code> (yes, default) or <code>false</code> (no)
 	 */
 	public void setConvertPageBreaks(boolean convertPageBreaks) {
 		this.convertPageBreaks = convertPageBreaks;
 	}
 
 	/**
-	 * Shall columnbreak elements (<code>&lt;cb/></code>) be converted to
-	 * <code>lmnl:column</code> ranges.
+	 * Shall columnbreak elements (<code>&lt;cb/></code>) be converted to <code>lmnl:column</code> ranges.
 	 * 
 	 * @param convertColumnBreaks
-	 *                <code>true</code> (yes, default) or <code>false</code>
-	 *                (no)
+	 *                <code>true</code> (yes, default) or <code>false</code> (no)
 	 */
 	public void setConvertColumnBreaks(boolean convertColumnBreaks) {
 		this.convertColumnBreaks = convertColumnBreaks;
 	}
 
 	/**
-	 * Shall spanning elements (those with a model of
-	 * <code>att.spanning</code>) be converted to their native counterpart
-	 * (for instance <code>&lt;addSpan/></code> to <code>&lt;add/></code>)?
+	 * Shall spanning elements (those with a model of <code>att.spanning</code>) be converted to their native counterpart (for
+	 * instance <code>&lt;addSpan/></code> to <code>&lt;add/></code>)?
 	 * 
 	 * @param convertSpanningElements
-	 *                <code>true</code> (yes, default) or <code>false</code>
-	 *                (no)
+	 *                <code>true</code> (yes, default) or <code>false</code> (no)
 	 */
 	public void setConvertSpanningElements(boolean convertSpanningElements) {
 		this.convertSpanningElements = convertSpanningElements;
@@ -131,86 +123,83 @@ public class TeiMarkupConverter {
 		}
 	}
 
-
 	private void convertSimpleMilestones(LmnlLayer layer, String msElementName, String elementName) {
-		TeiElementPredicate msPredicate = new TeiElementPredicate(msElementName);
+		final DefaultLmnlAnnotation covering = layer.add(LmnlDocument.LMNL_PREFIX, "all", null, new LmnlRange(0, layer
+				.getText().length()), DefaultLmnlAnnotation.class);
+		final TeiElementPredicate msPredicate = new TeiElementPredicate(msElementName);
 
-		Iterable<LmnlAnnotation> ranges = Iterables.filter(layer, msPredicate);
-		ranges = Iterables.concat(ranges, Collections.singletonList(new LayerCoveringRange(layer)));
+		Iterable<LmnlAnnotation> ranges = Iterables.concat(Iterables.filter(layer, msPredicate),
+				Collections.singletonList(covering));
 
 		SortedMap<LmnlRange, List<LmnlAnnotation>> msIndex = new OverlapIndexer(msPredicate).apply(ranges);
 		for (LmnlRange segment : msIndex.keySet()) {
 			for (LmnlAnnotation milestone : msIndex.get(segment)) {
-				if (milestone instanceof LayerCoveringRange) {
+				if (milestone.equals(covering)) {
 					continue;
 				}
 				if (milestone.address().start == segment.start) {
-					// FIXME: factory pattern!
-					LmnlAnnotation element = new DefaultLmnlAnnotation(LmnlDocument.LMNL_NS_URI, "lmnl", elementName, null, new LmnlRange(segment));
-					layer.add(element);
-					for (LmnlAnnotation annotation : milestone) {
-						element.add(annotation);
+					final LmnlAnnotation element = layer.add(LmnlDocument.LMNL_PREFIX, elementName, null,
+							new LmnlRange(segment), XmlElementAnnotation.class);
+					for (XmlElementAnnotation annotation : Iterables.filter(milestone,
+							XmlElementAnnotation.class)) {
+						element.add(annotation, XmlElementAnnotation.class);
 					}
 					layer.remove(milestone);
 				}
 			}
 		}
+
+		layer.remove(covering);
 	}
 
 	private void convertSpanningElements(LmnlLayer layer) {
+		// indexing of identifyable ranges
 		final Map<URI, LmnlAnnotation> ids = new HashMap<URI, LmnlAnnotation>();
+		for (LmnlAnnotation annotation : layer) {
+			if (annotation.getId() != null) {
+				ids.put(annotation.getId(), annotation);
+			}
+		}
 
-		// collecting and indexing of identifyable ranges
-		layer.visit(new LmnlLayer.Visitor() {
-
-			@Override
-			public void visit(LmnlLayer layer) {
-				if (layer instanceof LmnlAnnotation && layer.getId() != null) {
-					ids.put(layer.getId(), (LmnlAnnotation) layer);
+		// collecting spanning elements and their new ranges
+		final Map<XmlElementAnnotation, LmnlRange> spans = new HashMap<XmlElementAnnotation, LmnlRange>();
+		for (XmlElementAnnotation range : layer.select(XmlElementAnnotation.class)) {
+			String localName = range.getLocalName();
+			if (!localName.endsWith("Span") && !localName.equals("index")) {
+				continue;
+			}
+			try {
+				final XmlAttribute to = Iterables.find(range.getAttributes(), new Predicate<XmlAttribute>() {
+					public boolean apply(XmlAttribute input) {
+						return "spanTo".equals(input.localName) && (input.value != null);
+					}
+				});
+				if (to == null) {
+					continue;
+				}
+				
+				final LmnlAnnotation end = ids.get(new URI(to.value));
+				if (end == null) {
+					continue;
 				}
 
+				spans.put(range, new LmnlRange(range.address().start, end.address().start));
+			} catch (NoSuchElementException e) {
+			} catch (URISyntaxException e) {
 			}
-		});
-
+		}
 		// transformation of spanning elements
-		layer.visit(new LmnlLayer.Visitor() {
-
-			@Override
-			public void visit(LmnlLayer layer) {
-				if (!(layer instanceof LmnlAnnotation)) {
-					return;
-				}
-				LmnlAnnotation range = (LmnlAnnotation) layer;
-				String localName = range.getLocalName();
-				if (!localName.endsWith("Span") && !localName.equals("index")) {
-					return;
-				}
-
-				try {
-					LmnlAnnotation to = Iterables.find(range.getAnnotations(), new Predicate<LmnlAnnotation>() {
-
-						@Override
-						public boolean apply(LmnlAnnotation input) {
-							return "spanTo".equals(input.getLocalName()) && (input.getText() != null);
-						}
-					});
-
-					LmnlAnnotation end = ids.get(new URI(to.getText()));
-					if (end == null) {
-						return;
-					}
-
-					if (localName.endsWith("Span")) {
-						range.setLocalName(localName.substring(0, localName.length() - 4));
-					}
-					range.address().end = end.address().start;
-					range.remove(to);
-
-				} catch (NoSuchElementException e) {
-				} catch (URISyntaxException e) {
-				}
+		for (Map.Entry<XmlElementAnnotation, LmnlRange> span : spans.entrySet()) {
+			final XmlElementAnnotation sa = span.getKey();
+			String localName = sa.getLocalName();
+			if (localName.endsWith("Span")) {
+				localName = localName.substring(0, localName.length() - 4);
 			}
-		});
+			
+			final XmlElementAnnotation na = layer.add(sa.getPrefix(), localName, sa.getText(), span.getValue(), XmlElementAnnotation.class);
+			LmnlXmlUtils.copyProperties(sa, na);
+			layer.remove(sa);
+		}
 	}
 
 	private static class TeiElementPredicate implements Predicate<LmnlAnnotation> {
@@ -221,7 +210,6 @@ public class TeiMarkupConverter {
 			this.localName = localName;
 		}
 
-		@Override
 		public boolean apply(LmnlAnnotation input) {
 			if (!TEI_NS.equals(input.getNamespace())) {
 				return false;
@@ -230,26 +218,5 @@ public class TeiMarkupConverter {
 			return localName.equals(input.getLocalName());
 		}
 
-	}
-
-	private static class LayerCoveringRange extends AbstractLmnlLayer implements LmnlAnnotation {
-		private final LmnlLayer layer;
-		private final LmnlRange rangeAddress;
-
-		private LayerCoveringRange(LmnlLayer layer) {
-			super(layer.getUri(), layer.getPrefix(), layer.getLocalName(), null);
-			this.layer = layer;
-			this.rangeAddress = new LmnlRange(0, layer.getText().length());
-		}
-
-		@Override
-		public LmnlRange address() {
-			return rangeAddress;
-		}
-
-		@Override
-		public String getSegmentText() {
-			return layer.getText();
-		}
 	}
 }

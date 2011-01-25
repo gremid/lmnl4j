@@ -22,30 +22,71 @@
 package org.lmnl;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.junit.BeforeClass;
 import org.lmnl.util.OverlapIndexer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Base class for tests providing utility functions.
  * 
- * @author <a href="http://gregor.middell.net/"
- *         title="Homepage of Gregor Middell">Gregor Middell</a>
+ * @author <a href="http://gregor.middell.net/" title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
 public abstract class AbstractTest {
 	/**
+	 * Base URI of the in-memory document
+	 */
+	protected static final URI TEST_DOCUMENT_URI = URI.create("urn:lmnl-test");
+
+	/**
+	 * Test namespace prefix.
+	 */
+	protected static final String TEST_NS_PREFIX = "test";
+
+	/**
+	 * Test namespace.
+	 */
+	protected static final URI TEST_NS = URI.create("urn:lmnl-test-ns");
+
+	/**
 	 * A logger for debug output.
 	 */
-	protected static final Logger LOG = LoggerFactory.getLogger(AbstractTest.class.getPackage().getName());
+	protected static final Logger LOG = Logger.getLogger(AbstractTest.class.getPackage().getName());
 
 	protected ObjectMapper jsonMapper = new ObjectMapper();
+
+	/**
+	 * Initializes logging for debug output during test execution.
+	 */
+	@BeforeClass
+	public static void initLogging() {
+		LOG.setUseParentHandlers(false);
+		LOG.setLevel(Level.FINEST);
+
+		for (Handler handler : LOG.getHandlers()) {
+			if (handler instanceof ConsoleHandler) {
+				LOG.removeHandler(handler);
+			}
+		}
+		final ConsoleHandler handler = new ConsoleHandler();
+		handler.setFormatter(new SimpleLogFormatter());
+		handler.setLevel(Level.FINEST);
+		LOG.addHandler(handler);
+	}
 
 	/**
 	 * Prints the given {@link OverlapIndexer range index} to the log.
@@ -54,7 +95,7 @@ public abstract class AbstractTest {
 	 *                the range index to output
 	 */
 	protected void printDebugMessage(SortedMap<LmnlRange, List<LmnlAnnotation>> index) {
-		if (LOG.isDebugEnabled()) {
+		if (LOG.isLoggable(Level.FINE)) {
 			final StringBuilder str = new StringBuilder();
 			for (LmnlRange segment : index.keySet()) {
 				str.append("[" + segment + ": { ");
@@ -69,7 +110,7 @@ public abstract class AbstractTest {
 				}
 				str.append(" }]\n");
 			}
-			LOG.debug(str.toString());
+			LOG.fine(str.toString());
 		}
 	}
 
@@ -80,7 +121,7 @@ public abstract class AbstractTest {
 	 *                the debug message
 	 */
 	protected void printDebugMessage(String msg) {
-		LOG.debug(msg);
+		LOG.fine(msg);
 	}
 
 	/**
@@ -90,15 +131,39 @@ public abstract class AbstractTest {
 	 *                the layer to print
 	 */
 	protected void printDebugMessage(LmnlLayer layer) {
-		if (LOG.isDebugEnabled()) {
+		if (LOG.isLoggable(Level.FINE)) {
 			try {
 				StringWriter out = new StringWriter();
 				JsonGenerator jgen = jsonMapper.getJsonFactory().createJsonGenerator(out).useDefaultPrettyPrinter();
 				jsonMapper.writeValue(jgen, layer);
-				LOG.debug(out.toString());
+				LOG.fine(out.toString());
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 		}
 	}
+
+	private static class SimpleLogFormatter extends Formatter {
+
+		@Override
+		public String format(LogRecord record) {
+			final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+			StringBuilder msg = new StringBuilder();
+			msg.append(String.format("[%s][%7s]: %s\n", df.format(record.getMillis()), record.getLevel(),
+					record.getMessage()));
+			if (record.getThrown() != null) {
+				try {
+					StringWriter sw = new StringWriter();
+					PrintWriter pw = new PrintWriter(sw);
+					record.getThrown().printStackTrace(pw);
+					pw.close();
+					msg.append(sw.toString());
+				} catch (Exception ex) {
+				}
+			}
+			return msg.toString();
+		}
+
+	}
+
 }

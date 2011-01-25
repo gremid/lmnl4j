@@ -23,62 +23,53 @@ package org.lmnl.base;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.lmnl.LmnlAnnotation;
 import org.lmnl.LmnlDocument;
 import org.lmnl.LmnlLayer;
+import org.lmnl.LmnlRange;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 
 public abstract class AbstractLmnlLayer implements LmnlLayer {
 	protected LmnlLayer owner;
 	protected URI id;
-	protected URI namespace;
 	protected String prefix;
 	protected String localName;
 	protected String text;
 	protected List<LmnlAnnotation> annotations = new ArrayList<LmnlAnnotation>();
 
-	protected AbstractLmnlLayer(URI namespace, String prefix, String localName, String text) {
-		this.namespace = namespace;
+	protected AbstractLmnlLayer(LmnlLayer owner, String prefix, String localName, String text) {
+		this.owner = owner;
 		this.prefix = prefix;
 		this.localName = localName;
 		this.text = text;
 	}
 
-	@Override
-	public LmnlDocument getDocument() {		
-		LmnlLayer current = this;
-		while (current != null && !(current instanceof LmnlDocument)) {
-			current = current.getOwner();
+	public LmnlDocument getDocument() {
+		for (LmnlLayer current = this; current != null; current = current.getOwner()) {
+			if (current instanceof LmnlDocument) {
+				return (LmnlDocument) current;
+			}
 		}
-
-		return (LmnlDocument) current;
+		throw new IllegalStateException();
 	}
 
-	@Override
 	public LmnlLayer getOwner() {
 		return owner;
 	}
 
-	@Override
-	public void setOwner(LmnlLayer owner) {
-		this.owner = owner;
-	}
-
-	@Override
 	public URI getId() {
 		return id;
 	}
 
-	@Override
 	public void setId(URI id) {
 		this.id = id;
 	}
 
-	@Override
 	public URI getUri() {
 		if (id == null) {
 			return null;
@@ -87,114 +78,74 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 		return (document == null ? id : (document.getId() == null ? id : document.getId().resolve(id)));
 	}
 
-	@Override
 	public String getPrefix() {
 		return prefix;
 	}
 
-	@Override
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
 	}
 
-	@Override
 	public String getLocalName() {
 		return localName;
 	}
 
-	@Override
 	public void setLocalName(String localName) {
 		this.localName = localName;
 	}
 
-	@Override
 	public String getQName() {
 		return (prefix == null || localName == null) ? null : (prefix.length() == 0 ? localName : prefix + ":" + localName);
 	}
 
-	@Override
 	public URI getNamespace() {
-		return (namespace == null ? getDocument().getNamespaceContext().get(prefix) : namespace);
+		return getDocument().getNamespaceContext().get(prefix);
 	}
 
-	@Override
-	public void setNamespace(URI namespace) {
-		this.namespace = namespace;
-	}
-
-	@Override
 	public String getText() {
 		return (text == null ? (owner == null ? null : owner.getText()) : text);
 	}
 
-	@Override
 	public boolean hasText() {
 		return (text != null);
 	}
 
-	@Override
 	public void setText(String text) {
 		this.text = text;
 	}
 
-	@Override
-	public List<LmnlAnnotation> getAnnotations() {
-		return Collections.unmodifiableList(annotations);
-	}
-
-	@Override
 	public Iterator<LmnlAnnotation> iterator() {
-		return new ArrayList<LmnlAnnotation>(getAnnotations()).iterator();
+		return annotations.iterator();
 	}
 
-	@Override
-	public LmnlAnnotation add(LmnlAnnotation annotation) {
-		if (annotation.getOwner() != null) {
-			annotation.getOwner().remove(annotation);
-		}
-
-		String prefix = annotation.getPrefix();
-		URI ns = annotation.getNamespace();
-		Map<String, URI> ctx = getDocument().getNamespaceContext();
-		if (ctx.containsValue(ns)) {
-			if (ctx.containsKey(prefix)) {
-				if (!ctx.get(prefix).equals(ns)) {
-					throw new IllegalArgumentException("Prefix'" + prefix + "' already mapped: '" + ns + "' != '" + ctx.get(prefix) + "'");
-				}				
-			} else {
-				for (String nsPrefix : ctx.keySet()) {
-					if (ns.equals(ctx.get(nsPrefix))) {
-						annotation.setPrefix(nsPrefix);
-						break;
-					}
-				}
-			}
-		} else {
-			ctx.put(prefix, ns);
-		}
-
-		annotation.setNamespace(null);
-		annotation.setOwner(this);
-
+	public <T extends LmnlAnnotation> T add(String prefix, String localName, String text, LmnlRange address, Class<T> type) {
+		Preconditions.checkArgument(getDocument().getNamespaceContext().containsKey(prefix), prefix + " not mapped");
+		
+		final T annotation = getDocument().getAnnotationFactory().create(this, prefix, localName, text, address, type);
 		annotations.add(annotation);
 		return annotation;
 	}
 
-	@Override
-	public LmnlAnnotation remove(LmnlAnnotation annotation) {
-		if (!equals(annotation.getOwner())) {
-			return annotation;
+	public <T extends LmnlAnnotation> T add(T annotation, Class<T> type) {
+		return add(annotation.getPrefix(), annotation.getLocalName(), annotation.getText(), annotation.address(), type);
+	}
+	
+	public void destroy() {
+		owner = null;
+		annotations = null;
+	}
+	
+	public void remove(LmnlAnnotation annotation) {
+		Preconditions.checkArgument(equals(annotation.getOwner()), annotation + " not a child of " + this);
+		Preconditions.checkArgument(annotations.remove(annotation), annotation + " not a child of " + this);
+		
+		for (LmnlAnnotation child : annotation) {
+			annotation.remove(child);
 		}
-		if (!annotations.remove(annotation)) {
-			throw new IllegalArgumentException(annotation.toString());
-		}
-		URI ns = annotation.getNamespace();
-		annotation.setOwner(null);
-		annotation.setNamespace(ns);
-		return annotation;
+		
+		getDocument().getAnnotationFactory().destroy(annotation);
 	}
 
-	@Override
 	public void visit(Visitor visitor) {
 		for (LmnlAnnotation a : annotations) {
 			visitor.visit(a);
@@ -204,6 +155,10 @@ public abstract class AbstractLmnlLayer implements LmnlLayer {
 		}
 	}
 
+	public <T extends LmnlAnnotation> Iterable<T> select(Class<T> annotationType) {
+		return Iterables.filter(this, annotationType);
+	}
+	
 	// FIXME: implement proper type-safe removal
 	// public void remove(LmnlRange deleted) {
 	// remove(deleted, true);

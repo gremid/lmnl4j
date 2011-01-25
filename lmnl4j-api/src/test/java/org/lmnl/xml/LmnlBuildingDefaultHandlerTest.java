@@ -23,7 +23,7 @@ package org.lmnl.xml;
 
 import org.junit.Test;
 import org.lmnl.AbstractXmlTest;
-import org.lmnl.base.DefaultLmnlDocument;
+import org.lmnl.LmnlDocument;
 
 /**
  * Tests the generation of LOMs from XML sources.
@@ -39,7 +39,7 @@ public class LmnlBuildingDefaultHandlerTest extends AbstractXmlTest {
 	 */
 	@Test
 	public void buildLom() {
-		DefaultLmnlDocument document = document("george-algabal-tei.xml");
+		LmnlDocument document = document("george-algabal-tei.xml");
 		printDebugMessage(document.getText());
 		printDebugMessage(document);
 	}

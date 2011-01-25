@@ -22,8 +22,6 @@
 package org.lmnl;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Set;
 
 import org.codehaus.jackson.JsonGenerator;
 
@@ -77,18 +75,6 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 *         document} or an {@link LmnlAnnotation annotation}
 	 */
 	LmnlLayer getOwner();
-
-	/**
-	 * Registers this layer as a child of another layer.
-	 * 
-	 * Should not be called by users for constructing LOMs normally, but is
-	 * used internally. To add layers to another as a child, call
-	 * {@link #add(LmnlAnnotation)}.
-	 * 
-	 * @param owner
-	 *                the parent/ owner of this layer
-	 */
-	void setOwner(LmnlLayer owner);
 
 	/**
 	 * A textual key, uniquely identifying the layer within a document.
@@ -151,19 +137,6 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	String getPrefix();
 
 	/**
-	 * Sets the name prefix for this layer, thereby implictly setting its
-	 * namespace.
-	 * 
-	 * @param prefix
-	 *                the new prefix string, referring to a
-	 *                {@link #getNamespaceContext() registered namespace} in
-	 *                this layer; maybe the empty string
-	 * 
-	 * @see #getNamespace()
-	 */
-	void setPrefix(String prefix);
-
-	/**
 	 * The name of this layer, which is local to its namespace context.
 	 * 
 	 * @return the local name of the layer, corresponding to the same <a
@@ -171,14 +144,6 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 *         title="Namespaces in XML">concept in XML</a>
 	 */
 	String getLocalName();
-
-	/**
-	 * Sets the name of this layer, which is local to its namespace context.
-	 * 
-	 * @param localName
-	 *                the new local name
-	 */
-	void setLocalName(String localName);
 
 	/**
 	 * Looks up and returns the namespace of this layer.
@@ -190,7 +155,6 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 */
 	URI getNamespace();
 
-	void setNamespace(URI uri);
 	
 	/**
 	 * Delivers the qualified name of this layer.
@@ -204,7 +168,7 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	String getQName();
 
 	/**
-	 * Returns the text, that markup of this layer applies to.
+	 * Returns the text, the markup of this layer applies to.
 	 * 
 	 * 
 	 * @return the text of this layer, if it contains some, the text of this
@@ -212,6 +176,8 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 */
 	String getText();
 
+	void setText(String text);
+	
 	/**
 	 * Does this annotation layer has a text of its own, or does it annotate
 	 * the text of its owning layer.
@@ -219,32 +185,6 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 * @return <code>true</code> or <code>false</code>
 	 */
 	boolean hasText();
-
-	/**
-	 * Associates text with this layer.
-	 * 
-	 * @param text
-	 *                the text to which markup of this layer applies or
-	 *                <code>null</code> in case this layer does not contain
-	 *                any text but defers markup assignment to its owning
-	 *                layer
-	 */
-	void setText(String text);
-
-	/**
-	 * An unmodifieable list of annotations directly owned by this layer.
-	 * 
-	 * <p/>
-	 * 
-	 * Annotations, having no generalized ordering, are ordered in the way
-	 * they were {@link #add(LmnlAnnotation) added} to this layer, which by
-	 * itself has no well-defined semantics. It might therefore very well
-	 * be, that this method returns a {@link Set} in future versions.
-	 * 
-	 * @return the owned annotations of this layer, also known as its
-	 *         children
-	 */
-	List<LmnlAnnotation> getAnnotations();
 
 	/**
 	 * Registers an annotation with this layer as its child.
@@ -261,8 +201,10 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 *                the annotation to be owned by this layer
 	 * @return the added annotation
 	 */
-	LmnlAnnotation add(LmnlAnnotation annotation);
+	<T extends LmnlAnnotation> T add(String prefix, String localName, String text, LmnlRange address, Class<T> type);
 
+	<T extends LmnlAnnotation> T add(T annotation, Class<T> type);
+	
 	/**
 	 * Detaches/ Removes an annotation from this layer.
 	 * 
@@ -276,10 +218,11 @@ public interface LmnlLayer extends Iterable<LmnlAnnotation> {
 	 * 
 	 * @param annotation
 	 *                the annotation to be removed
-	 * @return the (possibly) removed annotation
 	 */
-	LmnlAnnotation remove(LmnlAnnotation annotation);
+	void remove(LmnlAnnotation annotation);
 
+	<T extends LmnlAnnotation> Iterable<T> select(Class<T> annotationType);
+	
 	/**
 	 * Recursively visits all descendants of this layer and calls back the
 	 * visitor.

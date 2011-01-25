@@ -26,8 +26,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.lmnl.AbstractXmlTest;
 import org.lmnl.LmnlAnnotation;
-import org.lmnl.base.DefaultLmnlDocument;
-import org.lmnl.xml.tei.TeiMarkupConverter;
+import org.lmnl.LmnlDocument;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -47,20 +46,18 @@ public class TeiMarkupConverterTest extends AbstractXmlTest {
 	 */
 	@Test
 	public void convertDocument() {
-		DefaultLmnlDocument d = document("george-algabal-tei.xml");
+		LmnlDocument d = document("george-algabal-tei.xml");
 		new TeiMarkupConverter().convert(d);
 		printDebugMessage(d);
 		Assert.assertTrue("<*b/> substitutes in document", Iterables.any(d, new Predicate<LmnlAnnotation>() {
 
-			@Override
 			public boolean apply(LmnlAnnotation input) {
 				final String name = input.getLocalName();
 				return name.equals("page") || name.equals("line") || name.equals("column");
 			}
 		}));
-		Assert.assertFalse("No spans in document", Iterables.any(d.getAnnotations(), new Predicate<LmnlAnnotation>() {
+		Assert.assertFalse("No spans in document", Iterables.any(d, new Predicate<LmnlAnnotation>() {
 
-			@Override
 			public boolean apply(LmnlAnnotation input) {
 				return input.getLocalName().endsWith("Span");
 			}

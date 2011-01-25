@@ -44,7 +44,6 @@ public class TeiOverlapIndexerTest extends AbstractXmlTest {
 	public void indexBySegment() {
 		printDebugMessage(new OverlapIndexer(new Predicate<LmnlAnnotation>() {
 
-			@Override
 			public boolean apply(LmnlAnnotation input) {
 				return "seg".equals(input.getLocalName());
 			}
@@ -58,7 +57,6 @@ public class TeiOverlapIndexerTest extends AbstractXmlTest {
 	public void indexByPageBreak() throws Exception {
 		printDebugMessage(new OverlapIndexer(new Predicate<LmnlAnnotation>() {
 
-			@Override
 			public boolean apply(LmnlAnnotation input) {
 				return "pb".equals(input.getLocalName());
 			}

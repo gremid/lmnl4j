@@ -10,6 +10,8 @@ import org.codehaus.jackson.map.SerializerProvider;
 import org.lmnl.LmnlAnnotation;
 import org.lmnl.LmnlLayer;
 
+import com.google.common.collect.Iterables;
+
 public class LmnlLayerSerializer extends JsonSerializer<LmnlLayer> {
 
 	@Override
@@ -29,7 +31,7 @@ public class LmnlLayerSerializer extends JsonSerializer<LmnlLayer> {
 		if (value.hasText()) {
 			jgen.writeStringField("text", value.getText());
 		}
-		if (value.getAnnotations().size() > 0) {
+		if (!Iterables.isEmpty(value)) {
 			jgen.writeArrayFieldStart("annotations");
 			for (LmnlAnnotation annotation : value) {
 				provider.findValueSerializer(annotation.getClass()).serialize(annotation, jgen, provider);

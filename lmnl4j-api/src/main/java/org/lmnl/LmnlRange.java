@@ -71,10 +71,10 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	public static final LmnlRange NULL = new LmnlRange(0, 0);
 
 	/** The start offset of the segment (counted from zero, inclusive). */
-	public int start;
+	public final int start;
 
 	/** The end offset of the segment (counted from zero, exclusive). */
-	public int end;
+	public final int end;
 
 	/**
 	 * Creates a text segment address.
@@ -232,7 +232,6 @@ public class LmnlRange implements Comparable<LmnlRange> {
 	 * 
 	 * @see Comparable#compareTo(Object)
 	 */
-	@Override
 	public int compareTo(LmnlRange o) {
 		return (start == o.start ? o.end - end : start - o.start);
 	}
