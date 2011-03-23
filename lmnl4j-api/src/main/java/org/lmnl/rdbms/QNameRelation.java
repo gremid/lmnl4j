@@ -18,18 +18,18 @@ import com.google.common.base.Strings;
  * @author <a href="http://gregor.middell.net/" title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class PersistentQName implements QName {
-	public static final QName COMMENT_QNAME = new PersistentQName(URI.create(XML_NS_URI), "comment");
-	public static final QName COMMENT_TEXT_QNAME = new PersistentQName(URI.create(XML_NS_URI), "commentText");
+public class QNameRelation implements QName {
+	public static final QName COMMENT_QNAME = new QNameRelation(URI.create(XML_NS_URI), "comment");
+	public static final QName COMMENT_TEXT_QNAME = new QNameRelation(URI.create(XML_NS_URI), "commentText");
 
-	public static final QName PI_QNAME = new PersistentQName(URI.create(XML_NS_URI), "pi");
-	public static final QName PI_TARGET_QNAME = new PersistentQName(URI.create(XML_NS_URI), "piTarget");
-	public static final QName PI_DATA_QNAME = new PersistentQName(URI.create(XML_NS_URI), "piDarget");
+	public static final QName PI_QNAME = new QNameRelation(URI.create(XML_NS_URI), "pi");
+	public static final QName PI_TARGET_QNAME = new QNameRelation(URI.create(XML_NS_URI), "piTarget");
+	public static final QName PI_DATA_QNAME = new QNameRelation(URI.create(XML_NS_URI), "piDarget");
 
-	public static final QName TEXT_QNAME = new PersistentQName(URI.create(XML_NS_URI), "text");
-	public static final QName TEXT_LINE_ATTR_QNAME = new PersistentQName(URI.create(XML_NS_URI), "textLine");
-	public static final QName TEXT_COLUMN_ATTR_QNAME = new PersistentQName(URI.create(XML_NS_URI), "textColumn");
-	public static final QName TEXT_OFFSET_ATTR_QNAME = new PersistentQName(URI.create(XML_NS_URI), "textOffset");
+	public static final QName TEXT_QNAME = new QNameRelation(URI.create(XML_NS_URI), "text");
+	public static final QName TEXT_LINE_ATTR_QNAME = new QNameRelation(URI.create(XML_NS_URI), "textLine");
+	public static final QName TEXT_COLUMN_ATTR_QNAME = new QNameRelation(URI.create(XML_NS_URI), "textColumn");
+	public static final QName TEXT_OFFSET_ATTR_QNAME = new QNameRelation(URI.create(XML_NS_URI), "textOffset");
 
 	private static final Pattern STR_REPR = Pattern.compile("^\\{([^\\}]*)\\}(.+)$");
 
@@ -37,20 +37,20 @@ public class PersistentQName implements QName {
 	private URI namespace;
 	private String localName;
 
-	public PersistentQName() {
+	public QNameRelation() {
 	}
 
-	public PersistentQName(int id, URI namespace, String localName) {
+	public QNameRelation(int id, URI namespace, String localName) {
 		this.id = id;
 		this.namespace = namespace;
 		this.localName = localName;
 	}
 
-	public PersistentQName(URI namespace, String localName) {
+	public QNameRelation(URI namespace, String localName) {
 		this(0, namespace, localName);
 	}
 
-	public PersistentQName(String uri, String localName, String qName) {
+	public QNameRelation(String uri, String localName, String qName) {
 		this.id = 0;
 		if (uri.length() == 0 && localName.length() == 0) {
 			this.namespace = null;
@@ -109,7 +109,7 @@ public class PersistentQName implements QName {
 		Preconditions.checkArgument(matcher.matches());
 
 		final String ns = matcher.group(1);
-		return new PersistentQName(Strings.isNullOrEmpty(ns) ? null : URI.create(ns), matcher.group(2));
+		return new QNameRelation(Strings.isNullOrEmpty(ns) ? null : URI.create(ns), matcher.group(2));
 	}
 
 	public int compareTo(QName o) {

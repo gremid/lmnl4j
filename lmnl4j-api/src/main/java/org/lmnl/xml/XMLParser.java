@@ -22,11 +22,10 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 
-import org.lmnl.Annotation;
-import org.lmnl.Document;
 import org.lmnl.Layer;
 import org.lmnl.QName;
 import org.lmnl.QNameImpl;
+import org.lmnl.Range;
 import org.lmnl.TextRepository;
 
 import com.google.common.collect.Maps;
@@ -34,6 +33,7 @@ import com.google.common.io.Closeables;
 import com.google.common.io.FileBackedOutputStream;
 
 public abstract class XMLParser {
+	public static final QName OFFSET_DELTA_NAME = new QNameImpl(Layer.LMNL_NS_URI, "offset");
 
 	private final TransformerFactory transformerFactory;
 	private final XMLInputFactory xmlInputFactory;
@@ -49,7 +49,8 @@ public abstract class XMLParser {
 		transformerFactory = TransformerFactory.newInstance();
 		xmlInputFactory = XMLInputFactory.newInstance();
 		xmlInputFactory.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
-
+		xmlInputFactory.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, Boolean.FALSE);
+		xmlInputFactory.setProperty(XMLInputFactory.IS_COALESCING, Boolean.FALSE);
 	}
 
 	public void setTextRepository(TextRepository textRepository) {
@@ -72,7 +73,7 @@ public abstract class XMLParser {
 		this.xmlEventBatchSize = xmlEventBatchSize;
 	}
 
-	public void load(Document document, Source xml) throws IOException, TransformerException {
+	public void load(Layer layer, Source xml) throws IOException, TransformerException {
 		File sourceContents = File.createTempFile(getClass().getName(), ".xml");
 		sourceContents.deleteOnExit();
 
@@ -87,43 +88,44 @@ public abstract class XMLParser {
 			serializer.transform(xml, new StreamResult(sourceContents));
 
 			sourceContentsReader = new InputStreamReader(new FileInputStream(sourceContents), charset);
-			textRepository.setText(document, sourceContentsReader);
+			updateText(layer, sourceContentsReader);
 		} finally {
 			Closeables.close(sourceContentsReader, false);
 			sourceContents.delete();
 		}
 	}
 
-	public void parse(Document document, Layer to, XMLParserConfiguration configuration) throws IOException, XMLStreamException {
-		XMLStreamReader xmlReader = null;
+	public void parse(Layer source, Layer target, Layer offsetDeltas, XMLParserConfiguration configuration) throws IOException,
+			XMLStreamException {
+		XMLStreamReader reader = null;
 		Session session = null;
 		try {
-			session = new Session(document, to, configuration);
-			xmlReader = xmlInputFactory.createXMLStreamReader(textRepository.getText(document));
+			reader = xmlInputFactory.createXMLStreamReader(textRepository.getText(source));
+			session = new Session(target, offsetDeltas, configuration);
 			int xmlEvents = 0;
 			Map<QName, String> attributes = null;
 
-			while (xmlReader.hasNext()) {
+			while (reader.hasNext()) {
 				if (xmlEvents++ % xmlEventBatchSize == 0) {
 					newXMLEventBatch();
 				}
 
-				switch (xmlReader.next()) {
+				switch (reader.next()) {
 				case XMLStreamConstants.START_ELEMENT:
 					session.textNodeBoundary();
 					session.nextSibling();
 
 					attributes = Maps.newHashMap();
-					final int attributeCount = xmlReader.getAttributeCount();
+					final int attributeCount = reader.getAttributeCount();
 					for (int ac = 0; ac < attributeCount; ac++) {
-						final javax.xml.namespace.QName attrQName = xmlReader.getAttributeName(ac);
+						final javax.xml.namespace.QName attrQName = reader.getAttributeName(ac);
 						if (XMLNS_ATTRIBUTE_NS_URI.equals(attrQName.getNamespaceURI())) {
 							continue;
 						}
-						attributes.put(new QNameImpl(attrQName), xmlReader.getAttributeValue(ac));
+						attributes.put(new QNameImpl(attrQName), reader.getAttributeValue(ac));
 					}
 
-					session.startElement(new QNameImpl(xmlReader.getName()), attributes);
+					session.startElement(new QNameImpl(reader.getName()), attributes);
 					break;
 				case XMLStreamConstants.END_ELEMENT:
 					session.endElement();
@@ -134,7 +136,7 @@ public abstract class XMLParser {
 					session.nextSibling();
 
 					attributes = Maps.newHashMap();
-					attributes.put(QNameImpl.COMMENT_TEXT_QNAME, xmlReader.getText());
+					attributes.put(QNameImpl.COMMENT_TEXT_QNAME, reader.getText());
 					session.startElement(QNameImpl.COMMENT_QNAME, attributes);
 					session.endElement();
 					break;
@@ -143,8 +145,8 @@ public abstract class XMLParser {
 					session.nextSibling();
 
 					attributes = Maps.newHashMap();
-					attributes.put(QNameImpl.PI_TARGET_QNAME, xmlReader.getPITarget());
-					final String data = xmlReader.getPIData();
+					attributes.put(QNameImpl.PI_TARGET_QNAME, reader.getPITarget());
+					final String data = reader.getPIData();
 					if (data != null) {
 						attributes.put(QNameImpl.PI_DATA_QNAME, data);
 					}
@@ -153,21 +155,26 @@ public abstract class XMLParser {
 					session.endElement();
 					break;
 				case XMLStreamConstants.CHARACTERS:
-					session.textNode(xmlReader.getText());
+				case XMLStreamConstants.ENTITY_REFERENCE:
+				case XMLStreamConstants.CDATA:
+					session.text(reader.getText(), reader.getLocation().getCharacterOffset());
+					break;
+				case XMLStreamConstants.END_DOCUMENT:
+					session.end();
 					break;
 				}
 			}
 
 			Reader text = null;
 			try {
-				textRepository.setText(to, text = session.text());
+				updateText(target, text = session.read());
 			} finally {
 				Closeables.closeQuietly(text);
 			}
 		} finally {
-			if (xmlReader != null) {
+			if (reader != null) {
 				try {
-					xmlReader.close();
+					reader.close();
 				} catch (XMLStreamException e) {
 				}
 			}
@@ -178,38 +185,54 @@ public abstract class XMLParser {
 		}
 	}
 
-	protected abstract Annotation startAnnotation(Document d, Layer in, QName name, Map<QName, String> attrs, int start,
+	protected abstract void updateText(Layer layer, Reader reader) throws IOException;
+
+	protected abstract Layer startAnnotation(Layer in, QName name, Map<QName, String> attrs, int start,
 			Iterable<Integer> nodePath);
 
-	protected abstract void endAnnotation(Annotation annotation, int end);
+	protected abstract void endAnnotation(Layer annotation, int end);
+
+	protected abstract void newOffsetDeltaRange(Layer offsetDeltas, Range range, int offsetDelta);
 
 	protected void newXMLEventBatch() {
 	}
 
 	private class Session {
-		private final Document document;
-		private final Layer to;
-		private final XMLParserConfiguration config;
+		private final Layer target;
+		private final Layer offsetDeltas;
+		private final XMLParserConfiguration configuration;
 
-		private final Stack<Annotation> elementContext = new Stack<Annotation>();
+		private final Stack<Layer> elementContext = new Stack<Layer>();
 		private final Stack<Boolean> spacePreservationContext = new Stack<Boolean>();
 		private final Stack<Integer> nodePath = new Stack<Integer>();
 		private final FileBackedOutputStream textBuffer = new FileBackedOutputStream(textBufferSize);
 
 		private int offset = 0;
-		private int textStart = -1;
+		private int startOffset = -1;
+		private int offsetDelta = 0;
+		private int lastOffsetDeltaChange = 0;
+
 		private char lastChar = (removeLeadingWhitespace ? ' ' : 0);
 
-		private Session(Document document, Layer to, XMLParserConfiguration config) {
-			this.document = document;
-			this.to = to;
-			this.config = config;
+		private Session(Layer target, Layer offsetDeltas, XMLParserConfiguration configuration) {
+			this.target = target;
+			this.offsetDeltas = offsetDeltas;
+			this.configuration = configuration;
 			this.nodePath.push(0);
 		}
 
-		private Annotation startElement(QName name, Map<QName, String> attributes) {
-			final Annotation annotation = startAnnotation(document, to, name, attributes, offset, nodePath);
-		
+		private Layer startElement(QName name, Map<QName, String> attributes) throws IOException {
+			if (configuration.isLineElement(name)) {
+				newOffsetDelta();
+
+				textBuffer.write(Character.toString(lastChar = '\n').getBytes(charset));
+				offset++;
+
+				lastOffsetDeltaChange = offset;
+			}
+
+			final Layer annotation = startAnnotation(target, name, attributes, offset, nodePath);
+
 			elementContext.push(annotation);
 			spacePreservationContext.push(spacePreservationContext.isEmpty() ? false : spacePreservationContext.peek());
 			for (Map.Entry<QName, String> attr : attributes.entrySet()) {
@@ -223,12 +246,6 @@ public abstract class XMLParser {
 		}
 
 		private void endElement() throws IOException {
-			if (config.getLineElements().contains(elementContext.peek().getName())) {
-				spacePreservationContext.push(true);
-				textNode("\n");
-				spacePreservationContext.pop();
-			}
-
 			nodePath.pop();
 			spacePreservationContext.pop();
 			endAnnotation(elementContext.pop(), offset);
@@ -238,15 +255,23 @@ public abstract class XMLParser {
 			nodePath.push(nodePath.pop() + 1);
 		}
 
-		private void textNode(String text) throws IOException {
-			boolean preserveSpace = !spacePreservationContext.isEmpty() && spacePreservationContext.peek();
-			if (!preserveSpace && !elementContext.isEmpty() && config.getContainerElements().contains(elementContext.peek().getName())) {
+		private void text(String text, int sourceOffset) throws IOException {
+			if (startOffset < 0) {
+				nextSibling();
+				startOffset = offset;
+			}
+
+			final boolean preserveSpace = !spacePreservationContext.isEmpty() && spacePreservationContext.peek();
+			if (!preserveSpace && !elementContext.isEmpty()
+					&& configuration.isContainerElement(elementContext.peek().getName())) {
 				return;
 			}
 
-			if (textStart < 0) {
-				nextSibling();
-				textStart = offset;
+			final int newOffsetDelta = sourceOffset - offset;
+			if (newOffsetDelta != offsetDelta) {
+				newOffsetDelta();
+				offsetDelta = newOffsetDelta;
+				lastOffsetDeltaChange = offset;
 			}
 
 			for (int cc = 0; cc < text.length(); cc++) {
@@ -259,16 +284,26 @@ public abstract class XMLParser {
 			}
 		}
 
-		private void textNodeBoundary() {
-			if (textStart >= 0 && offset > textStart) {
-				Annotation text = startAnnotation(document, to, QNameImpl.TEXT_QNAME, Maps.<QName, String> newHashMap(),
-						textStart, nodePath);
-				endAnnotation(text, offset);
-				textStart = -1;
+		private void end() {
+			newOffsetDelta();
+		}
+
+		private void newOffsetDelta() {
+			if (offsetDeltas != null && offset > lastOffsetDeltaChange) {
+				newOffsetDeltaRange(offsetDeltas, new Range(lastOffsetDeltaChange, offset), offsetDelta);
 			}
 		}
 
-		private Reader text() throws IOException {
+		private void textNodeBoundary() {
+			if (startOffset >= 0 && offset > startOffset) {
+				Layer text = startAnnotation(target, QNameImpl.TEXT_QNAME, Maps.<QName, String> newHashMap(),
+						startOffset, nodePath);
+				endAnnotation(text, offset);
+				startOffset = -1;
+			}
+		}
+
+		private Reader read() throws IOException {
 			return new InputStreamReader(textBuffer.getSupplier().getInput(), charset);
 		}
 

@@ -6,7 +6,7 @@ import org.lmnl.Text;
 
 import com.google.common.base.Objects;
 
-public class PersistentText implements Text {
+public class TextRelation implements Text {
 	private int id;
 	private Clob content;
 

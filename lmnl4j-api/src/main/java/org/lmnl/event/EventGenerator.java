@@ -4,8 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
 
-import org.lmnl.Annotation;
-import org.lmnl.AnnotationRepository;
+import org.lmnl.AnnotationFinder;
 import org.lmnl.Layer;
 import org.lmnl.Range;
 
@@ -17,7 +16,7 @@ import com.google.common.collect.Maps;
 
 public class EventGenerator {
 	private Predicate<Layer> filter = Predicates.alwaysTrue();
-	private AnnotationRepository annotationRepository;
+	private AnnotationFinder annotationFinder;
 
 	public EventGenerator() {
 	}
@@ -26,8 +25,8 @@ public class EventGenerator {
 		this.filter = filter;
 	}
 
-	public void setAnnotationRepository(AnnotationRepository annotationRepository) {
-		this.annotationRepository = annotationRepository;
+	public void setAnnotationRepository(AnnotationFinder annotationFinder) {
+		this.annotationFinder = annotationFinder;
 	}
 
 	public void generate(Layer layer, EventHandler eventHandler) throws EventHandlerException {
@@ -35,8 +34,8 @@ public class EventGenerator {
 	}
 	
 	protected void generate(Layer layer, EventHandler eventHandler, int depth) throws EventHandlerException {
-		final SortedMap<Integer, List<Annotation>> opened = Maps.newTreeMap();
-		for (Annotation annotation : Iterables.filter(annotationRepository.getAnnotations(layer), filter)) {
+		final SortedMap<Integer, List<Layer>> opened = Maps.newTreeMap();
+		for (Layer annotation : Iterables.filter(annotationFinder.find(layer, null, null), filter)) {
 			final Range annotationRange = annotation.getRange();
 			final int start = annotationRange.getStart();
 			final int end = annotationRange.getEnd();
@@ -46,7 +45,7 @@ public class EventGenerator {
 				if (endingAt > start) {
 					break;
 				}
-				for (Annotation ending : opened.get(endingAt)) {
+				for (Layer ending : opened.get(endingAt)) {
 					eventHandler.endAnnotation(ending, depth);
 				}
 				endingAtIt.remove();
@@ -59,15 +58,15 @@ public class EventGenerator {
 			if (start == end) {
 				eventHandler.endAnnotation(annotation, depth);
 			} else {
-				List<Annotation> endingAnnotations = opened.get(end);
+				List<Layer> endingAnnotations = opened.get(end);
 				if (endingAnnotations == null) {
 					opened.put(end, endingAnnotations = Lists.newArrayList());
 				}
 				endingAnnotations.add(annotation);
 			}
 		}
-		for (List<Annotation> remaining : opened.values()) {
-			for (Annotation annotation : remaining) {
+		for (List<Layer> remaining : opened.values()) {
+			for (Layer annotation : remaining) {
 				eventHandler.endAnnotation(annotation, depth);
 			}
 		}

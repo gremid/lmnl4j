@@ -5,7 +5,7 @@ import java.io.Reader;
 
 public interface TextRepository {
 
-	Text setText(Layer layer, Reader reader) throws IOException;
+	int getTextLength(Layer layer) throws IOException;
 
 	Reader getText(Layer layer) throws IOException;
 

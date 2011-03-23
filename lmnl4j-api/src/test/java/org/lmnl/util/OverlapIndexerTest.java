@@ -23,7 +23,7 @@ package org.lmnl.util;
 
 import org.junit.Test;
 import org.lmnl.AbstractDefaultDocumentTest;
-import org.lmnl.AnnotationRepository;
+import org.lmnl.AnnotationFinder;
 import org.lmnl.util.OverlapIndexer;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,21 +37,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class OverlapIndexerTest extends AbstractDefaultDocumentTest {
 
 	@Autowired
-	private AnnotationRepository annotationRepository;
+	private AnnotationFinder annotationFinder;
 	
 	/**
 	 * Indexes a very simple document.
 	 */
 	@Test
-	public void indexsegmentSimpleDocument() {
-		addTestRange("a", 0, 2);
-		addTestRange("b", 1, 4);
-		addTestRange("c", 0, 1);
-		addTestRange("d", 0, 6);
-		addTestRange("e", 2, 3);
+	public void indexSimpleDocument() {
+		addTestAnnotation("a", 0, 2);
+		addTestAnnotation("b", 1, 4);
+		addTestAnnotation("c", 0, 1);
+		addTestAnnotation("d", 0, 6);
+		addTestAnnotation("e", 2, 3);
 
 		printDebugMessage(document.toString());
-		printDebugMessage(new OverlapIndexer().apply(annotationRepository.getAnnotations(document)));
+		printDebugMessage(new OverlapIndexer().apply(annotationFinder.find(document, null, null)));
 	}
 
 	@Override

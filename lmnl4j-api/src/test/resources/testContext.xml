@@ -13,7 +13,7 @@
 		<property name="hibernateProperties">
 			<props>
 				<prop key="hibernate.dialect">org.hibernate.dialect.H2Dialect</prop>
-				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.show_sql">false</prop>
 				<prop key="hibernate.hbm2ddl.auto">create</prop>
 			</props>
 		</property>
@@ -26,30 +26,37 @@
 
 	<tx:advice id="transactionAdvice" />
 
-	<aop:config >
-		<aop:pointcut expression="execution(* org.lmnl.rdbms.Persisting*.*(..))" id="persistingMethods" />
+	<aop:config>
+		<aop:pointcut expression="execution(* org.lmnl.rdbms.Relational*.*(..))" id="persistingMethods" />
 		<aop:advisor advice-ref="transactionAdvice" pointcut-ref="persistingMethods" />
 	</aop:config>
 
-	<bean id="nameRepository" class="org.lmnl.rdbms.PersistingQNameRepository">
+	<bean id="nameRepository" class="org.lmnl.rdbms.RelationalQNameRepository">
 		<property name="sessionFactory" ref="sessionFactory" />
 	</bean>
 
-	<bean id="annotationRepository" class="org.lmnl.rdbms.PersistingAnnotationRepository">
-		<property name="sessionFactory" ref="sessionFactory" />
-	</bean>
-
-	<bean id="textRepository" class="org.lmnl.rdbms.PersistingTextRepository">
-		<property name="sessionFactory" ref="sessionFactory" />
-	</bean>
-
-	<bean id="xmlParser" class="org.lmnl.rdbms.PersistingXMLParser">
+	<bean id="layerFactory" class="org.lmnl.rdbms.RelationalLayerFactory">
 		<property name="sessionFactory" ref="sessionFactory" />
 		<property name="nameRepository" ref="nameRepository" />
+	</bean>
+	
+	<bean id="textRepository" class="org.lmnl.rdbms.RelationalTextRepository">
+		<property name="layerFactory" ref="layerFactory" />
+	</bean>
+
+	<bean id="annotationFinder" class="org.lmnl.rdbms.RelationalAnnotationFinder">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="nameRepository" ref="nameRepository" />
+	</bean>
+
+	<bean id="xmlParser" class="org.lmnl.rdbms.RelationalXMLParser">
+		<property name="sessionFactory" ref="sessionFactory" />
 		<property name="textRepository" ref="textRepository" />
+		<property name="nameRepository" ref="nameRepository" />		
+		<property name="layerFactory" ref="layerFactory" />
 	</bean>
 
 	<bean id="eventGenerator" class="org.lmnl.event.EventGenerator">
-		<property name="annotationRepository" ref="annotationRepository" />
+		<property name="annotationRepository" ref="annotationFinder" />
 	</bean>
 </beans>

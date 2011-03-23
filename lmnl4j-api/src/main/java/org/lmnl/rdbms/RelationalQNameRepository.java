@@ -8,14 +8,13 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 import org.lmnl.QName;
-import org.lmnl.QNameImpl;
 import org.lmnl.QNameRepository;
 
 import com.google.common.collect.MapMaker;
 
-public class PersistingQNameRepository implements QNameRepository {
+public class RelationalQNameRepository implements QNameRepository {
 
-	private Map<PersistentQName, Integer> nameCache;
+	private Map<QNameRelation, Integer> nameCache;
 	private int cacheSize = 1000;
 	private SessionFactory sessionFactory;
 
@@ -27,7 +26,7 @@ public class PersistingQNameRepository implements QNameRepository {
 		this.sessionFactory = sessionFactory;
 	}
 
-	public QName get(QName name) {
+	public synchronized QName get(QName name) {
 		if (nameCache == null) {
 			nameCache = new MapMaker().maximumSize(cacheSize).makeMap();
 		}
@@ -35,25 +34,28 @@ public class PersistingQNameRepository implements QNameRepository {
 		final Session session = sessionFactory.getCurrentSession();
 		final Integer nameId = nameCache.get(name);
 		if (nameId != null) {
-			return (QName) session.get(PersistentQName.class, nameId);
+			QName loaded = (QName) session.get(QNameRelation.class, nameId);
+			if (loaded != null) {
+				return loaded;
+			}
 		}
 
-		final Criteria c = addRestrictions(session.createCriteria(PersistentQName.class), name.getNamespace(),
+		final Criteria c = addRestrictions(session.createCriteria(QNameRelation.class), name.getNamespace(),
 				name.getLocalName());
 
-		PersistentQName persistentQName = (PersistentQName) c.uniqueResult();
-		if (persistentQName == null) {
-			session.save(persistentQName = new PersistentQName(name.getNamespace(), name.getLocalName()));
+		QNameRelation qNameRelation = (QNameRelation) c.uniqueResult();
+		if (qNameRelation == null) {
+			session.save(qNameRelation = new QNameRelation(name.getNamespace(), name.getLocalName()));
 		}
 
-		nameCache.put(persistentQName, persistentQName.getId());
-		return persistentQName;
+		nameCache.put(qNameRelation, qNameRelation.getId());
+		return qNameRelation;
 	}
-
-	public synchronized QName get(URI namespace, String localName) {
-		return get(new QNameImpl(namespace, localName));
+	
+	public synchronized void clearCache() {
+		nameCache = null;
 	}
-
+	
 	static Criteria addRestrictions(Criteria c, URI namespace, String localName) {
 		c.add(namespace == null ? Restrictions.isNull("namespace") : Restrictions.eq("namespace", namespace));
 		c.add(Restrictions.eq("localName", localName));

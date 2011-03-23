@@ -21,18 +21,13 @@
 
 package org.lmnl;
 
-import java.io.IOException;
-import java.io.StringWriter;
+import static org.lmnl.Layer.LMNL_NS_URI;
+
 import java.net.URI;
 import java.util.List;
 import java.util.SortedMap;
 
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.hibernate.Hibernate;
-import org.hibernate.Session;
 import org.junit.runner.RunWith;
-import org.lmnl.rdbms.PersistentText;
 import org.lmnl.util.OverlapIndexer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,15 +43,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:/testContext.xml")
 public abstract class AbstractTest {
-	/**
-	 * Base URI of the in-memory document
-	 */
-	protected static final URI TEST_DOCUMENT_URI = URI.create("urn:lmnl-test");
-
-	/**
-	 * Test namespace prefix.
-	 */
-	protected static final String TEST_NS_PREFIX = "test";
+	protected static final QName XML_LAYER_NAME = new QNameImpl(LMNL_NS_URI, "xml");
+	protected static final QName TEXT_LAYER_NAME = new QNameImpl(LMNL_NS_URI, "text");
+	protected static final QName OFFSET_LAYER_NAME = new QNameImpl(LMNL_NS_URI, "offsets");
 
 	/**
 	 * Test namespace.
@@ -68,21 +57,19 @@ public abstract class AbstractTest {
 	 */
 	protected static final Logger LOG = LoggerFactory.getLogger(AbstractTest.class.getPackage().getName());
 
-	protected ObjectMapper jsonMapper = new ObjectMapper();
-
 	/**
 	 * Prints the given {@link OverlapIndexer range index} to the log.
 	 * 
 	 * @param index
 	 *                the range index to output
 	 */
-	protected void printDebugMessage(SortedMap<Range, List<Annotation>> index) {
+	protected void printDebugMessage(SortedMap<Range, List<Layer>> index) {
 		if (LOG.isDebugEnabled()) {
 			final StringBuilder str = new StringBuilder();
 			for (Range segment : index.keySet()) {
 				str.append("[" + segment + ": { ");
 				boolean first = true;
-				for (Annotation annotation : index.get(segment)) {
+				for (Layer annotation : index.get(segment)) {
 					if (first) {
 						first = false;
 					} else {
@@ -104,14 +91,5 @@ public abstract class AbstractTest {
 	 */
 	protected void printDebugMessage(String msg) {
 		LOG.debug(msg);
-	}
-
-	protected PersistentText createText(Session session, String text) {
-		final PersistentText created = new PersistentText();
-		created.setContent(Hibernate.createClob(text));
-		session.save(created);
-		session.flush();
-		session.refresh(created);
-		return created;
 	}
 }

@@ -21,12 +21,9 @@
 
 package org.lmnl;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.junit.After;
 import org.junit.Before;
-import org.lmnl.rdbms.PersistentAnnotation;
-import org.lmnl.rdbms.PersistentDocument;
+import org.lmnl.rdbms.RelationalLayerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,28 +36,21 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 public abstract class AbstractDefaultDocumentTest extends AbstractTest {
-	@Autowired
-	protected SessionFactory sessionFactory;
 	
 	@Autowired
-	protected QNameRepository nameRepository;
+	protected RelationalLayerFactory layerFactory;
 	
 	/**
 	 * The in-memory document model to run tests against.
 	 */
-	protected PersistentDocument document;
+	protected Layer document;
 
 	/**
 	 * Creates a new document model before every test.
 	 */
 	@Before
 	public void createDocument() {
-		final Session session = sessionFactory.getCurrentSession();
-
-		document = new PersistentDocument();
-		document.setName(nameRepository.get(Document.LMNL_NS_URI, "document"));
-		document.setText(createText(session, documentText()));
-		session.save(document);
+		document = layerFactory.create(null, TEXT_LAYER_NAME, null, "");
 	}
 
 	/**
@@ -84,15 +74,8 @@ public abstract class AbstractDefaultDocumentTest extends AbstractTest {
 	 *                its end offset
 	 * @return 
 	 */
-	protected Annotation addTestRange(String name, int start, int end) {
-		PersistentAnnotation annotation = new PersistentAnnotation();
-		annotation.setDocument(document);
-		annotation.setOwner(document);
-		annotation.setName(nameRepository.get(TEST_NS, name));
-		annotation.setRange(new Range(start, end));
-		annotation.setText(document.getText());
-		sessionFactory.getCurrentSession().save(annotation);
-		return annotation;
+	protected Layer addTestAnnotation(String name, int start, int end) {
+		return layerFactory.create(document, new QNameImpl(TEST_NS, name), new Range(start, end), null);
 	}
 
 	/**

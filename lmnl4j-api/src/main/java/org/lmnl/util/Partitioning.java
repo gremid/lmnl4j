@@ -24,7 +24,7 @@ package org.lmnl.util;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.lmnl.Annotation;
+import org.lmnl.Layer;
 import org.lmnl.Range;
 
 import com.google.common.base.Function;
@@ -52,9 +52,9 @@ import com.google.common.collect.Sets;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class Partitioning implements Function<Iterable<Annotation>, SortedSet<Range>> {
+public class Partitioning implements Function<Iterable<Layer>, SortedSet<Range>> {
 
-	private final Predicate<Annotation> filterPredicate;
+	private final Predicate<Layer> filterPredicate;
 
 	/**
 	 * Creates a function doing complete/ unfiltered partitioning of passed
@@ -74,18 +74,18 @@ public class Partitioning implements Function<Iterable<Annotation>, SortedSet<Ra
 	 *                a filter predicate to determine the subset of range
 	 *                annotations constituting the partitioning
 	 */
-	public Partitioning(Predicate<Annotation> filterPredicate) {
+	public Partitioning(Predicate<Layer> filterPredicate) {
 		this.filterPredicate = filterPredicate;
 	}
 
-	public SortedSet<Range> apply(Iterable<Annotation> from) {
+	public SortedSet<Range> apply(Iterable<Layer> from) {
 		SortedSet<Integer> offsets = Sets.newTreeSet();
 
 		if (filterPredicate != null) {
 			from = Iterables.filter(from, filterPredicate);
 		}
 
-		for (Annotation a : from) {
+		for (Layer a : from) {
 			offsets.add(a.getRange().getStart());
 			offsets.add(a.getRange().getEnd());
 		}

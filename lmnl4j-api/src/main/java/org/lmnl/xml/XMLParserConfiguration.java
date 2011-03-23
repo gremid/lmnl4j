@@ -11,19 +11,27 @@ public class XMLParserConfiguration {
 	private Set<QName> lineElements = Sets.newHashSet();
 	private Set<QName> containerElements = Sets.newHashSet();
 
-	public Set<QName> getLineElements() {
-		return lineElements;
+	public void addLineElement(QName lineElementName) {
+		lineElements.add(lineElementName);
 	}
 
-	public void setLineElements(Set<QName> lineElements) {
-		this.lineElements = lineElements;
+	public boolean removeLineElement(QName lineElementName) {
+		return lineElements.remove(lineElementName);
 	}
 
-	public Set<QName> getContainerElements() {
-		return containerElements;
+	public boolean isLineElement(QName name) {
+		return lineElements.contains(name);
+	}
+	
+	public void addContainerElement(QName containerElementName) {
+		containerElements.add(containerElementName);
 	}
 
-	public void setContainerElements(Set<QName> containerElements) {
-		this.containerElements = containerElements;
+	public boolean removeContainerElement(QName containerElementName) {
+		return containerElements.remove(containerElementName);
+	}
+
+	public boolean isContainerElement(QName name) {
+		return containerElements.contains(name);
 	}
 }

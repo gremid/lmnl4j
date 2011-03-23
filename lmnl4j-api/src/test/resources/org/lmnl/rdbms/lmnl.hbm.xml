@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-	<class name="org.lmnl.rdbms.PersistentQName" table="lmnl_qname">
+	<class name="org.lmnl.rdbms.QNameRelation" table="lmnl_qname">
 		<id name="id">
 			<generator class="native" />
 		</id>
@@ -9,32 +9,24 @@
 		<property name="namespace" />
 	</class>
 
-	<class name="org.lmnl.rdbms.PersistentText" table="lmnl_text">
+	<class name="org.lmnl.rdbms.TextRelation" table="lmnl_text">
 		<id name="id">
 			<generator class="native" />
 		</id>
 		<property name="content" not-null="true" />
 	</class>
 
-	<class name="org.lmnl.rdbms.PersistentLayer" abstract="true" table="lmnl_layer">
+	<class name="org.lmnl.rdbms.LayerRelation" table="lmnl_layer">
 		<id name="id">
 			<generator class="native" />
 		</id>
-		<many-to-one name="name" class="org.lmnl.rdbms.PersistentQName" not-null="true" />
-		<many-to-one name="document" class="org.lmnl.rdbms.PersistentDocument" />
-		<many-to-one name="owner" class="org.lmnl.rdbms.PersistentLayer" />
+		<many-to-one name="name" class="org.lmnl.rdbms.QNameRelation" not-null="true" />
+		<many-to-one name="owner" class="org.lmnl.rdbms.LayerRelation" />
 		<many-to-one name="text" not-null="true" column="layer_text" />
-
-		<joined-subclass name="org.lmnl.rdbms.PersistentDocument" table="lmnl_document">
-			<key column="layer_id" />
-		</joined-subclass>
-		<joined-subclass name="org.lmnl.rdbms.PersistentAnnotation" table="lmnl_annotation">
-			<key column="layer_id" />
-			<component name="range">
-				<property name="start" not-null="true" />
-				<property name="end" not-null="true" />
-			</component>
-			<property name="serializableData" column="data" length="65535" />
-		</joined-subclass>
+		<component name="range">
+			<property name="start" not-null="true" />
+			<property name="end" not-null="true" />
+		</component>
+		<property name="serializableData" column="data" length="65535" />
 	</class>
 </hibernate-mapping>

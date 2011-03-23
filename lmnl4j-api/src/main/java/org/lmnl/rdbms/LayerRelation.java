@@ -21,20 +21,23 @@
 
 package org.lmnl.rdbms;
 
-import org.lmnl.Document;
+import java.io.Serializable;
+
 import org.lmnl.Layer;
 import org.lmnl.QName;
+import org.lmnl.Range;
 
 import com.google.common.base.Objects;
 
-public abstract class PersistentLayer implements Layer {
+public class LayerRelation implements Layer {
 	protected int id;
-	protected Document document;
 	protected Layer owner;
 	protected QName name;
-	protected PersistentText text;
+	protected TextRelation text;
+	protected Range range;
+	protected Serializable serializableData;
 
-	public PersistentLayer() {
+	public LayerRelation() {
 	}
 	
 	public int getId() {
@@ -43,14 +46,6 @@ public abstract class PersistentLayer implements Layer {
 	
 	public void setId(int id) {
 		this.id = id;
-	}
-	
-	public Document getDocument() {
-		return document;
-	}
-	
-	public void setDocument(Document document) {
-		this.document = document;
 	}
 	
 	public Layer getOwner() {
@@ -69,19 +64,38 @@ public abstract class PersistentLayer implements Layer {
 		this.name = name;
 	}
 	
-	public PersistentText getText() {
+	public TextRelation getText() {
 		return text;
 	}
 	
-	public void setText(PersistentText text) {
+	public void setText(TextRelation text) {
 		this.text = text;
 	}
 	
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this).addValue(getName()).toString();
+	public Range getRange() {
+		return range;
 	}
 
+	public void setRange(Range range) {
+		this.range = range;
+	}
+
+	public Object getData() {
+		return serializableData;
+	}
+
+	public Serializable getSerializableData() {
+		return serializableData;
+	}
+
+	public void setSerializableData(Serializable serializableData) {
+		this.serializableData = serializableData;
+	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this).addValue(getName()).addValue(getRange()).toString();
+	}
 	// FIXME: implement proper type-safe removal
 	// public void remove(LmnlRange deleted) {
 	// remove(deleted, true);

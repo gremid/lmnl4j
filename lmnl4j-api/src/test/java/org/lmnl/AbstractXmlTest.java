@@ -23,16 +23,12 @@ package org.lmnl;
 
 import java.net.URI;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 
 import javax.xml.transform.stream.StreamSource;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.classic.Session;
 import org.junit.Before;
-import org.lmnl.rdbms.PersistentAnnotation;
-import org.lmnl.rdbms.PersistentDocument;
+import org.lmnl.rdbms.RelationalLayerFactory;
 import org.lmnl.xml.XMLParser;
 import org.lmnl.xml.XMLParserConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,45 +47,40 @@ import com.google.common.collect.Sets;
  */
 @Transactional
 public abstract class AbstractXMLTest extends AbstractTest {
-	protected static final QName XML_LAYER_NAME = new QNameImpl(Document.LMNL_NS_URI, "xml");
-	
 	protected static final URI TEI_NS = URI.create("http://www.tei-c.org/ns/1.0");
+
 	/**
 	 * Names of available XML test resources.
 	 */
 	protected static final SortedSet<String> RESOURCES = Sets.newTreeSet(Lists.newArrayList(//
 			"archimedes-palimpsest-tei.xml", "george-algabal-tei.xml", "homer-iliad-tei.xml"));
 
-	private Map<String, Document> documents = Maps.newHashMap();
+	private Map<String, Layer> documents = Maps.newHashMap();
 
 	private XMLParserConfiguration parserConfiguration = new XMLParserConfiguration();
 
 	@Autowired
-	private SessionFactory sessionFactory;
+	private RelationalLayerFactory layerFactory;
 
 	@Autowired
 	private XMLParser xmlParser;
 
-	@Autowired
-	private QNameRepository nameRepository;
-
 	@Before
 	public void configureXMLParser() {
-		final Set<QName> lineElements = parserConfiguration.getLineElements();
-		lineElements.add(new QNameImpl(TEI_NS, "lg"));
-		lineElements.add(new QNameImpl(TEI_NS, "l"));
-		lineElements.add(new QNameImpl(TEI_NS, "speaker"));
-		lineElements.add(new QNameImpl(TEI_NS, "stage"));
-		lineElements.add(new QNameImpl(TEI_NS, "div"));
-		lineElements.add(new QNameImpl(TEI_NS, "head"));
-		lineElements.add(new QNameImpl(TEI_NS, "p"));
+		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "lg"));
+		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "l"));
+		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "speaker"));
+		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "stage"));
+		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "div"));
+		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "head"));
+		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "fw"));
+		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "p"));
 
-		final Set<QName> containerElements = parserConfiguration.getContainerElements();
-		containerElements.add(new QNameImpl(TEI_NS, "text"));
-		containerElements.add(new QNameImpl(TEI_NS, "div"));
-		containerElements.add(new QNameImpl(TEI_NS, "lg"));
-		containerElements.add(new QNameImpl(TEI_NS, "subst"));
-		containerElements.add(new QNameImpl(TEI_NS, "choice"));
+		parserConfiguration.addContainerElement(new QNameImpl(TEI_NS, "text"));
+		parserConfiguration.addContainerElement(new QNameImpl(TEI_NS, "div"));
+		parserConfiguration.addContainerElement(new QNameImpl(TEI_NS, "lg"));
+		parserConfiguration.addContainerElement(new QNameImpl(TEI_NS, "subst"));
+		parserConfiguration.addContainerElement(new QNameImpl(TEI_NS, "choice"));
 	}
 
 	/**
@@ -104,31 +95,20 @@ public abstract class AbstractXMLTest extends AbstractTest {
 	 * @return the corresponding test document
 	 * @see #RESOURCES
 	 */
-	protected synchronized Document document(String resource) {
+	protected synchronized Layer document(String resource) {
 		try {
 			if (RESOURCES.contains(resource) && !documents.containsKey(resource)) {
 
-				final Session session = sessionFactory.getCurrentSession();
-
-				final PersistentDocument document = new PersistentDocument();
-				document.setName(nameRepository.get(Document.LMNL_NS_URI, "document"));
-				document.setText(createText(session, ""));
-				session.save(document);
-
+				final Layer xml = layerFactory.create(null, XML_LAYER_NAME, null, "");
 				final URI uri = AbstractXMLTest.class.getResource("/" + resource).toURI();
-				xmlParser.load(document, new StreamSource(uri.toASCIIString()));
 
-				final PersistentAnnotation annotation = new PersistentAnnotation();
-				annotation.setDocument(document);
-				annotation.setName(nameRepository.get(XML_LAYER_NAME.getNamespace(), XML_LAYER_NAME.getLocalName()));
-				annotation.setOwner(document);
-				annotation.setRange(Range.NULL);
-				annotation.setText(createText(session, ""));
-				session.save(annotation);
+				xmlParser.load(xml, new StreamSource(uri.toASCIIString()));
 
-				xmlParser.parse(document, annotation, parserConfiguration);
+				final Layer text = layerFactory.create(xml, TEXT_LAYER_NAME, null, "");
+				final Layer offsetDeltas = layerFactory.create(text, OFFSET_LAYER_NAME, null, null);
+				xmlParser.parse(xml, text, offsetDeltas, parserConfiguration);
 
-				documents.put(resource, document);
+				documents.put(resource, xml);
 			}
 		} catch (Exception e) {
 			throw Throwables.propagate(e);
@@ -142,7 +122,7 @@ public abstract class AbstractXMLTest extends AbstractTest {
 	 * 
 	 * @return the document generated from the first available test resource
 	 */
-	protected Document document() {
+	protected Layer document() {
 		return document(RESOURCES.first());
 	}
 }

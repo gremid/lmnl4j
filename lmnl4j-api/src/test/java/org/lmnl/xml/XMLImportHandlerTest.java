@@ -21,37 +21,56 @@
 
 package org.lmnl.xml;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static junit.framework.Assert.assertTrue;
+
 import java.io.IOException;
 
 import org.junit.Test;
 import org.lmnl.AbstractXMLTest;
-import org.lmnl.AnnotationRepository;
-import org.lmnl.Document;
+import org.lmnl.AnnotationFinder;
+import org.lmnl.Layer;
+import org.lmnl.Range;
 import org.lmnl.TextRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
 
 /**
  * Tests the generation of LOMs from XML sources.
  * 
- * @author <a href="http://gregor.middell.net/"
- *         title="Homepage of Gregor Middell">Gregor Middell</a>
+ * @author <a href="http://gregor.middell.net/" title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
 public class XMLImportHandlerTest extends AbstractXMLTest {
 
 	@Autowired
 	private TextRepository textRepository;
-	
+
 	@Autowired
-	private AnnotationRepository annotationRepository;
-	
+	private AnnotationFinder annotationFinder;
+
 	@Test
 	public void showTextContents() throws IOException {
-		Document document = document("george-algabal-tei.xml");
-		printDebugMessage(CharStreams.toString(textRepository.getText(document)));
-		printDebugMessage(CharStreams.toString(textRepository.getText(Iterables.getOnlyElement(annotationRepository.find(document, XML_LAYER_NAME)))));
+		//final Layer document = document("homer-iliad-tei.xml");
+		final Layer document = document("george-algabal-tei.xml");
+		final Layer text = getOnlyElement(annotationFinder.find(document, TEXT_LAYER_NAME, null));
+		final Layer offsets = getOnlyElement(annotationFinder.find(text, OFFSET_LAYER_NAME, null));
+
+		final int textLength = textRepository.getTextLength(text);
+		assertTrue(textLength > 0);
+
+		if (LOG.isDebugEnabled()) {
+			LOG.debug(CharStreams.toString(textRepository.getText(text)));
+		}
+		for (Layer offset : annotationFinder.find(offsets, XMLParser.OFFSET_DELTA_NAME, null)) {
+			if (LOG.isDebugEnabled()) {
+				final int delta = (Integer) offset.getData();
+				final Range range = offset.getRange();
+
+				LOG.debug(textRepository.getText(text, range) + " ==> "
+						+ textRepository.getText(document, range.add(delta)));
+			}
+		}
 	}
 }

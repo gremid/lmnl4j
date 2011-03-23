@@ -21,6 +21,8 @@
 
 package org.lmnl;
 
+import java.net.URI;
+
 
 /**
  * Layer of annotations applying to a marked-up text.
@@ -47,15 +49,11 @@ package org.lmnl;
  * 
  */
 public interface Layer {
-
 	/**
-	 * The document, this layer ultimately belongs to.
-	 * 
-	 * @return the document found by walking up the hierarchy of owning
-	 *         layers or <code>null</code> in case the layer is not attached
-	 *         to any document
+	 * The LMNL namespace, mainly used as a default.
 	 */
-	Document getDocument();
+	final URI LMNL_NS_URI = URI.create("http://lmnl.net/namespaces/lmnl");
+
 
 	/**
 	 * The layer owning this one.
@@ -84,4 +82,13 @@ public interface Layer {
 	 * @see #getNamespace()
 	 */
 	QName getName();
+	
+	/**
+	 * The segment/ range of text being annotated.
+	 * 
+	 * @return a value object adressing the text segment, that is annotated by this range annotation
+	 */
+	Range getRange();
+	
+	Object getData();
 }

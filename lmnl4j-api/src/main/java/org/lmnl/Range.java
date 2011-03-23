@@ -191,7 +191,8 @@ public class Range implements Comparable<Range> {
 	 * @return <code>true</code>/<code>false</code>
 	 */
 	public boolean hasOverlapWith(Range b) {
-		return overlapWith(b) > 0;
+		final Range overlap = overlap(b);
+		return (overlap != null) && (overlap.length() > 0);
 	}
 
 	/**
@@ -212,8 +213,10 @@ public class Range implements Comparable<Range> {
 	 *                b range
 	 * @return length of overlap
 	 */
-	public int overlapWith(Range b) {
-		return (Math.min(end, b.end) - Math.max(start, b.start));
+	public Range overlap(Range b) {
+		final int start = Math.max(this.start, b.start);
+		final int end = Math.min(this.end, b.end);
+		return ((end - start) >= 0 ? new Range(start, end) : null);
 	}
 
 	/**
@@ -280,6 +283,10 @@ public class Range implements Comparable<Range> {
 		return toString(start, end);
 	}
 
+	public Range add(int n) {
+		return new Range(start + n, end + n);
+	}
+
 	public Range substract(Range subtrahend) {
 		if (end <= subtrahend.start) {
 			// predecessor of deleted segment
@@ -293,7 +300,7 @@ public class Range implements Comparable<Range> {
 			return new Range(start - length, end - length);
 		}
 
-		int overlap = overlapWith(subtrahend);
+		int overlap = overlap(subtrahend).length();
 		int start = (this.start < subtrahend.start ? this.start : this.start - (length - overlap));
 		int end = (this.end >= subtrahend.end ? this.end - length : this.end - overlap);
 		return new Range(start, end);
