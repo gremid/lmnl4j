@@ -2,13 +2,16 @@ package org.lmnl;
 
 import static javax.xml.XMLConstants.XML_NS_URI;
 
+import java.io.Serializable;
 import java.net.URI;
 
 import javax.xml.XMLConstants;
 
 import com.google.common.base.Strings;
 
-public class QNameImpl implements QName {
+public class QNameImpl implements QName, Serializable {
+	private static final long serialVersionUID = 1L;
+
 	public static final QName XML_SPACE = new QNameImpl(XMLConstants.XML_NS_URI, "space");
 
 	public static final QName COMMENT_QNAME = new QNameImpl(XML_NS_URI, "comment");

@@ -5,8 +5,8 @@
 		<id name="id">
 			<generator class="native" />
 		</id>
-		<property name="localName" not-null="true" column="local_name" />
-		<property name="namespace" />
+		<property name="localName" not-null="true" column="local_name" index="lmnl_qname_name" />
+		<property name="namespace" index="lmnl_qname_name" />
 	</class>
 
 	<class name="org.lmnl.rdbms.TextRelation" table="lmnl_text">
@@ -24,8 +24,8 @@
 		<many-to-one name="owner" class="org.lmnl.rdbms.LayerRelation" />
 		<many-to-one name="text" not-null="true" column="layer_text" />
 		<component name="range">
-			<property name="start" not-null="true" />
-			<property name="end" not-null="true" />
+			<property name="start" not-null="true" index="lmnl_layer_range"/>
+			<property name="end" not-null="true" index="lmnl_layer_range" />
 		</component>
 		<property name="serializableData" column="data" length="65535" />
 	</class>

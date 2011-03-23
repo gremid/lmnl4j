@@ -71,9 +71,7 @@ public abstract class AbstractXMLTest extends AbstractTest {
 		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "l"));
 		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "speaker"));
 		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "stage"));
-		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "div"));
 		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "head"));
-		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "fw"));
 		parserConfiguration.addLineElement(new QNameImpl(TEI_NS, "p"));
 
 		parserConfiguration.addContainerElement(new QNameImpl(TEI_NS, "text"));
@@ -81,6 +79,10 @@ public abstract class AbstractXMLTest extends AbstractTest {
 		parserConfiguration.addContainerElement(new QNameImpl(TEI_NS, "lg"));
 		parserConfiguration.addContainerElement(new QNameImpl(TEI_NS, "subst"));
 		parserConfiguration.addContainerElement(new QNameImpl(TEI_NS, "choice"));
+		
+		parserConfiguration.exclude(new QNameImpl(TEI_NS, "teiHeader"));
+		parserConfiguration.exclude(new QNameImpl(TEI_NS, "front"));
+		parserConfiguration.exclude(new QNameImpl(TEI_NS, "fw"));
 	}
 
 	/**

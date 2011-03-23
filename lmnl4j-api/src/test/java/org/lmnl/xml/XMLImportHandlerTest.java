@@ -25,15 +25,19 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static junit.framework.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.SortedMap;
 
 import org.junit.Test;
 import org.lmnl.AbstractXMLTest;
 import org.lmnl.AnnotationFinder;
 import org.lmnl.Layer;
+import org.lmnl.QName;
 import org.lmnl.Range;
 import org.lmnl.TextRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 
 /**
@@ -52,7 +56,7 @@ public class XMLImportHandlerTest extends AbstractXMLTest {
 
 	@Test
 	public void showTextContents() throws IOException {
-		//final Layer document = document("homer-iliad-tei.xml");
+		// final Layer document = document("homer-iliad-tei.xml");
 		final Layer document = document("george-algabal-tei.xml");
 		final Layer text = getOnlyElement(annotationFinder.find(document, TEXT_LAYER_NAME, null));
 		final Layer offsets = getOnlyElement(annotationFinder.find(text, OFFSET_LAYER_NAME, null));
@@ -61,10 +65,30 @@ public class XMLImportHandlerTest extends AbstractXMLTest {
 		assertTrue(textLength > 0);
 
 		if (LOG.isDebugEnabled()) {
+			final SortedMap<String, Layer> annotations = Maps.newTreeMap();
+			for (Layer annotation : annotationFinder.find(text, null, null)) {
+				@SuppressWarnings("unchecked")
+				final Map<QName, String> attrs = (Map<QName, String>) annotation.getData();
+				if (attrs == null) {
+					LOG.debug(annotation  + " has no attributes");
+					continue;
+				}
+				final String nodePath = attrs.get(XMLParser.NODE_PATH_NAME);
+				if (nodePath == null) {
+					LOG.debug(annotation  + " has no XML node path");
+					continue;
+				}
+				if (annotations.containsKey(nodePath)) {
+					LOG.debug(nodePath  + " already assigned to " + annotations.get(nodePath));
+				}
+				annotations.put(nodePath, annotation);
+			}
+			for (Map.Entry<String, Layer> annotation : annotations.entrySet()) {
+				LOG.debug(annotation.getKey() + " ==> " + annotation.getValue());
+			}
+			
 			LOG.debug(CharStreams.toString(textRepository.getText(text)));
-		}
-		for (Layer offset : annotationFinder.find(offsets, XMLParser.OFFSET_DELTA_NAME, null)) {
-			if (LOG.isDebugEnabled()) {
+			for (Layer offset : annotationFinder.find(offsets, XMLParser.OFFSET_DELTA_NAME, null)) {
 				final int delta = (Integer) offset.getData();
 				final Range range = offset.getRange();
 

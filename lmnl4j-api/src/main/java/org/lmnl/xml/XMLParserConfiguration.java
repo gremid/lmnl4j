@@ -8,6 +8,8 @@ import com.google.common.collect.Sets;
 
 public class XMLParserConfiguration {
 
+	private Set<QName> excluded = Sets.newHashSet();
+	private Set<QName> included = Sets.newHashSet();
 	private Set<QName> lineElements = Sets.newHashSet();
 	private Set<QName> containerElements = Sets.newHashSet();
 
@@ -33,5 +35,21 @@ public class XMLParserConfiguration {
 
 	public boolean isContainerElement(QName name) {
 		return containerElements.contains(name);
+	}
+	
+	public void include(QName name) {
+		included.add(name);
+	}
+	
+	public void exclude(QName name) {
+		excluded.add(name);
+	}
+	
+	public boolean included(QName name) {
+		return included.contains(name);
+	}
+	
+	public boolean excluded(QName name) {
+		return excluded.contains(name);
 	}
 }
