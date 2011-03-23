@@ -19,35 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.base;
+package org.lmnl.rdbms;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.lmnl.Annotation;
-import org.lmnl.Layer;
-import org.lmnl.Range;
-import org.lmnl.json.AnnotationSerializer;
+import org.lmnl.Document;
 
-import com.google.common.base.Objects;
-
-@JsonSerialize(using = AnnotationSerializer.class)
-public class DefaultAnnotation extends AbstractLayer implements Annotation {
-	protected Range address;
-
-	protected DefaultAnnotation(Layer owner, String prefix, String localName, String text, Range address) {
-		super(owner, prefix, localName, text);
-		this.address = address;
-	}
-
-	public Range address() {
-		return address;
-	}
-
-	public String getSegmentText() {
-		return address.applyTo(getOwner().getText());
-	}
-	
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this).addValue(getQName()).addValue(address).toString();
-	}
+public class PersistentDocument extends PersistentLayer implements Document {
 }

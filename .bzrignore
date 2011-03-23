@@ -4,3 +4,4 @@ target
 .settings
 META-INF
 .DS_Store
+.springBeans

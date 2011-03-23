@@ -21,10 +21,14 @@
 
 package org.lmnl;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.junit.After;
 import org.junit.Before;
-import org.lmnl.base.DefaultAnnotation;
-import org.lmnl.base.DefaultDocument;
+import org.lmnl.rdbms.PersistentAnnotation;
+import org.lmnl.rdbms.PersistentDocument;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Base class for tests using an in-memory document model.
@@ -33,19 +37,30 @@ import org.lmnl.base.DefaultDocument;
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
+@Transactional
 public abstract class AbstractDefaultDocumentTest extends AbstractTest {
+	@Autowired
+	protected SessionFactory sessionFactory;
+	
+	@Autowired
+	protected QNameRepository nameRepository;
+	
 	/**
 	 * The in-memory document model to run tests against.
 	 */
-	protected Document document;
+	protected PersistentDocument document;
 
 	/**
 	 * Creates a new document model before every test.
 	 */
 	@Before
 	public void createDocument() {
-		document = new DefaultDocument(TEST_DOCUMENT_URI, documentText());
-		document.addNamespace(TEST_NS_PREFIX, TEST_NS);
+		final Session session = sessionFactory.getCurrentSession();
+
+		document = new PersistentDocument();
+		document.setName(nameRepository.get(Document.LMNL_NS_URI, "document"));
+		document.setText(createText(session, documentText()));
+		session.save(document);
 	}
 
 	/**
@@ -57,7 +72,7 @@ public abstract class AbstractDefaultDocumentTest extends AbstractTest {
 	}
 
 	/**
-	 * Adds a simple {@link DefaultAnnotation annotation} to the test
+	 * Adds a simple {@link PersistentAnnotation annotation} to the test
 	 * document.
 	 * 
 	 * @param name
@@ -67,9 +82,17 @@ public abstract class AbstractDefaultDocumentTest extends AbstractTest {
 	 *                its start offset
 	 * @param end
 	 *                its end offset
+	 * @return 
 	 */
-	protected void addTestRange(String name, int start, int end) {
-		document.add(TEST_NS_PREFIX, name, null, new Range(start, end), Annotation.class);
+	protected Annotation addTestRange(String name, int start, int end) {
+		PersistentAnnotation annotation = new PersistentAnnotation();
+		annotation.setDocument(document);
+		annotation.setOwner(document);
+		annotation.setName(nameRepository.get(TEST_NS, name));
+		annotation.setRange(new Range(start, end));
+		annotation.setText(document.getText());
+		sessionFactory.getCurrentSession().save(annotation);
+		return annotation;
 	}
 
 	/**

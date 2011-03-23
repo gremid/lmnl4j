@@ -19,21 +19,41 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl;
+package org.lmnl.rdbms;
 
-/**
- * An annotation representing markup in a LOM.
- * 
- * @author <a href="http://gregor.middell.net/" title="Homepage of Gregor Middell">Gregor Middell</a>
- * 
- */
-public interface Annotation extends Layer {
-	/**
-	 * The segment/ range of text being annotated.
-	 * 
-	 * @return a value object adressing the text segment, that is annotated by this range annotation
-	 */
-	Range getRange();
-	
-	Object getData();
+import java.io.Serializable;
+
+import org.lmnl.Annotation;
+import org.lmnl.Range;
+
+import com.google.common.base.Objects;
+
+public class PersistentAnnotation extends PersistentLayer implements Annotation {
+	protected Range range;
+	protected Serializable serializableData;
+
+	public Range getRange() {
+		return range;
+	}
+
+	public void setRange(Range range) {
+		this.range = range;
+	}
+
+	public Object getData() {
+		return serializableData;
+	}
+
+	public Serializable getSerializableData() {
+		return serializableData;
+	}
+
+	public void setSerializableData(Serializable serializableData) {
+		this.serializableData = serializableData;
+	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this).addValue(getName()).addValue(getRange()).toString();
+	}
 }

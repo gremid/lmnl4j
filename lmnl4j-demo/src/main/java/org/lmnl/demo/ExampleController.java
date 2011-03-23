@@ -42,7 +42,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.lmnl.Annotation;
 import org.lmnl.Document;
 import org.lmnl.Range;
-import org.lmnl.base.DefaultAnnotation;
+import org.lmnl.rdbms.PersistentAnnotation;
 import org.lmnl.util.OverlapIndexer;
 import org.lmnl.xml.PlainTextXMLFilter;
 import org.lmnl.xml.XMLUtils;
@@ -128,7 +128,7 @@ public class ExampleController implements ApplicationContextAware {
 				continue;
 			}
 			Annotation handShift = currentHandShifts.iterator().next();
-			if (handShift.address().start == handSegment.start) {
+			if (handShift.getRange().start == handSegment.start) {
 				String handValue = "";
 				for (XMLAttribute attr : ((XMLElement) handShift).getAttributes()) {
 					if ("new".equals(attr.localName)) {
@@ -136,7 +136,7 @@ public class ExampleController implements ApplicationContextAware {
 						break;
 					}
 				}
-				document.add(Document.LMNL_PREFIX, "hand", handValue, new Range(handSegment), DefaultAnnotation.class);
+				document.add(Document.LMNL_PREFIX, "hand", handValue, new Range(handSegment), PersistentAnnotation.class);
 			}
 		}
 		return document;

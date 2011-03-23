@@ -24,57 +24,54 @@ package org.lmnl;
 import com.google.common.base.Objects;
 
 /**
- * Adresses a text segment, for example a segment, that is annotated by some
- * {@link Annotation annotation}.
+ * Adresses a text segment, for example a segment, that is annotated by some {@link Annotation annotation}.
  * 
  * <p/>
  * 
- * Segments are adressed by start and end offsets of the characters forming the
- * boundaries of a segment. The character pointed to by the start offset is
- * included in the segment, while the character addressed by the end offset is
- * the first excluded from it.
+ * Segments are adressed by start and end offsets of the characters forming the boundaries of a segment. The character pointed to by
+ * the start offset is included in the segment, while the character addressed by the end offset is the first excluded from it.
  * 
  * <p/>
  * 
- * Offsets are counted from zero and are located in the <i>gaps</i> between
- * characters:
+ * Offsets are counted from zero and are located in the <i>gaps</i> between characters:
  * 
  * <pre>
  *   a   b   c   d   e  
  * 0 | 1 | 2 | 3 | 4 | 5
  * </pre>
  * 
- * In the given example, the substring "bcd" would be adressed by the segment
- * <code>[1, 4]</code>, the whole string by the segment <code>[0, 5]</code>.
- * Note that the difference between the offsets equals the length of the segment
- * and that "empty" segments pointing in the gaps between characters are valid.
- * So for example to point to the gap between "d" and "e", the corresponding
+ * In the given example, the substring "bcd" would be adressed by the segment <code>[1, 4]</code>, the whole string by the segment
+ * <code>[0, 5]</code>. Note that the difference between the offsets equals the length of the segment and that "empty" segments
+ * pointing in the gaps between characters are valid. So for example to point to the gap between "d" and "e", the corresponding
  * empty segment's address would be <code>[4, 4]</code>.
  * 
  * <p/>
  * 
- * Apart from encapsulating the offset values denoting the segment, objects of
- * this class also have methods to apply <a href=
- * "http://www.mind-to-mind.com/library/papers/ara/core-range-algebra-03-2002.pdf"
- * title="Nicol: Core Range Algebra (PDF)">Gavin Nicols' Core Range Algebra</a>.
- * These methods like {@link #encloses(Range)} or
- * {@link #hasOverlapWith(Range)} define relationships between text
- * segments, which can be used for example to filter sets of range annotations.
+ * Apart from encapsulating the offset values denoting the segment, objects of this class also have methods to apply <a href=
+ * "http://www.mind-to-mind.com/library/papers/ara/core-range-algebra-03-2002.pdf" title="Nicol: Core Range Algebra (PDF)">Gavin
+ * Nicols' Core Range Algebra</a>. These methods like {@link #encloses(Range)} or {@link #hasOverlapWith(Range)} define
+ * relationships between text segments, which can be used for example to filter sets of range annotations.
  * 
  * @see CharSequence#subSequence(int, int)
  * 
- * @author <a href="http://gregor.middell.net/"
- *         title="Homepage of Gregor Middell">Gregor Middell</a>
+ * @author <a href="http://gregor.middell.net/" title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
 public class Range implements Comparable<Range> {
-	public static final Range NULL = new Range(0, 0);
+	public static final Range NULL = new Range();
 
 	/** The start offset of the segment (counted from zero, inclusive). */
-	public final int start;
+	private int start;
 
 	/** The end offset of the segment (counted from zero, exclusive). */
-	public final int end;
+	private int end;
+
+	/**
+	 * Default constructor creating a {@link #NULL} range.
+	 */
+	public Range() {
+		this(0, 0);
+	}
 
 	/**
 	 * Creates a text segment address.
@@ -84,8 +81,7 @@ public class Range implements Comparable<Range> {
 	 * @param end
 	 *                end offset
 	 * @throws IllegalArgumentException
-	 *                 if <code>start</code> or <code>end</code> or lower
-	 *                 than zero, or if <code>start</code> is greather than
+	 *                 if <code>start</code> or <code>end</code> or lower than zero, or if <code>start</code> is greather than
 	 *                 <code>end</code>
 	 */
 	public Range(int start, int end) {
@@ -104,6 +100,22 @@ public class Range implements Comparable<Range> {
 	 */
 	public Range(Range b) {
 		this(b.start, b.end);
+	}
+
+	public int getStart() {
+		return start;
+	}
+
+	public void setStart(int start) {
+		this.start = start;
+	}
+
+	public int getEnd() {
+		return end;
+	}
+
+	public void setEnd(int end) {
+		this.end = end;
 	}
 
 	/**
@@ -227,8 +239,7 @@ public class Range implements Comparable<Range> {
 	}
 
 	/**
-	 * Orders segments, first by start offset, then by the reverse order of
-	 * the end offsets.
+	 * Orders segments, first by start offset, then by the reverse order of the end offsets.
 	 * 
 	 * @see Comparable#compareTo(Object)
 	 */

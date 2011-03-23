@@ -21,9 +21,17 @@
 
 package org.lmnl.xml;
 
+import java.io.IOException;
+
 import org.junit.Test;
 import org.lmnl.AbstractXMLTest;
+import org.lmnl.AnnotationRepository;
 import org.lmnl.Document;
+import org.lmnl.TextRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Iterables;
+import com.google.common.io.CharStreams;
 
 /**
  * Tests the generation of LOMs from XML sources.
@@ -34,13 +42,16 @@ import org.lmnl.Document;
  */
 public class XMLImportHandlerTest extends AbstractXMLTest {
 
-	/**
-	 * Builds a test LOM.
-	 */
+	@Autowired
+	private TextRepository textRepository;
+	
+	@Autowired
+	private AnnotationRepository annotationRepository;
+	
 	@Test
-	public void buildLom() {
+	public void showTextContents() throws IOException {
 		Document document = document("george-algabal-tei.xml");
-		printDebugMessage(document.getText());
-		printDebugMessage(document);
+		printDebugMessage(CharStreams.toString(textRepository.getText(document)));
+		printDebugMessage(CharStreams.toString(textRepository.getText(Iterables.getOnlyElement(annotationRepository.find(document, XML_LAYER_NAME)))));
 	}
 }

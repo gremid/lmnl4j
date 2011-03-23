@@ -86,8 +86,8 @@ public class Partitioning implements Function<Iterable<Annotation>, SortedSet<Ra
 		}
 
 		for (Annotation a : from) {
-			offsets.add(a.address().start);
-			offsets.add(a.address().end);
+			offsets.add(a.getRange().getStart());
+			offsets.add(a.getRange().getEnd());
 		}
 
 		SortedSet<Range> partition = new TreeSet<Range>();

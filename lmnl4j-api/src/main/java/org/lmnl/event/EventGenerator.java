@@ -1,111 +1,75 @@
 package org.lmnl.event;
 
-import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import org.lmnl.Annotation;
-import org.lmnl.Document;
+import org.lmnl.AnnotationRepository;
 import org.lmnl.Layer;
 import org.lmnl.Range;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.Maps;
 
 public class EventGenerator {
 	private Predicate<Layer> filter = Predicates.alwaysTrue();
+	private AnnotationRepository annotationRepository;
 
 	public EventGenerator() {
 	}
 
-	public EventGenerator(Predicate<Layer> filter) {
+	public void setFilter(Predicate<Layer> filter) {
 		this.filter = filter;
 	}
 
-	public void generate(Layer layer, EventHandler eventHandler) throws EventHandlerException {
-		generate(layer, eventHandler, new Ordering<Annotation>() {
-
-			public int compare(Annotation o1, Annotation o2) {
-				return o1.address().compareTo(o2.address());
-			}
-		});
+	public void setAnnotationRepository(AnnotationRepository annotationRepository) {
+		this.annotationRepository = annotationRepository;
 	}
 
-	public void generate(Layer layer, EventHandler eventHandler, Ordering<Annotation> rangeOrdering) throws EventHandlerException {
-		if (!filter.apply(layer)) {
-			return;
-		}
+	public void generate(Layer layer, EventHandler eventHandler) throws EventHandlerException {
+		generate(layer, eventHandler, 0);
+	}
+	
+	protected void generate(Layer layer, EventHandler eventHandler, int depth) throws EventHandlerException {
+		final SortedMap<Integer, List<Annotation>> opened = Maps.newTreeMap();
+		for (Annotation annotation : Iterables.filter(annotationRepository.getAnnotations(layer), filter)) {
+			final Range annotationRange = annotation.getRange();
+			final int start = annotationRange.getStart();
+			final int end = annotationRange.getEnd();
 
-		if (layer instanceof Document) {
-			eventHandler.startDocument((Document) layer);
-		}
-		if (layer instanceof Annotation) {
-			eventHandler.startAnnotation((Annotation) layer);
-		}
+			for (Iterator<Integer> endingAtIt = opened.keySet().iterator(); endingAtIt.hasNext();) {
+				final Integer endingAt = endingAtIt.next();
+				if (endingAt > start) {
+					break;
+				}
+				for (Annotation ending : opened.get(endingAt)) {
+					eventHandler.endAnnotation(ending, depth);
+				}
+				endingAtIt.remove();
+			}
 
-		List<Annotation> children = Lists.newArrayList(layer);
+			eventHandler.startAnnotation(annotation, depth);
 
-		SortedMap<Integer, List<Annotation>> offsetIndex = new TreeMap<Integer, List<Annotation>>();
-		for (Annotation r : children) {
-			Range addr = r.address();
-			if (offsetIndex.containsKey(addr.start)) {
-				offsetIndex.get(addr.start).add(r);
+			generate(annotation, eventHandler, depth + 1);
+
+			if (start == end) {
+				eventHandler.endAnnotation(annotation, depth);
 			} else {
-				List<Annotation> rangeList = new ArrayList<Annotation>();
-				rangeList.add(r);
-				offsetIndex.put(addr.start, rangeList);
-			}
-			if (addr.end != addr.start) {
-				if (offsetIndex.containsKey(addr.end)) {
-					offsetIndex.get(addr.end).add(r);
-				} else {
-					List<Annotation> rangeList = new ArrayList<Annotation>();
-					rangeList.add(r);
-					offsetIndex.put(addr.end, rangeList);
+				List<Annotation> endingAnnotations = opened.get(end);
+				if (endingAnnotations == null) {
+					opened.put(end, endingAnnotations = Lists.newArrayList());
 				}
+				endingAnnotations.add(annotation);
 			}
 		}
-
-		for (int offset : offsetIndex.keySet()) {
-			List<Annotation> ranges = offsetIndex.get(offset);
-			// ending ranges
-			for (Annotation annotation : rangeOrdering.reverse().sortedCopy(ranges)) {
-				Range address = annotation.address();
-				if (address.end == offset && address.start != offset) {
-					eventHandler.endAnnotation(annotation);
-				}
+		for (List<Annotation> remaining : opened.values()) {
+			for (Annotation annotation : remaining) {
+				eventHandler.endAnnotation(annotation, depth);
 			}
-			// atoms ranges
-			for (Annotation annotation : rangeOrdering.sortedCopy(ranges)) {
-				Range address = annotation.address();
-				if (address.start == offset && address.end == offset) {
-					eventHandler.startAnnotation(annotation);
-					for (Annotation a : annotation) {
-						generate(a, eventHandler, rangeOrdering);
-					}
-					eventHandler.endAnnotation(annotation);
-				}
-			}
-			// starting ranges
-			for (Annotation annotation : rangeOrdering.sortedCopy(ranges)) {
-				Range address = annotation.address();
-				if (address.start == offset && address.end != offset) {
-					eventHandler.startAnnotation(annotation);
-					for (Annotation a : annotation) {
-						generate(a, eventHandler, rangeOrdering);
-					}
-				}
-			}
-		}
-
-		if (layer instanceof Document) {
-			eventHandler.endDocument((Document) layer);
-		}
-		if (layer instanceof Annotation) {
-			eventHandler.endAnnotation((Annotation) layer);
 		}
 	}
 }

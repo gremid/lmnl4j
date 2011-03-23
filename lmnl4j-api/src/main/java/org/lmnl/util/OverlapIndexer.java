@@ -97,9 +97,9 @@ public class OverlapIndexer implements Function<Iterable<Annotation>, SortedMap<
 				ArrayList<Annotation> overlapping = new ArrayList<Annotation>();
 				for (Iterator<Annotation> annotationIt = annotations.iterator(); annotationIt.hasNext();) {
 					Annotation annotation = annotationIt.next();
-					Range tr = annotation.address();
+					Range tr = annotation.getRange();
 
-					if (tr.hasOverlapWith(segment) || tr.start == segment.start) {
+					if (tr.hasOverlapWith(segment) || tr.getStart() == segment.getStart()) {
 						overlapping.add(annotation);
 					}
 

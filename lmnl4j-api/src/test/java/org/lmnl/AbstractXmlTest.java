@@ -21,53 +21,79 @@
 
 package org.lmnl;
 
-import static org.lmnl.xml.XMLUtils.buildDocument;
-
 import java.net.URI;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 
-import org.lmnl.xml.PlainTextXMLFilter;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
+import javax.xml.transform.stream.StreamSource;
 
+import org.hibernate.SessionFactory;
+import org.hibernate.classic.Session;
+import org.junit.Before;
+import org.lmnl.rdbms.PersistentAnnotation;
+import org.lmnl.rdbms.PersistentDocument;
+import org.lmnl.xml.XMLParser;
+import org.lmnl.xml.XMLParserConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * Base class for tests working with documents generated from XML test
- * resources.
+ * Base class for tests working with documents generated from XML test resources.
  * 
- * @author <a href="http://gregor.middell.net/"
- *         title="Homepage of Gregor Middell">Gregor Middell</a>
+ * @author <a href="http://gregor.middell.net/" title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
+@Transactional
 public abstract class AbstractXMLTest extends AbstractTest {
+	protected static final QName XML_LAYER_NAME = new QNameImpl(Document.LMNL_NS_URI, "xml");
+	
+	protected static final URI TEI_NS = URI.create("http://www.tei-c.org/ns/1.0");
 	/**
 	 * Names of available XML test resources.
 	 */
 	protected static final SortedSet<String> RESOURCES = Sets.newTreeSet(Lists.newArrayList(//
 			"archimedes-palimpsest-tei.xml", "george-algabal-tei.xml", "homer-iliad-tei.xml"));
 
-	private static Map<String, Document> documents = Maps.newHashMap();
+	private Map<String, Document> documents = Maps.newHashMap();
 
-	/**
-	 * Creates an XML reader for parsing text-centric XML test resources.
-	 * 
-	 * @throws SAXException
-	 *                 if an XML related parser error occurs
-	 */
-	public XMLReader createXMLReader() throws SAXException {
-		return new PlainTextXMLFilter()//
-				.withLineElements(Sets.newHashSet("lg", "l", "sp", "speaker", "stage", "div", "head", "p"))//
-				.withElementOnlyElements(Sets.newHashSet("document", "surface", "zone", "subst"));
+	private XMLParserConfiguration parserConfiguration = new XMLParserConfiguration();
+
+	@Autowired
+	private SessionFactory sessionFactory;
+
+	@Autowired
+	private XMLParser xmlParser;
+
+	@Autowired
+	private QNameRepository nameRepository;
+
+	@Before
+	public void configureXMLParser() {
+		final Set<QName> lineElements = parserConfiguration.getLineElements();
+		lineElements.add(new QNameImpl(TEI_NS, "lg"));
+		lineElements.add(new QNameImpl(TEI_NS, "l"));
+		lineElements.add(new QNameImpl(TEI_NS, "speaker"));
+		lineElements.add(new QNameImpl(TEI_NS, "stage"));
+		lineElements.add(new QNameImpl(TEI_NS, "div"));
+		lineElements.add(new QNameImpl(TEI_NS, "head"));
+		lineElements.add(new QNameImpl(TEI_NS, "p"));
+
+		final Set<QName> containerElements = parserConfiguration.getContainerElements();
+		containerElements.add(new QNameImpl(TEI_NS, "text"));
+		containerElements.add(new QNameImpl(TEI_NS, "div"));
+		containerElements.add(new QNameImpl(TEI_NS, "lg"));
+		containerElements.add(new QNameImpl(TEI_NS, "subst"));
+		containerElements.add(new QNameImpl(TEI_NS, "choice"));
 	}
 
 	/**
-	 * Returns a test document generated from the resource with the given
-	 * name.
+	 * Returns a test document generated from the resource with the given name.
 	 * 
 	 * <p/>
 	 * 
@@ -81,13 +107,31 @@ public abstract class AbstractXMLTest extends AbstractTest {
 	protected synchronized Document document(String resource) {
 		try {
 			if (RESOURCES.contains(resource) && !documents.containsKey(resource)) {
-				URI uri = AbstractXMLTest.class.getResource("/" + resource).toURI();
-				Document document = buildDocument(createXMLReader(), new InputSource(uri.toASCIIString()));
-				document.addNamespace(TEST_NS_PREFIX, TEST_NS);
+
+				final Session session = sessionFactory.getCurrentSession();
+
+				final PersistentDocument document = new PersistentDocument();
+				document.setName(nameRepository.get(Document.LMNL_NS_URI, "document"));
+				document.setText(createText(session, ""));
+				session.save(document);
+
+				final URI uri = AbstractXMLTest.class.getResource("/" + resource).toURI();
+				xmlParser.load(document, new StreamSource(uri.toASCIIString()));
+
+				final PersistentAnnotation annotation = new PersistentAnnotation();
+				annotation.setDocument(document);
+				annotation.setName(nameRepository.get(XML_LAYER_NAME.getNamespace(), XML_LAYER_NAME.getLocalName()));
+				annotation.setOwner(document);
+				annotation.setRange(Range.NULL);
+				annotation.setText(createText(session, ""));
+				session.save(annotation);
+
+				xmlParser.parse(document, annotation, parserConfiguration);
+
 				documents.put(resource, document);
 			}
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw Throwables.propagate(e);
 		}
 
 		return documents.get(resource);

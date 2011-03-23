@@ -23,7 +23,9 @@ package org.lmnl.util;
 
 import org.junit.Test;
 import org.lmnl.AbstractDefaultDocumentTest;
+import org.lmnl.AnnotationRepository;
 import org.lmnl.util.OverlapIndexer;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the calculation of overlap indizes.
@@ -34,6 +36,9 @@ import org.lmnl.util.OverlapIndexer;
  */
 public class OverlapIndexerTest extends AbstractDefaultDocumentTest {
 
+	@Autowired
+	private AnnotationRepository annotationRepository;
+	
 	/**
 	 * Indexes a very simple document.
 	 */
@@ -45,8 +50,8 @@ public class OverlapIndexerTest extends AbstractDefaultDocumentTest {
 		addTestRange("d", 0, 6);
 		addTestRange("e", 2, 3);
 
-		printDebugMessage(document);
-		printDebugMessage(new OverlapIndexer().apply(document));
+		printDebugMessage(document.toString());
+		printDebugMessage(new OverlapIndexer().apply(annotationRepository.getAnnotations(document)));
 	}
 
 	@Override

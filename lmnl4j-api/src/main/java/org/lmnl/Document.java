@@ -23,52 +23,24 @@ package org.lmnl;
 
 import java.net.URI;
 
-import com.google.common.collect.BiMap;
-
 /**
  * A document, the natural base layer of a LMNL object model (LOM).
  * 
  * <p/>
  * 
- * Documents form the lowest layer of LOMs, therefore they are necessarily
- * layers containing {@link Layer#getText() text}.
+ * Documents form the lowest layer of LOMs, therefore they are necessarily layers containing {@link Layer#text() text}.
  * 
- * @author <a href="http://gregor.middell.net/"
- *         title="Homepage of Gregor Middell">Gregor Middell</a>
+ * @author <a href="http://gregor.middell.net/" title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
 public interface Document extends Layer {
 	/**
-	 * Registered mappings from name prefixes to namespace URIs in this
-	 * layer.
-	 * 
-	 * <p/>
-	 * 
-	 * In a LOM, namespace mapping are aggregated at the lowest layer with
-	 * higher layers delegating namespace handling to their owner. This is
-	 * achieved by merging namespace registers upon addition of layer to
-	 * others.
-	 * 
-	 * @return a map of registered namespaces, either originating from the
-	 *         layer itself, if it happens to be the lowest, or from a layer
-	 *         up the {@link #getOwner() chain} of owners.
-	 * 
-	 * @see #add(LmnlAnnotation)
-	 */
-	BiMap<String, URI> getNamespaceContext();
-
-	void addNamespace(String prefix, URI ns);
-	
-	URI getNamespace(String prefix);
-	
-	String getPrefix(URI ns);
-	
-	AnnotationFactory getAnnotationFactory();
-
-	/**
 	 * The LMNL namespace, mainly used as a default.
 	 */
 	final URI LMNL_NS_URI = URI.create("http://lmnl.net/namespaces/lmnl");
-	
+
+	/**
+	 * Standard prefix of the LMNL namespace.
+	 */
 	final String LMNL_PREFIX = "lmnl";
 }
