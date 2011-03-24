@@ -22,7 +22,9 @@
 package org.lmnl.xml;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static java.util.Collections.singleton;
 import static junit.framework.Assert.assertTrue;
+import static org.lmnl.xml.XMLParser.OFFSET_DELTA_NAME;
 
 import java.io.IOException;
 import java.util.Map;
@@ -58,8 +60,8 @@ public class XMLImportHandlerTest extends AbstractXMLTest {
 	public void showTextContents() throws IOException {
 		// final Layer document = document("homer-iliad-tei.xml");
 		final Layer document = document("george-algabal-tei.xml");
-		final Layer text = getOnlyElement(annotationFinder.find(document, TEXT_LAYER_NAME, null));
-		final Layer offsets = getOnlyElement(annotationFinder.find(text, OFFSET_LAYER_NAME, null));
+		final Layer text = getOnlyElement(annotationFinder.find(document, singleton(TEXT_LAYER_NAME), null));
+		final Layer offsets = getOnlyElement(annotationFinder.find(text, singleton(OFFSET_LAYER_NAME), null));
 
 		final int textLength = textRepository.getTextLength(text);
 		assertTrue(textLength > 0);
@@ -88,7 +90,7 @@ public class XMLImportHandlerTest extends AbstractXMLTest {
 			}
 			
 			LOG.debug(CharStreams.toString(textRepository.getText(text)));
-			for (Layer offset : annotationFinder.find(offsets, XMLParser.OFFSET_DELTA_NAME, null)) {
+			for (Layer offset : annotationFinder.find(offsets, singleton(OFFSET_DELTA_NAME), null)) {
 				final int delta = (Integer) offset.getData();
 				final Range range = offset.getRange();
 
