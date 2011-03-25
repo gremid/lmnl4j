@@ -83,6 +83,8 @@ public abstract class AbstractXMLTest extends AbstractTest {
 		parserConfiguration.exclude(new QNameImpl(TEI_NS, "teiHeader"));
 		parserConfiguration.exclude(new QNameImpl(TEI_NS, "front"));
 		parserConfiguration.exclude(new QNameImpl(TEI_NS, "fw"));
+		
+		parserConfiguration.addNotableElement(new QNameImpl(TEI_NS, "lb"));
 	}
 
 	/**

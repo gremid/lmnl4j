@@ -214,21 +214,31 @@ public abstract class XMLParser {
 		private int offsetDelta = 0;
 		private int lastOffsetDeltaChange = 0;
 
+		private char notableCharacter;
 		private char lastChar = (removeLeadingWhitespace ? ' ' : 0);
 
 		private Session(Layer target, Layer offsetDeltas, XMLParserConfiguration configuration) {
 			this.target = target;
 			this.offsetDeltas = offsetDeltas;
 			this.configuration = configuration;
+			this.notableCharacter = configuration.getNotableCharacter();
 			this.nodePath.push(0);
 		}
 
 		private Layer startElement(QName name, Map<QName, String> attributes) throws IOException {
-			if (configuration.isLineElement(name)) {
+			final boolean notable = configuration.isNotable(name);
+			final boolean lineElement = configuration.isLineElement(name);
+			if (notable || lineElement) {
 				writeOffsetDelta();
 
-				textBuffer.write(Character.toString(lastChar = '\n').getBytes(charset));
-				offset++;
+				if (lineElement) {
+					textBuffer.write(Character.toString(lastChar = '\n').getBytes(charset));
+					offset++;
+				}
+				if (notable) {
+					textBuffer.write(Character.toString(lastChar = notableCharacter).getBytes(charset));
+					offset++;
+				}
 
 				lastOffsetDeltaChange = offset;
 			}
@@ -236,10 +246,10 @@ public abstract class XMLParser {
 			final Layer annotation = startAnnotation(target, name, attributes, offset, nodePath);
 
 			elementContext.push(annotation);
-			
+
 			final boolean parentIncluded = (inclusionContext.isEmpty() ? true : inclusionContext.peek());
 			inclusionContext.push(parentIncluded ? !configuration.excluded(name) : configuration.included(name));
-			
+
 			spacePreservationContext.push(spacePreservationContext.isEmpty() ? false : spacePreservationContext.peek());
 			for (Map.Entry<QName, String> attr : attributes.entrySet()) {
 				if (QNameImpl.XML_SPACE.equals(attr.getKey())) {
@@ -271,7 +281,7 @@ public abstract class XMLParser {
 			if (!inclusionContext.isEmpty() && !inclusionContext.peek()) {
 				return;
 			}
-			
+
 			final boolean preserveSpace = !spacePreservationContext.isEmpty() && spacePreservationContext.peek();
 			if (!preserveSpace && !elementContext.isEmpty()
 					&& configuration.isContainerElement(elementContext.peek().getName())) {

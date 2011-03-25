@@ -12,6 +12,8 @@ public class XMLParserConfiguration {
 	private Set<QName> included = Sets.newHashSet();
 	private Set<QName> lineElements = Sets.newHashSet();
 	private Set<QName> containerElements = Sets.newHashSet();
+	private Set<QName> notableElements = Sets.newHashSet();
+	private char notableCharacter = '\u25CA';
 
 	public void addLineElement(QName lineElementName) {
 		lineElements.add(lineElementName);
@@ -52,4 +54,24 @@ public class XMLParserConfiguration {
 	public boolean excluded(QName name) {
 		return excluded.contains(name);
 	}
+
+	public char getNotableCharacter() {
+		return notableCharacter;
+	}
+	
+	public void setNotableCharacter(char notableCharacter) {
+		this.notableCharacter = notableCharacter;
+	}
+	
+	public void addNotableElement(QName name) {
+		notableElements.add(name);
+	}
+	
+	public boolean removeNotableElement(QName name) {
+		return notableElements.remove(name);
+	}
+	
+	public boolean isNotable(QName name) {
+		return notableElements.contains(name);
+	}	
 }
