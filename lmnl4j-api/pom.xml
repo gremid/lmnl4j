@@ -12,10 +12,6 @@
 	<description>Java implementation of LMNL, a markup language supporting layered and/or overlapping annotations.</description>
 	<dependencies>
 		<dependency>
-			<groupId>org.codehaus.jackson</groupId>
-			<artifactId>jackson-mapper-asl</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.codehaus.woodstox</groupId>
 			<artifactId>woodstox-core-asl</artifactId>
 			<optional>true</optional>

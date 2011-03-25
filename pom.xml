@@ -253,17 +253,15 @@
 	</issueManagement>
 	<repositories>
 		<repository>
-			<id>lmnl4j</id>
-			<name>lmnl4j Maven Repository</name>
-			<url>http://www.middell.net/lmnl4j/repository</url>
+			<id>dh-snapshots</id>
+			<url>http://maven.middell.com/nexus/content/repositories/dh-snapshots</url>
 		</repository>
 	</repositories>
 	<distributionManagement>
-		<repository>
-			<id>lmnl4j.middell.net</id>
-			<name>lmnl4j Maven Repository</name>
-			<url>sftp://middell.net/var/www/lmnl4j/repository</url>
-		</repository>
+		<snapshotRepository>
+			<id>dh-snapshots</id>
+			<url>http://maven.middell.com/nexus/content/repositories/dh-snapshots</url>
+		</snapshotRepository>
 	</distributionManagement>
 	<properties>
 		<spring.version>3.0.5.RELEASE</spring.version>

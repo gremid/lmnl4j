@@ -231,7 +231,7 @@ public abstract class XMLParser {
 			if (notable || lineElement) {
 				writeOffsetDelta();
 
-				if (lineElement) {
+				if (lineElement && offset > 0) {
 					textBuffer.write(Character.toString(lastChar = '\n').getBytes(charset));
 					offset++;
 				}
@@ -297,7 +297,8 @@ public abstract class XMLParser {
 
 			for (int cc = 0; cc < text.length(); cc++) {
 				final char currentChar = text.charAt(cc);
-				if (!preserveSpace && Character.isWhitespace(lastChar) && Character.isWhitespace(currentChar)) {
+				if (!preserveSpace && configuration.isCompressingWhitespace() && Character.isWhitespace(lastChar)
+						&& Character.isWhitespace(currentChar)) {
 					continue;
 				}
 				textBuffer.write(Character.toString(lastChar = currentChar).getBytes(charset));

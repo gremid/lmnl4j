@@ -14,6 +14,7 @@ public class XMLParserConfiguration {
 	private Set<QName> containerElements = Sets.newHashSet();
 	private Set<QName> notableElements = Sets.newHashSet();
 	private char notableCharacter = '\u25CA';
+	private boolean compressingWhitespace = true;
 
 	public void addLineElement(QName lineElementName) {
 		lineElements.add(lineElementName);
@@ -73,5 +74,13 @@ public class XMLParserConfiguration {
 	
 	public boolean isNotable(QName name) {
 		return notableElements.contains(name);
-	}	
+	}
+
+	public boolean isCompressingWhitespace() {
+		return compressingWhitespace;
+	}
+	
+	public void setCompressingWhitespace(boolean compressingWhitespace) {
+		this.compressingWhitespace = compressingWhitespace;
+	}
 }
