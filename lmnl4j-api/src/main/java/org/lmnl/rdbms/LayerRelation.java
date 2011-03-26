@@ -36,18 +36,19 @@ public class LayerRelation implements Layer {
 	protected TextRelation text;
 	protected Range range;
 	protected Serializable serializableData;
+	protected String ancestors;
 
 	public LayerRelation() {
 	}
-	
+
 	public int getId() {
 		return id;
 	}
-	
+
 	public void setId(int id) {
 		this.id = id;
 	}
-	
+
 	public Layer getOwner() {
 		return owner;
 	}
@@ -55,23 +56,23 @@ public class LayerRelation implements Layer {
 	public void setOwner(Layer owner) {
 		this.owner = owner;
 	}
-	
+
 	public QName getName() {
 		return name;
 	}
-	
+
 	public void setName(QName name) {
 		this.name = name;
 	}
-	
+
 	public TextRelation getText() {
 		return text;
 	}
-	
+
 	public void setText(TextRelation text) {
 		this.text = text;
 	}
-	
+
 	public Range getRange() {
 		return range;
 	}
@@ -92,10 +93,19 @@ public class LayerRelation implements Layer {
 		this.serializableData = serializableData;
 	}
 
+	public String getAncestors() {
+		return ancestors;
+	}
+
+	public void setAncestors(String ancestors) {
+		this.ancestors = ancestors;
+	}
+
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this).addValue(getName()).addValue(getRange()).toString();
 	}
+
 	// FIXME: implement proper type-safe removal
 	// public void remove(LmnlRange deleted) {
 	// remove(deleted, true);

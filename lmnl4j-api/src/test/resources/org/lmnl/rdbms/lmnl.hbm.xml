@@ -14,6 +14,10 @@
 			<generator class="native" />
 		</id>
 		<property name="content" not-null="true" />
+		<set name="layers" inverse="true" table="lmnl_layer">
+			<key column="layer_text" />
+			<one-to-many class="org.lmnl.rdbms.LayerRelation" />
+		</set>
 	</class>
 
 	<class name="org.lmnl.rdbms.LayerRelation" table="lmnl_layer">
@@ -24,9 +28,10 @@
 		<many-to-one name="owner" class="org.lmnl.rdbms.LayerRelation" />
 		<many-to-one name="text" not-null="true" column="layer_text" />
 		<component name="range">
-			<property name="start" not-null="true" index="lmnl_layer_range"/>
+			<property name="start" not-null="true" index="lmnl_layer_range" />
 			<property name="end" not-null="true" index="lmnl_layer_range" />
 		</component>
 		<property name="serializableData" column="data" length="65535" />
+		<property name="ancestors" length="65535" index="lmnl_layer_ancestors" not-null="true" />
 	</class>
 </hibernate-mapping>

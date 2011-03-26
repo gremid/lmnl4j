@@ -21,7 +21,7 @@ public class RelationalXMLParser extends XMLParser {
 	private SessionFactory sessionFactory;
 	private QNameRepository nameRepository;
 	private RelationalLayerFactory layerFactory;
-	
+
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
@@ -33,13 +33,14 @@ public class RelationalXMLParser extends XMLParser {
 	public void setLayerFactory(RelationalLayerFactory layerFactory) {
 		this.layerFactory = layerFactory;
 	}
-	
+
 	protected Layer startAnnotation(Layer in, QName name, Map<QName, String> attrs, int start, Iterable<Integer> nodePath) {
 		attrs.put(XMLParser.NODE_PATH_NAME, PATH_JOINER.join(nodePath));
 
 		LayerRelation annotation = new LayerRelation();
 		annotation.setName(nameRepository.get(name));
 		annotation.setOwner(in);
+		annotation.setAncestors(RelationalLayerFactory.getAncestorPath((LayerRelation) in));
 		annotation.setRange(new Range(start, start));
 		annotation.setText(((LayerRelation) in).getText());
 		annotation.setSerializableData((Serializable) attrs);

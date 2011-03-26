@@ -27,8 +27,10 @@ import static junit.framework.Assert.assertTrue;
 import static org.lmnl.xml.XMLParser.OFFSET_DELTA_NAME;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.SortedSet;
 
 import org.junit.Test;
 import org.lmnl.AbstractXMLTest;
@@ -40,6 +42,7 @@ import org.lmnl.TextRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
 
 /**
@@ -72,31 +75,46 @@ public class XMLImportHandlerTest extends AbstractXMLTest {
 				@SuppressWarnings("unchecked")
 				final Map<QName, String> attrs = (Map<QName, String>) annotation.getData();
 				if (attrs == null) {
-					LOG.debug(annotation  + " has no attributes");
+					LOG.debug(annotation + " has no attributes");
 					continue;
 				}
 				final String nodePath = attrs.get(XMLParser.NODE_PATH_NAME);
 				if (nodePath == null) {
-					LOG.debug(annotation  + " has no XML node path");
+					LOG.debug(annotation + " has no XML node path");
 					continue;
 				}
 				if (annotations.containsKey(nodePath)) {
-					LOG.debug(nodePath  + " already assigned to " + annotations.get(nodePath));
+					LOG.debug(nodePath + " already assigned to " + annotations.get(nodePath));
 				}
 				annotations.put(nodePath, annotation);
 			}
 			for (Map.Entry<String, Layer> annotation : annotations.entrySet()) {
 				LOG.debug(annotation.getKey() + " ==> " + annotation.getValue());
 			}
-			
+
 			LOG.debug(CharStreams.toString(textRepository.getText(text)));
+
+			final SortedSet<Range> textRanges = Sets.newTreeSet();
+			final SortedSet<Range> sourceRanges = Sets.newTreeSet();
+
 			for (Layer offset : annotationFinder.find(offsets, singleton(OFFSET_DELTA_NAME), null)) {
 				final int delta = (Integer) offset.getData();
 				final Range range = offset.getRange();
+				textRanges.add(range);
+				sourceRanges.add(range.add(delta));
+			}
 
-				LOG.debug(textRepository.getText(text, range) + " ==> "
-						+ textRepository.getText(document, range.add(delta)));
+			final SortedMap<Range, String> texts = textRepository.getText(text, textRanges);
+			final SortedMap<Range, String> sources = textRepository.getText(document, sourceRanges);
+
+			final Iterator<Map.Entry<Range, String>> sourceIt = sources.entrySet().iterator();
+			for (Map.Entry<Range, String> textRange : texts.entrySet()) {
+				if (!sourceIt.hasNext()) {
+					break;
+				}
+				LOG.debug(textRange.getValue() + " ==> " + sourceIt.next().getValue());
 			}
 		}
+
 	}
 }

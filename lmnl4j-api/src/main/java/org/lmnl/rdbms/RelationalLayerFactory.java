@@ -7,19 +7,24 @@ import java.io.StringReader;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Hibernate;
+import org.hibernate.ScrollMode;
+import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;
 import org.lmnl.Layer;
 import org.lmnl.QName;
 import org.lmnl.QNameRepository;
 import org.lmnl.Range;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 public class RelationalLayerFactory {
-
+	public static final Joiner ANCESTOR_JOINER = Joiner.on('.');
+	
 	private SessionFactory sessionFactory;
 
 	private QNameRepository nameRepository;
@@ -32,17 +37,48 @@ public class RelationalLayerFactory {
 		this.nameRepository = nameRepository;
 	}
 
+	public static String getAncestorPath(LayerRelation layer) {
+		return (layer == null ? "" : ANCESTOR_JOINER.join(layer.getAncestors(), layer.getId()));
+	}
+	
 	public LayerRelation create(Layer owner, QName name, Range range, String text) {
 		Preconditions.checkArgument(owner == null || owner instanceof LayerRelation);
 		Preconditions.checkArgument((text != null) || (owner != null), "No text given");
 
+		final LayerRelation ownerRelation = (LayerRelation) owner;
 		final LayerRelation empty = new LayerRelation();
 		empty.setName(nameRepository.get(name));
-		empty.setOwner(owner);
 		empty.setRange(range == null ? Range.NULL : range);
-		empty.setText(text == null ? ((LayerRelation) owner).getText() : setText(empty, text, true));
+		empty.setOwner(ownerRelation);
+		empty.setAncestors(getAncestorPath(ownerRelation));
+		empty.setText(text == null ? ownerRelation.getText() : setText(empty, text, true));
+
 		sessionFactory.getCurrentSession().save(empty);
+		
 		return empty;
+	}
+
+	public void delete(Layer layer) {
+		Preconditions.checkArgument(layer instanceof LayerRelation);
+		final LayerRelation relation = (LayerRelation) layer;
+		final Session session = sessionFactory.getCurrentSession();
+		
+		final String ancestorPath = ANCESTOR_JOINER.join(relation.getAncestors(), relation.getId());
+		final Criteria descendantCriteria = session.createCriteria(LayerRelation.class);
+		descendantCriteria.add(Restrictions.like("ancestors", ancestorPath, MatchMode.START));
+		final ScrollableResults descendants = descendantCriteria.scroll(ScrollMode.FORWARD_ONLY);
+		while (descendants.next()) {
+			session.delete(descendants.get(0));
+		}
+
+		session.delete(session.get(LayerRelation.class, relation.getId()));
+		
+		final Criteria orphanedTextsCriteria = session.createCriteria(TextRelation.class);
+		orphanedTextsCriteria.add(Restrictions.isEmpty("layers"));
+		final ScrollableResults orphanedTexts = orphanedTextsCriteria.scroll(ScrollMode.FORWARD_ONLY);
+		while (orphanedTexts.next()) {
+			session.delete(orphanedTexts.get(0));
+		}
 	}
 
 	public TextRelation setText(Layer layer, String text, boolean createNew) {
@@ -71,11 +107,14 @@ public class RelationalLayerFactory {
 
 	TextRelation getText(Layer layer) {
 		Preconditions.checkArgument(layer instanceof LayerRelation);
-
-		Criteria c = sessionFactory.getCurrentSession().createCriteria(LayerRelation.class);
+		final Session session = sessionFactory.getCurrentSession();
+		
+		Criteria c = session.createCriteria(LayerRelation.class);
 		c.add(Restrictions.idEq(((LayerRelation) layer).getId()));
 		c.setFetchMode("text", FetchMode.JOIN);
 
-		return Preconditions.checkNotNull((LayerRelation) c.uniqueResult()).getText();
+		TextRelation text = Preconditions.checkNotNull((LayerRelation) c.uniqueResult()).getText();
+		session.refresh(text);
+		return text;
 	}
 }

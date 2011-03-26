@@ -22,11 +22,13 @@
 package org.lmnl;
 
 import java.net.URI;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedSet;
 
 import javax.xml.transform.stream.StreamSource;
 
+import org.junit.After;
 import org.junit.Before;
 import org.lmnl.rdbms.RelationalLayerFactory;
 import org.lmnl.xml.XMLParser;
@@ -79,12 +81,20 @@ public abstract class AbstractXMLTest extends AbstractTest {
 		parserConfiguration.addContainerElement(new QNameImpl(TEI_NS, "lg"));
 		parserConfiguration.addContainerElement(new QNameImpl(TEI_NS, "subst"));
 		parserConfiguration.addContainerElement(new QNameImpl(TEI_NS, "choice"));
-		
+
 		parserConfiguration.exclude(new QNameImpl(TEI_NS, "teiHeader"));
 		parserConfiguration.exclude(new QNameImpl(TEI_NS, "front"));
 		parserConfiguration.exclude(new QNameImpl(TEI_NS, "fw"));
-		
+
 		parserConfiguration.addNotableElement(new QNameImpl(TEI_NS, "lb"));
+	}
+
+	@After
+	public void removeDocuments() {
+		for (Iterator<Layer> documentIt = documents.values().iterator(); documentIt.hasNext();) {
+			layerFactory.delete(documentIt.next());
+			documentIt.remove();
+		}
 	}
 
 	/**
