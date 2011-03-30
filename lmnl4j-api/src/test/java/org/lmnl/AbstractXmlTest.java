@@ -32,7 +32,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.lmnl.rdbms.RelationalLayerFactory;
 import org.lmnl.xml.XMLParser;
-import org.lmnl.xml.XMLParserConfiguration;
+import org.lmnl.xml.SimpleXMLParserConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +59,7 @@ public abstract class AbstractXMLTest extends AbstractTest {
 
 	private Map<String, Layer> documents = Maps.newHashMap();
 
-	private XMLParserConfiguration parserConfiguration = new XMLParserConfiguration();
+	private SimpleXMLParserConfiguration parserConfiguration = new SimpleXMLParserConfiguration();
 
 	@Autowired
 	private RelationalLayerFactory layerFactory;
