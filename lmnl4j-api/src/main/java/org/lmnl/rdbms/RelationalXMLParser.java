@@ -5,7 +5,6 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.util.Map;
 
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.lmnl.Layer;
 import org.lmnl.QName;
@@ -18,9 +17,9 @@ import com.google.common.base.Joiner;
 public class RelationalXMLParser extends XMLParser {
 	private static final Joiner PATH_JOINER = Joiner.on('.');
 
-	private SessionFactory sessionFactory;
-	private QNameRepository nameRepository;
-	private RelationalLayerFactory layerFactory;
+	protected SessionFactory sessionFactory;
+	protected QNameRepository nameRepository;
+	protected RelationalLayerFactory layerFactory;
 
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
@@ -34,15 +33,15 @@ public class RelationalXMLParser extends XMLParser {
 		this.layerFactory = layerFactory;
 	}
 
-	protected Layer startAnnotation(Layer in, QName name, Map<QName, String> attrs, int start, Iterable<Integer> nodePath) {
+	protected Layer startAnnotation(Session session, QName name, Map<QName, String> attrs, int start, Iterable<Integer> nodePath) {
 		attrs.put(XMLParser.NODE_PATH_NAME, PATH_JOINER.join(nodePath));
 
 		LayerRelation annotation = new LayerRelation();
 		annotation.setName(nameRepository.get(name));
-		annotation.setOwner(in);
-		annotation.setAncestors(RelationalLayerFactory.getAncestorPath((LayerRelation) in));
+		annotation.setOwner(session.target);
+		annotation.setAncestors(RelationalLayerFactory.getAncestorPath((LayerRelation) session.target));
 		annotation.setRange(new Range(start, start));
-		annotation.setText(((LayerRelation) in).getText());
+		annotation.setText(((LayerRelation) session.target).getText());
 		annotation.setSerializableData((Serializable) attrs);
 		return annotation;
 	}
@@ -53,13 +52,15 @@ public class RelationalXMLParser extends XMLParser {
 	}
 
 	@Override
-	protected void newOffsetDeltaRange(Layer offsetDeltas, Range range, int offsetDelta) {
-		LayerRelation annotation = layerFactory.create(offsetDeltas, OFFSET_DELTA_NAME, range, null);
-		annotation.setSerializableData(offsetDelta);
+	protected void newOffsetDeltaRange(Session session, Range range, int offsetDelta) {
+		if (session.offsetDeltas != null) {
+			LayerRelation annotation = layerFactory.create(session.offsetDeltas, OFFSET_DELTA_NAME, range, null);
+			annotation.setSerializableData(offsetDelta);
+		}
 	}
 
 	protected void newXMLEventBatch() {
-		Session session = sessionFactory.getCurrentSession();
+		org.hibernate.Session session = sessionFactory.getCurrentSession();
 		session.flush();
 		session.clear();
 	}
