@@ -22,7 +22,6 @@
 package org.lmnl.xml;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static java.util.Collections.singleton;
 import static junit.framework.Assert.assertTrue;
 import static org.lmnl.xml.XMLParser.OFFSET_DELTA_NAME;
 
@@ -34,8 +33,8 @@ import java.util.SortedSet;
 
 import org.junit.Test;
 import org.lmnl.AbstractXMLTest;
-import org.lmnl.AnnotationFinder;
-import org.lmnl.Layer;
+import org.lmnl.Annotation;
+import org.lmnl.AnnotationRepository;
 import org.lmnl.QName;
 import org.lmnl.Range;
 import org.lmnl.TextRepository;
@@ -57,21 +56,21 @@ public class XMLImportHandlerTest extends AbstractXMLTest {
 	private TextRepository textRepository;
 
 	@Autowired
-	private AnnotationFinder annotationFinder;
+	private AnnotationRepository annotationRepository;
 
 	@Test
 	public void showTextContents() throws IOException {
-		// final Layer document = document("homer-iliad-tei.xml");
-		final Layer document = document("george-algabal-tei.xml");
-		final Layer text = getOnlyElement(annotationFinder.find(document, singleton(TEXT_LAYER_NAME), null));
-		final Layer offsets = getOnlyElement(annotationFinder.find(text, singleton(OFFSET_LAYER_NAME), null));
+		// final Annotation document = document("homer-iliad-tei.xml");
+		final Annotation document = document("george-algabal-tei.xml");
+		final Annotation text = getOnlyElement(annotationRepository.find(document, TEXT_ANNOTATION_NAME));
+		final Annotation offsets = getOnlyElement(annotationRepository.find(text, OFFSET_ANNOTATION_NAME));
 
-		final int textLength = textRepository.getTextLength(text);
+		final int textLength = textRepository.length(text);
 		assertTrue(textLength > 0);
 
 		if (LOG.isDebugEnabled()) {
-			final SortedMap<String, Layer> annotations = Maps.newTreeMap();
-			for (Layer annotation : annotationFinder.find(text, null, null)) {
+			final SortedMap<String, Annotation> annotations = Maps.newTreeMap();
+			for (Annotation annotation : annotationRepository.find(text)) {
 				@SuppressWarnings("unchecked")
 				final Map<QName, String> attrs = (Map<QName, String>) annotation.getData();
 				if (attrs == null) {
@@ -88,24 +87,24 @@ public class XMLImportHandlerTest extends AbstractXMLTest {
 				}
 				annotations.put(nodePath, annotation);
 			}
-			for (Map.Entry<String, Layer> annotation : annotations.entrySet()) {
+			for (Map.Entry<String, Annotation> annotation : annotations.entrySet()) {
 				LOG.debug(annotation.getKey() + " ==> " + annotation.getValue());
 			}
 
-			LOG.debug(CharStreams.toString(textRepository.getText(text)));
+			LOG.debug(CharStreams.toString(textRepository.read(text)));
 
 			final SortedSet<Range> textRanges = Sets.newTreeSet();
 			final SortedSet<Range> sourceRanges = Sets.newTreeSet();
 
-			for (Layer offset : annotationFinder.find(offsets, singleton(OFFSET_DELTA_NAME), null)) {
+			for (Annotation offset : annotationRepository.find(offsets, OFFSET_DELTA_NAME)) {
 				final int delta = (Integer) offset.getData();
 				final Range range = offset.getRange();
 				textRanges.add(range);
 				sourceRanges.add(range.add(delta));
 			}
 
-			final SortedMap<Range, String> texts = textRepository.getText(text, textRanges);
-			final SortedMap<Range, String> sources = textRepository.getText(document, sourceRanges);
+			final SortedMap<Range, String> texts = textRepository.bulkRead(text, textRanges);
+			final SortedMap<Range, String> sources = textRepository.bulkRead(document, sourceRanges);
 
 			final Iterator<Map.Entry<Range, String>> sourceIt = sources.entrySet().iterator();
 			for (Map.Entry<Range, String> textRange : texts.entrySet()) {

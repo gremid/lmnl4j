@@ -36,16 +36,16 @@
 		<property name="sessionFactory" ref="sessionFactory" />
 	</bean>
 
-	<bean id="layerFactory" class="org.lmnl.rdbms.RelationalLayerFactory">
+	<bean id="layerFactory" class="org.lmnl.rdbms.RelationalAnnotationFactory">
 		<property name="sessionFactory" ref="sessionFactory" />
 		<property name="nameRepository" ref="nameRepository" />
 	</bean>
 	
 	<bean id="textRepository" class="org.lmnl.rdbms.RelationalTextRepository">
-		<property name="layerFactory" ref="layerFactory" />
+		<property name="annotationFactory" ref="layerFactory" />
 	</bean>
 
-	<bean id="annotationFinder" class="org.lmnl.rdbms.RelationalAnnotationFinder">
+	<bean id="annotationFinder" class="org.lmnl.rdbms.RelationalAnnotationRepository">
 		<property name="sessionFactory" ref="sessionFactory" />
 		<property name="nameRepository" ref="nameRepository" />
 	</bean>
@@ -54,7 +54,7 @@
 		<property name="sessionFactory" ref="sessionFactory" />
 		<property name="textRepository" ref="textRepository" />
 		<property name="nameRepository" ref="nameRepository" />		
-		<property name="layerFactory" ref="layerFactory" />
+		<property name="annotationFactory" ref="layerFactory" />
 	</bean>
 
 	<bean id="eventGenerator" class="org.lmnl.event.EventGenerator">

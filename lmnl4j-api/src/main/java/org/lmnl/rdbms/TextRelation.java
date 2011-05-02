@@ -3,14 +3,14 @@ package org.lmnl.rdbms;
 import java.sql.Clob;
 import java.util.Set;
 
-import org.lmnl.Layer;
+import org.lmnl.Annotation;
 import org.lmnl.Text;
 
 import com.google.common.base.Objects;
 
 public class TextRelation implements Text {
 	private int id;
-	private Set<Layer> layers;
+	private Set<Annotation> annotations;
 	private Clob content;
 
 	public int getId() {
@@ -21,12 +21,12 @@ public class TextRelation implements Text {
 		this.id = id;
 	}
 
-	public Set<Layer> getLayers() {
-		return layers;
+	public Set<Annotation> getAnnotations() {
+		return annotations;
 	}
 
-	public void setLayers(Set<Layer> layers) {
-		this.layers = layers;
+	public void setAnnotations(Set<Annotation> annotations) {
+		this.annotations = annotations;
 	}
 
 	public Clob getContent() {

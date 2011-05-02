@@ -2,7 +2,7 @@ package org.lmnl.event;
 
 import org.junit.Test;
 import org.lmnl.AbstractXMLTest;
-import org.lmnl.Layer;
+import org.lmnl.Annotation;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class EventGeneratorTest extends AbstractXMLTest {
@@ -17,11 +17,11 @@ public class EventGeneratorTest extends AbstractXMLTest {
 
 	private final EventHandler DEBUG_HANDLER = new EventHandler() {
 
-		public void startAnnotation(Layer annotation, int depth) {
+		public void startAnnotation(Annotation annotation, int depth) {
 			printDebugMessage(indent(depth) + "START: " + annotation);
 		}
 
-		public void endAnnotation(Layer annotation, int depth) {
+		public void endAnnotation(Annotation annotation, int depth) {
 			printDebugMessage(indent(depth) + "END: " + annotation);
 		}
 

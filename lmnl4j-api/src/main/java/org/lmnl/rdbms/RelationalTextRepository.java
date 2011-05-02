@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-import org.lmnl.Layer;
+import org.lmnl.Annotation;
 import org.lmnl.Range;
 import org.lmnl.TextRepository;
 
@@ -20,35 +20,35 @@ import com.google.common.collect.Sets;
 
 public class RelationalTextRepository implements TextRepository {
 
-	private RelationalLayerFactory layerFactory;
+	private RelationalAnnotationFactory annotationFactory;
 	
-	public void setLayerFactory(RelationalLayerFactory layerFactory) {
-		this.layerFactory = layerFactory;
+	public void setAnnotationFactory(RelationalAnnotationFactory annotationFactory) {
+		this.annotationFactory = annotationFactory;
 	}
 	
-	public Reader getText(Layer layer) throws IOException {
+	public Reader read(Annotation annotation) throws IOException {
 		try {
-			return layerFactory.getText(layer).getContent().getCharacterStream();
+			return annotationFactory.getText(annotation).getContent().getCharacterStream();
 		} catch (SQLException e) {
 			throw Throwables.propagate(e);
 		}
 	}
 
-	public String getText(Layer layer, Range range) throws IOException {
-		return getOnlyElement(getText(layer, Sets.newTreeSet(singleton(range))).values());
+	public String read(Annotation annotation, Range range) throws IOException {
+		return getOnlyElement(bulkRead(annotation, Sets.newTreeSet(singleton(range))).values());
 	}
 
-	public int getTextLength(Layer layer) throws IOException {
+	public int length(Annotation annotation) throws IOException {
 		try {
-			return (int) layerFactory.getText(layer).getContent().length();
+			return (int) annotationFactory.getText(annotation).getContent().length();
 		} catch (SQLException e) {
 			throw Throwables.propagate(e);
 		}
 	}
 
-	public SortedMap<Range, String> getText(Layer layer, SortedSet<Range> ranges) throws IOException {
+	public SortedMap<Range, String> bulkRead(Annotation annotation, SortedSet<Range> ranges) throws IOException {
 		try {
-			final Clob text = layerFactory.getText(layer).getContent();
+			final Clob text = annotationFactory.getText(annotation).getContent();
 			final SortedMap<Range, String> results = Maps.newTreeMap();
 			for (Range range : ranges) {
 				results.put(range, text.getSubString(range.getStart() + 1, range.length()));

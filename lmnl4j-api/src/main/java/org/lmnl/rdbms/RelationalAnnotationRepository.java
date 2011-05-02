@@ -8,8 +8,8 @@ import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
-import org.lmnl.AnnotationFinder;
-import org.lmnl.Layer;
+import org.lmnl.AbstractAnnotationRepository;
+import org.lmnl.Annotation;
 import org.lmnl.QName;
 import org.lmnl.QNameRepository;
 import org.lmnl.Range;
@@ -17,7 +17,7 @@ import org.lmnl.Range;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
-public class RelationalAnnotationFinder implements AnnotationFinder {
+public class RelationalAnnotationRepository extends AbstractAnnotationRepository {
 
 	private SessionFactory sessionFactory;
 
@@ -32,11 +32,11 @@ public class RelationalAnnotationFinder implements AnnotationFinder {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Iterable<Layer> find(Layer layer, Set<QName> names, Set<Range> ranges) {
-		Preconditions.checkArgument(layer instanceof LayerRelation);
+	public Iterable<Annotation> find(Annotation annotation, Set<QName> names, Set<Range> ranges, boolean overlapping) {
+		Preconditions.checkArgument(annotation instanceof AnnotationRelation);
 
-		final Criteria c = sessionFactory.getCurrentSession().createCriteria(LayerRelation.class);
-		c.createCriteria("owner").add(Restrictions.idEq(((LayerRelation) layer).getId()));
+		final Criteria c = sessionFactory.getCurrentSession().createCriteria(AnnotationRelation.class);
+		c.createCriteria("owner").add(Restrictions.idEq(((AnnotationRelation) annotation).getId()));
 		c.addOrder(Order.asc("range.start")).addOrder(Order.asc("range.end"));
 
 		if (names != null && !names.isEmpty()) {

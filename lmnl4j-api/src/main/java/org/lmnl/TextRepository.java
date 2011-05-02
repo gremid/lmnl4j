@@ -7,12 +7,12 @@ import java.util.SortedSet;
 
 public interface TextRepository {
 
-	int getTextLength(Layer layer) throws IOException;
+	int length(Annotation annotation) throws IOException;
 
-	Reader getText(Layer layer) throws IOException;
+	Reader read(Annotation annotation) throws IOException;
 
-	String getText(Layer layer, Range range) throws IOException;
+	String read(Annotation annotation, Range range) throws IOException;
 	
-	SortedMap<Range, String> getText(Layer layer, SortedSet<Range> ranges) throws IOException;
+	SortedMap<Range, String> bulkRead(Annotation annotation, SortedSet<Range> ranges) throws IOException;
 
 }

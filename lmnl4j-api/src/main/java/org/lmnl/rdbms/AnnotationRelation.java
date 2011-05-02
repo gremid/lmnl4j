@@ -23,22 +23,22 @@ package org.lmnl.rdbms;
 
 import java.io.Serializable;
 
-import org.lmnl.Layer;
+import org.lmnl.Annotation;
 import org.lmnl.QName;
 import org.lmnl.Range;
 
 import com.google.common.base.Objects;
 
-public class LayerRelation implements Layer {
+public class AnnotationRelation implements Annotation {
 	protected int id;
-	protected Layer owner;
+	protected Annotation owner;
 	protected QName name;
 	protected TextRelation text;
 	protected Range range;
 	protected Serializable serializableData;
 	protected String ancestors;
 
-	public LayerRelation() {
+	public AnnotationRelation() {
 	}
 
 	public int getId() {
@@ -49,11 +49,11 @@ public class LayerRelation implements Layer {
 		this.id = id;
 	}
 
-	public Layer getOwner() {
+	public Annotation getOwner() {
 		return owner;
 	}
 
-	public void setOwner(Layer owner) {
+	public void setOwner(Annotation owner) {
 		this.owner = owner;
 	}
 

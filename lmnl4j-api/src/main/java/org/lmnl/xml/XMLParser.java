@@ -22,7 +22,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 
-import org.lmnl.Layer;
+import org.lmnl.Annotation;
 import org.lmnl.QName;
 import org.lmnl.QNameImpl;
 import org.lmnl.Range;
@@ -33,8 +33,8 @@ import com.google.common.io.Closeables;
 import com.google.common.io.FileBackedOutputStream;
 
 public abstract class XMLParser {
-	public static final QName OFFSET_DELTA_NAME = new QNameImpl(Layer.LMNL_NS_URI, "offset");
-	public static final QName NODE_PATH_NAME = new QNameImpl(Layer.LMNL_NS_URI, "xmlNode");
+	public static final QName OFFSET_DELTA_NAME = new QNameImpl(Annotation.LMNL_NS_URI, "offset");
+	public static final QName NODE_PATH_NAME = new QNameImpl(Annotation.LMNL_NS_URI, "xmlNode");
 
 	private final TransformerFactory transformerFactory;
 	private final XMLInputFactory xmlInputFactory;
@@ -74,11 +74,11 @@ public abstract class XMLParser {
 		this.xmlEventBatchSize = xmlEventBatchSize;
 	}
 
-	public void load(Layer layer, Source xml) throws IOException, TransformerException {
+	public void load(Annotation annotation, Source xml) throws IOException, TransformerException {
 		File sourceContents = File.createTempFile(getClass().getName(), ".xml");
 		sourceContents.deleteOnExit();
 
-		Reader sourceContentsReader = null;
+		Reader sourceContentReader = null;
 
 		try {
 			final Transformer serializer = transformerFactory.newTransformer();
@@ -88,20 +88,24 @@ public abstract class XMLParser {
 			serializer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 			serializer.transform(xml, new StreamResult(sourceContents));
 
-			sourceContentsReader = new InputStreamReader(new FileInputStream(sourceContents), charset);
-			updateText(layer, sourceContentsReader);
+			sourceContentReader = new InputStreamReader(new FileInputStream(sourceContents), charset);
+			final int sourceContentLength = contentLength(sourceContentReader);
+			sourceContentReader.close();
+			
+			sourceContentReader = new InputStreamReader(new FileInputStream(sourceContents), charset);
+			updateText(annotation, sourceContentReader, sourceContentLength);
 		} finally {
-			Closeables.close(sourceContentsReader, false);
+			Closeables.close(sourceContentReader, false);
 			sourceContents.delete();
 		}
 	}
 
-	public void parse(Layer source, Layer target, Layer offsetDeltas, XMLParserConfiguration configuration) throws IOException,
+	public void parse(Annotation source, Annotation target, Annotation offsetDeltas, XMLParserConfiguration configuration) throws IOException,
 			XMLStreamException {
 		XMLStreamReader reader = null;
 		Session session = null;
 		try {
-			reader = xmlInputFactory.createXMLStreamReader(textRepository.getText(source));
+			reader = xmlInputFactory.createXMLStreamReader(textRepository.read(source));
 			session = new Session(source, target, offsetDeltas, configuration);
 			int xmlEvents = 0;
 			Map<QName, String> attributes = null;
@@ -166,11 +170,16 @@ public abstract class XMLParser {
 				}
 			}
 
-			Reader text = null;
+			Reader textContentReader = null;
 			try {
-				updateText(target, text = session.read());
+				textContentReader = session.read();
+				final int textContentLength = contentLength(textContentReader);
+				Closeables.close(textContentReader, false);
+				
+				textContentReader = session.read();
+				updateText(target, textContentReader, textContentLength);
 			} finally {
-				Closeables.closeQuietly(text);
+				Closeables.closeQuietly(textContentReader);
 			}
 		} finally {
 			if (reader != null) {
@@ -186,25 +195,33 @@ public abstract class XMLParser {
 		}
 	}
 
-	protected abstract void updateText(Layer layer, Reader reader) throws IOException;
+	protected abstract void updateText(Annotation annotation, Reader reader, int contentLength) throws IOException;
 
-	protected abstract Layer startAnnotation(Session session, QName name, Map<QName, String> attrs, int start,
+	protected abstract Annotation startAnnotation(Session session, QName name, Map<QName, String> attrs, int start,
 			Iterable<Integer> nodePath);
 
-	protected abstract void endAnnotation(Layer annotation, int end);
+	protected abstract void endAnnotation(Annotation annotation, int end);
 
 	protected abstract void newOffsetDeltaRange(Session session, Range range, int offsetDelta);
 
 	protected void newXMLEventBatch() {
 	}
 
+	private int contentLength(Reader reader) throws IOException {
+		int contentLength = 0;
+		while (reader.read() >= 0) {
+			contentLength++;
+		}
+		return contentLength;
+	}
+	
 	protected class Session {
-		public final Layer source;
-		public final Layer target;
-		public final Layer offsetDeltas;
+		public final Annotation source;
+		public final Annotation target;
+		public final Annotation offsetDeltas;
 		public final XMLParserConfiguration configuration;
 
-		protected final Stack<Layer> elementContext = new Stack<Layer>();
+		protected final Stack<Annotation> elementContext = new Stack<Annotation>();
 		protected final Stack<Boolean> spacePreservationContext = new Stack<Boolean>();
 		protected final Stack<Boolean> inclusionContext = new Stack<Boolean>();
 		protected final Stack<Integer> nodePath = new Stack<Integer>();
@@ -218,7 +235,7 @@ public abstract class XMLParser {
 		protected char notableCharacter;
 		protected char lastChar = (removeLeadingWhitespace ? ' ' : 0);
 
-		protected Session(Layer source, Layer target, Layer offsetDeltas, XMLParserConfiguration configuration) {
+		protected Session(Annotation source, Annotation target, Annotation offsetDeltas, XMLParserConfiguration configuration) {
 			this.source = source;
 			this.target = target;
 			this.offsetDeltas = offsetDeltas;
@@ -227,7 +244,7 @@ public abstract class XMLParser {
 			this.nodePath.push(0);
 		}
 
-		protected Layer startElement(QName name, Map<QName, String> attributes) throws IOException {
+		protected Annotation startElement(QName name, Map<QName, String> attributes) throws IOException {
 			final boolean notable = configuration.isNotable(name);
 			final boolean lineElement = configuration.isLineElement(name);
 			if (notable || lineElement) {
@@ -245,7 +262,7 @@ public abstract class XMLParser {
 				lastOffsetDeltaChange = offset;
 			}
 
-			final Layer annotation = startAnnotation(this, name, attributes, offset, nodePath);
+			final Annotation annotation = startAnnotation(this, name, attributes, offset, nodePath);
 
 			elementContext.push(annotation);
 
@@ -320,7 +337,7 @@ public abstract class XMLParser {
 
 		protected void writeText() {
 			if (startOffset >= 0 && offset > startOffset) {
-				Layer text = startAnnotation(this, QNameImpl.TEXT_QNAME, Maps.<QName, String> newHashMap(),
+				Annotation text = startAnnotation(this, QNameImpl.TEXT_QNAME, Maps.<QName, String> newHashMap(),
 						startOffset, nodePath);
 				endAnnotation(text, offset);
 			}

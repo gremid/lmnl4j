@@ -30,7 +30,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.junit.After;
 import org.junit.Before;
-import org.lmnl.rdbms.RelationalLayerFactory;
+import org.lmnl.rdbms.RelationalAnnotationFactory;
 import org.lmnl.xml.XMLParser;
 import org.lmnl.xml.SimpleXMLParserConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,12 +57,12 @@ public abstract class AbstractXMLTest extends AbstractTest {
 	protected static final SortedSet<String> RESOURCES = Sets.newTreeSet(Lists.newArrayList(//
 			"archimedes-palimpsest-tei.xml", "george-algabal-tei.xml", "homer-iliad-tei.xml"));
 
-	private Map<String, Layer> documents = Maps.newHashMap();
+	private Map<String, Annotation> documents = Maps.newHashMap();
 
 	private SimpleXMLParserConfiguration parserConfiguration = new SimpleXMLParserConfiguration();
 
 	@Autowired
-	private RelationalLayerFactory layerFactory;
+	private RelationalAnnotationFactory annotationFactory;
 
 	@Autowired
 	private XMLParser xmlParser;
@@ -91,8 +91,8 @@ public abstract class AbstractXMLTest extends AbstractTest {
 
 	@After
 	public void removeDocuments() {
-		for (Iterator<Layer> documentIt = documents.values().iterator(); documentIt.hasNext();) {
-			layerFactory.delete(documentIt.next());
+		for (Iterator<Annotation> documentIt = documents.values().iterator(); documentIt.hasNext();) {
+			annotationFactory.delete(documentIt.next());
 			documentIt.remove();
 		}
 	}
@@ -109,17 +109,17 @@ public abstract class AbstractXMLTest extends AbstractTest {
 	 * @return the corresponding test document
 	 * @see #RESOURCES
 	 */
-	protected synchronized Layer document(String resource) {
+	protected synchronized Annotation document(String resource) {
 		try {
 			if (RESOURCES.contains(resource) && !documents.containsKey(resource)) {
 
-				final Layer xml = layerFactory.create(null, XML_LAYER_NAME, null, "");
+				final Annotation xml = annotationFactory.create(null, XML_ANNOTATION_NAME, null, "");
 				final URI uri = AbstractXMLTest.class.getResource("/" + resource).toURI();
 
 				xmlParser.load(xml, new StreamSource(uri.toASCIIString()));
 
-				final Layer text = layerFactory.create(xml, TEXT_LAYER_NAME, null, "");
-				final Layer offsetDeltas = layerFactory.create(text, OFFSET_LAYER_NAME, null, null);
+				final Annotation text = annotationFactory.create(xml, TEXT_ANNOTATION_NAME, null, "");
+				final Annotation offsetDeltas = annotationFactory.create(text, OFFSET_ANNOTATION_NAME, null, null);
 				xmlParser.parse(xml, text, offsetDeltas, parserConfiguration);
 
 				documents.put(resource, xml);
@@ -136,7 +136,7 @@ public abstract class AbstractXMLTest extends AbstractTest {
 	 * 
 	 * @return the document generated from the first available test resource
 	 */
-	protected Layer document() {
+	protected Annotation document() {
 		return document(RESOURCES.first());
 	}
 }

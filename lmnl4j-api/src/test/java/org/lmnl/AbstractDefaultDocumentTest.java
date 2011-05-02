@@ -23,7 +23,7 @@ package org.lmnl;
 
 import org.junit.After;
 import org.junit.Before;
-import org.lmnl.rdbms.RelationalLayerFactory;
+import org.lmnl.rdbms.RelationalAnnotationFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,19 +38,19 @@ import org.springframework.transaction.annotation.Transactional;
 public abstract class AbstractDefaultDocumentTest extends AbstractTest {
 	
 	@Autowired
-	protected RelationalLayerFactory layerFactory;
+	protected RelationalAnnotationFactory annotationFactory;
 	
 	/**
 	 * The in-memory document model to run tests against.
 	 */
-	protected Layer document;
+	protected Annotation document;
 
 	/**
 	 * Creates a new document model before every test.
 	 */
 	@Before
 	public void createDocument() {
-		document = layerFactory.create(null, TEXT_LAYER_NAME, null, "");
+		document = annotationFactory.create(null, TEXT_ANNOTATION_NAME, null, "");
 	}
 
 	/**
@@ -74,15 +74,15 @@ public abstract class AbstractDefaultDocumentTest extends AbstractTest {
 	 *                its end offset
 	 * @return 
 	 */
-	protected Layer addTestAnnotation(String name, int start, int end) {
-		return layerFactory.create(document, new QNameImpl(TEST_NS, name), new Range(start, end), null);
+	protected Annotation addTestAnnotation(String name, int start, int end) {
+		return annotationFactory.create(document, new QNameImpl(TEST_NS, name), new Range(start, end), null);
 	}
 
 	/**
 	 * Overridden by test classes to provide the textual contents of the
 	 * test document.
 	 * 
-	 * @return the textual contents of the test document's layer
+	 * @return the textual contents of the test document's annotation
 	 */
 	protected abstract String documentText();
 }

@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 import org.hibernate.SessionFactory;
-import org.lmnl.Layer;
+import org.lmnl.Annotation;
 import org.lmnl.QName;
 import org.lmnl.QNameRepository;
 import org.lmnl.Range;
@@ -19,7 +19,7 @@ public class RelationalXMLParser extends XMLParser {
 
 	protected SessionFactory sessionFactory;
 	protected QNameRepository nameRepository;
-	protected RelationalLayerFactory layerFactory;
+	protected RelationalAnnotationFactory annotationFactory;
 
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
@@ -29,24 +29,24 @@ public class RelationalXMLParser extends XMLParser {
 		this.nameRepository = nameRepository;
 	}
 
-	public void setLayerFactory(RelationalLayerFactory layerFactory) {
-		this.layerFactory = layerFactory;
+	public void setAnnotationFactory(RelationalAnnotationFactory annotationFactory) {
+		this.annotationFactory = annotationFactory;
 	}
 
-	protected Layer startAnnotation(Session session, QName name, Map<QName, String> attrs, int start, Iterable<Integer> nodePath) {
+	protected Annotation startAnnotation(Session session, QName name, Map<QName, String> attrs, int start, Iterable<Integer> nodePath) {
 		attrs.put(XMLParser.NODE_PATH_NAME, PATH_JOINER.join(nodePath));
 
-		LayerRelation annotation = new LayerRelation();
+		AnnotationRelation annotation = new AnnotationRelation();
 		annotation.setName(nameRepository.get(name));
 		annotation.setOwner(session.target);
-		annotation.setAncestors(RelationalLayerFactory.getAncestorPath((LayerRelation) session.target));
+		annotation.setAncestors(RelationalAnnotationFactory.getAncestorPath((AnnotationRelation) session.target));
 		annotation.setRange(new Range(start, start));
-		annotation.setText(((LayerRelation) session.target).getText());
+		annotation.setText(((AnnotationRelation) session.target).getText());
 		annotation.setSerializableData((Serializable) attrs);
 		return annotation;
 	}
 
-	protected void endAnnotation(Layer annotation, int offset) {
+	protected void endAnnotation(Annotation annotation, int offset) {
 		annotation.getRange().setEnd(offset);
 		sessionFactory.getCurrentSession().save(annotation);
 	}
@@ -54,7 +54,7 @@ public class RelationalXMLParser extends XMLParser {
 	@Override
 	protected void newOffsetDeltaRange(Session session, Range range, int offsetDelta) {
 		if (session.offsetDeltas != null) {
-			LayerRelation annotation = layerFactory.create(session.offsetDeltas, OFFSET_DELTA_NAME, range, null);
+			AnnotationRelation annotation = annotationFactory.create(session.offsetDeltas, OFFSET_DELTA_NAME, range, null);
 			annotation.setSerializableData(offsetDelta);
 		}
 	}
@@ -66,7 +66,7 @@ public class RelationalXMLParser extends XMLParser {
 	}
 
 	@Override
-	protected void updateText(Layer layer, Reader reader) throws IOException {
-		layerFactory.setText(layer, reader, false);
+	protected void updateText(Annotation annotation, Reader reader, int contentLength) throws IOException {
+		annotationFactory.setText(annotation, reader, contentLength, false);
 	}
 }

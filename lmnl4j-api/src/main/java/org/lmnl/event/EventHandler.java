@@ -1,10 +1,10 @@
 package org.lmnl.event;
 
-import org.lmnl.Layer;
+import org.lmnl.Annotation;
 
 
 public interface EventHandler {
-	void startAnnotation(Layer annotation, int depth) throws EventHandlerException;
+	void startAnnotation(Annotation annotation, int depth) throws EventHandlerException;
 
-	void endAnnotation(Layer annotation, int depth) throws EventHandlerException;
+	void endAnnotation(Annotation annotation, int depth) throws EventHandlerException;
 }

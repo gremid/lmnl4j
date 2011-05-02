@@ -21,7 +21,7 @@
 
 package org.lmnl.util;
 
-import org.lmnl.Layer;
+import org.lmnl.Annotation;
 import org.lmnl.Range;
 
 /**
@@ -41,7 +41,7 @@ public interface IdGenerator {
 	 *                needed
 	 * @return <code>xml:id</code>-compliant identifier value
 	 */
-	String next(Layer layer);
+	String next(Annotation annotation);
 
 	String next(Range address);
 

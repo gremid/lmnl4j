@@ -19,43 +19,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.lmnl.util;
+package org.lmnl;
 
-import org.junit.Test;
-import org.lmnl.AbstractDefaultDocumentTest;
-import org.lmnl.AnnotationRepository;
-import org.lmnl.util.OverlapIndexer;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.net.URI;
+
 
 /**
- * Tests the calculation of overlap indizes.
- * 
  * @author <a href="http://gregor.middell.net/"
  *         title="Homepage of Gregor Middell">Gregor Middell</a>
- * 
  */
-public class OverlapIndexerTest extends AbstractDefaultDocumentTest {
-
-	@Autowired
-	private AnnotationRepository annotationRepository;
-	
+public interface Annotation {
 	/**
-	 * Indexes a very simple document.
+	 * The LMNL namespace, mainly used as a default.
 	 */
-	@Test
-	public void indexSimpleDocument() {
-		addTestAnnotation("a", 0, 2);
-		addTestAnnotation("b", 1, 4);
-		addTestAnnotation("c", 0, 1);
-		addTestAnnotation("d", 0, 6);
-		addTestAnnotation("e", 2, 3);
+	final URI LMNL_NS_URI = URI.create("http://lmnl.net/namespaces/lmnl");
 
-		printDebugMessage(document.toString());
-		printDebugMessage(new OverlapIndexer().apply(annotationRepository.find(document)));
-	}
 
-	@Override
-	protected String documentText() {
-		return "abcdef";
-	}
+	Annotation getOwner();
+
+	QName getName();
+	
+	Range getRange();
+	
+	Object getData();
 }

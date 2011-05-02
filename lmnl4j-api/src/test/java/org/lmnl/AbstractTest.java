@@ -21,7 +21,7 @@
 
 package org.lmnl;
 
-import static org.lmnl.Layer.LMNL_NS_URI;
+import static org.lmnl.Annotation.LMNL_NS_URI;
 
 import java.net.URI;
 import java.util.List;
@@ -43,9 +43,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:/testContext.xml")
 public abstract class AbstractTest {
-	protected static final QName XML_LAYER_NAME = new QNameImpl(LMNL_NS_URI, "xml");
-	protected static final QName TEXT_LAYER_NAME = new QNameImpl(LMNL_NS_URI, "text");
-	protected static final QName OFFSET_LAYER_NAME = new QNameImpl(LMNL_NS_URI, "offsets");
+	protected static final QName XML_ANNOTATION_NAME = new QNameImpl(LMNL_NS_URI, "xml");
+	protected static final QName TEXT_ANNOTATION_NAME = new QNameImpl(LMNL_NS_URI, "text");
+	protected static final QName OFFSET_ANNOTATION_NAME = new QNameImpl(LMNL_NS_URI, "offsets");
 
 	/**
 	 * Test namespace.
@@ -63,13 +63,13 @@ public abstract class AbstractTest {
 	 * @param index
 	 *                the range index to output
 	 */
-	protected void printDebugMessage(SortedMap<Range, List<Layer>> index) {
+	protected void printDebugMessage(SortedMap<Range, List<Annotation>> index) {
 		if (LOG.isDebugEnabled()) {
 			final StringBuilder str = new StringBuilder();
 			for (Range segment : index.keySet()) {
 				str.append("[" + segment + ": { ");
 				boolean first = true;
-				for (Layer annotation : index.get(segment)) {
+				for (Annotation annotation : index.get(segment)) {
 					if (first) {
 						first = false;
 					} else {

@@ -1,6 +1,6 @@
 package org.lmnl.util;
 
-import org.lmnl.Layer;
+import org.lmnl.Annotation;
 import org.lmnl.Range;
 
 /**
@@ -13,7 +13,7 @@ public class DefaultIdGenerator implements IdGenerator {
 		return ("seg_" + range.getStart() + "_" + range.getEnd());
 	}
 
-	public synchronized String next(Layer layer) {
+	public synchronized String next(Annotation annotation) {
 		return ("lay_" + id++);
 	}
 
