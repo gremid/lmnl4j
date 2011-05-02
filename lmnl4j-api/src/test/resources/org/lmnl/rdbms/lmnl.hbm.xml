@@ -6,7 +6,7 @@
 			<generator class="native" />
 		</id>
 		<property name="localName" not-null="true" column="local_name" index="lmnl_qname_name" />
-		<property name="namespace" index="lmnl_qname_name" />
+		<property name="namespace" length="255" index="lmnl_qname_name" />
 	</class>
 
 	<class name="org.lmnl.rdbms.TextRelation" table="lmnl_text">

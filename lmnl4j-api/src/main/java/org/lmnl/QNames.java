@@ -9,8 +9,8 @@ public class QNames {
 	public static final Comparator<QName> COMPARATOR = new Comparator<QName>() {
 
 		public int compare(QName o1, QName o2) {
-			final URI o1Ns = o1.getNamespace();
-			final URI o2Ns = o2.getNamespace();
+			final URI o1Ns = o1.getNamespaceURI();
+			final URI o2Ns = o2.getNamespaceURI();
 
 			final String o1LocalName = o1.getLocalName();
 			final String o2LocalName = o2.getLocalName();
@@ -28,15 +28,15 @@ public class QNames {
 
 	public static boolean equal(QName name1, QName name2) {
 		return Objects.equal(name1.getLocalName(), name2.getLocalName())
-				&& Objects.equal(name1.getNamespace(), name2.getNamespace());
+				&& Objects.equal(name1.getNamespaceURI(), name2.getNamespaceURI());
 	}
 	
 	public static int hashCode(QName name) {
-		return Objects.hashCode(name.getLocalName(), name.getNamespace());
+		return Objects.hashCode(name.getLocalName(), name.getNamespaceURI());
 	}
 	
 	public static String toString(QName name) {
-		final URI ns = name.getNamespace();
+		final URI ns = name.getNamespaceURI();
 		return "{" + (ns == null ? "" : ns) + "}" + name.getLocalName();
 	}
 

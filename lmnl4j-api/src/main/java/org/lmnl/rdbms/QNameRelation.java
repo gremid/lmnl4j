@@ -69,12 +69,20 @@ public class QNameRelation implements QName {
 		this.id = id;
 	}
 
-	public URI getNamespace() {
+	public URI getNamespaceURI() {
 		return namespace;
 	}
 
-	public void setNamespace(URI namespace) {
+	public void setNamespaceURI(URI namespace) {
 		this.namespace = namespace;
+	}
+
+	public String getNamespace() {
+		return (this.namespace == null ? null : this.namespace.toString());
+	}
+
+	public void setNamespace(String namespace) {
+		this.namespace = (namespace == null ? null : URI.create(namespace));
 	}
 
 	public String getLocalName() {
@@ -90,7 +98,7 @@ public class QNameRelation implements QName {
 		if (obj != null && obj instanceof QName) {
 			return QNames.equal(this, (QName) obj);
 		}
-		
+
 		return super.equals(obj);
 	}
 

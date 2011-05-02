@@ -41,7 +41,7 @@ public class QNameImpl implements QName, Serializable {
 		this.localName = name.getLocalPart();
 	}
 
-	public URI getNamespace() {
+	public URI getNamespaceURI() {
 		return namespace;
 	}
 

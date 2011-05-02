@@ -61,9 +61,9 @@ public class RelationalQNameRepository implements QNameRepository {
 			final Disjunction dj = Restrictions.disjunction();
 			for (QName name : names) {
 				Conjunction cj = Restrictions.conjunction();
-				URI namespace = name.getNamespace();
+				URI namespace = name.getNamespaceURI();
 				cj.add(namespace == null ? Restrictions.isNull("namespace") : Restrictions.eq("namespace",
-						namespace));
+						namespace.toString()));
 				cj.add(Restrictions.eq("localName", name.getLocalName()));
 				dj.add(cj);
 			}
@@ -77,7 +77,7 @@ public class RelationalQNameRepository implements QNameRepository {
 			}
 			
 			for (QName name : names) {
-				QNameRelation created = new QNameRelation(name.getNamespace(), name.getLocalName());
+				QNameRelation created = new QNameRelation(name.getNamespaceURI(), name.getLocalName());
 				session.save(created);
 				foundNames.add(created);
 				nameCache.put(created, created.getId());
