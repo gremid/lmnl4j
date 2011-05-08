@@ -10,9 +10,9 @@ import com.google.common.base.Objects;
 
 public class TextRelation implements Text {
 	private int id;
-	private Set<Annotation> annotations;
 	private Clob content;
-
+	private Set<Annotation> annotations;
+	
 	public int getId() {
 		return id;
 	}
@@ -21,6 +21,16 @@ public class TextRelation implements Text {
 		this.id = id;
 	}
 
+	@Deprecated
+	public Clob getContent() {
+		return content;
+	}
+	
+	@Deprecated
+	public void setContent(Clob content) {
+		this.content = content;
+	}
+	
 	public Set<Annotation> getAnnotations() {
 		return annotations;
 	}
@@ -29,16 +39,22 @@ public class TextRelation implements Text {
 		this.annotations = annotations;
 	}
 
-	public Clob getContent() {
-		return content;
-	}
-
-	public void setContent(Clob content) {
-		this.content = content;
-	}
-
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this).add("id", Integer.toString(id)).toString();
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (id != 0 && obj != null && obj instanceof TextRelation) {
+			return id == ((TextRelation) obj).id;
+		}
+		return super.equals(obj);
+	}
+
+	@Override
+	public int hashCode() {
+		return (id == 0 ? super.hashCode() : id);
+	}
+
 }

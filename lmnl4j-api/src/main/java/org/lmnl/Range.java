@@ -21,7 +21,11 @@
 
 package org.lmnl;
 
+import java.util.SortedSet;
+
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 /**
  * Adresses a text segment, for example a segment, that is annotated by some {@link Annotation annotation}.
@@ -287,22 +291,21 @@ public class Range implements Comparable<Range> {
 		return new Range(start + n, end + n);
 	}
 
-	public Range substract(Range subtrahend) {
-		if (end <= subtrahend.start) {
-			// predecessor of deleted segment
-			return new Range(start, end);
-		}
-
-		int length = subtrahend.end - subtrahend.start;
-
-		if (start >= subtrahend.end) {
-			// successor of deleted range
-			return new Range(start - length, end - length);
-		}
-
-		int overlap = overlap(subtrahend).length();
-		int start = (this.start < subtrahend.start ? this.start : this.start - (length - overlap));
-		int end = (this.end >= subtrahend.end ? this.end - length : this.end - overlap);
-		return new Range(start, end);
+	public SortedSet<Range> substract(Range subtrahend) {
+	    Preconditions.checkArgument(hasOverlapWith(subtrahend));
+	    
+	    final SortedSet<Range> remainders = Sets.newTreeSet();
+	    if (fitsWithin(subtrahend)) {
+	        return remainders;
+	    } if (enclosesWithPrefix(subtrahend)) {
+	        remainders.add(new Range(subtrahend.start, end));
+	    } else if (enclosesWithSuffix(subtrahend)) {
+	        remainders.add(new Range(start, subtrahend.end));
+	    } else {
+	        remainders.add(new Range(start, subtrahend.start));
+	        remainders.add(new Range(subtrahend.end, end));
+	    }
+	    
+	    return remainders;
 	}
 }

@@ -1,12 +1,9 @@
 package org.lmnl.rdbms;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.io.StringReader;
 
 import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.Hibernate;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
@@ -17,10 +14,10 @@ import org.lmnl.Annotation;
 import org.lmnl.QName;
 import org.lmnl.QNameRepository;
 import org.lmnl.Range;
+import org.lmnl.TextRepository;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 public class RelationalAnnotationFactory {
 	public static final Joiner ANCESTOR_JOINER = Joiner.on('.');
@@ -29,6 +26,8 @@ public class RelationalAnnotationFactory {
 
 	private QNameRepository nameRepository;
 
+	private TextRepository textRepository;
+	
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
@@ -37,6 +36,10 @@ public class RelationalAnnotationFactory {
 		this.nameRepository = nameRepository;
 	}
 
+	public void setTextRepository(TextRepository textRepository) {
+		this.textRepository = textRepository;
+	}
+	
 	public static String getAncestorPath(AnnotationRelation annotation) {
 		return (annotation == null ? "" : ANCESTOR_JOINER.join(annotation.getAncestors(), annotation.getId()));
 	}
@@ -46,16 +49,31 @@ public class RelationalAnnotationFactory {
 		Preconditions.checkArgument((text != null) || (owner != null), "No text given");
 
 		final AnnotationRelation ownerRelation = (AnnotationRelation) owner;
-		final AnnotationRelation empty = new AnnotationRelation();
-		empty.setName(nameRepository.get(name));
-		empty.setRange(range == null ? Range.NULL : range);
-		empty.setOwner(ownerRelation);
-		empty.setAncestors(getAncestorPath(ownerRelation));
-		empty.setText(text == null ? ownerRelation.getText() : setText(empty, text, true));
-
-		sessionFactory.getCurrentSession().save(empty);
+		final AnnotationRelation created = new AnnotationRelation();
+		created.setName(nameRepository.get(name));
+		created.setRange(range == null ? Range.NULL : range);
+		created.setOwner(ownerRelation);
+		created.setAncestors(getAncestorPath(ownerRelation));
 		
-		return empty;
+		if (text != null || ownerRelation == null) {
+			final TextRelation textRelation = new TextRelation();
+			sessionFactory.getCurrentSession().save(textRelation);
+			created.setText(textRelation);
+		} else {
+			created.setText(ownerRelation.getText());	
+		}
+		
+		sessionFactory.getCurrentSession().save(created);
+		
+		if (text != null) {
+			try {
+				textRepository.write(created, new StringReader(text), text.length());
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		
+		return created;
 	}
 
 	public void delete(Annotation annotation) {
@@ -79,42 +97,5 @@ public class RelationalAnnotationFactory {
 		while (orphanedTexts.next()) {
 			session.delete(orphanedTexts.get(0));
 		}
-	}
-
-	public TextRelation setText(Annotation annotation, String text, boolean createNew) {
-		try {
-			return setText(annotation, new StringReader(text), text.length(), createNew);
-		} catch (IOException e) {
-			throw Throwables.propagate(e);
-		}
-	}
-
-	public TextRelation setText(Annotation annotation, Reader reader, int contentLength, boolean createNew) throws IOException {
-		final TextRelation text = createNew ? new TextRelation() : getText(annotation);
-		final Session session = sessionFactory.getCurrentSession();
-
-		text.setContent(Hibernate.createClob(reader, contentLength));
-		session.saveOrUpdate(text);
-		session.flush();
-		session.refresh(text);
-
-		if (createNew) {
-			((AnnotationRelation) annotation).setText(text);
-		}
-
-		return text;
-	}
-
-	TextRelation getText(Annotation annotation) {
-		Preconditions.checkArgument(annotation instanceof AnnotationRelation);
-		final Session session = sessionFactory.getCurrentSession();
-		
-		Criteria c = session.createCriteria(AnnotationRelation.class);
-		c.add(Restrictions.idEq(((AnnotationRelation) annotation).getId()));
-		c.setFetchMode("text", FetchMode.JOIN);
-
-		TextRelation text = Preconditions.checkNotNull((AnnotationRelation) c.uniqueResult()).getText();
-		session.refresh(text);
-		return text;
 	}
 }

@@ -26,6 +26,7 @@ import static junit.framework.Assert.assertTrue;
 import static org.lmnl.xml.XMLParser.OFFSET_DELTA_NAME;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
@@ -37,6 +38,7 @@ import org.lmnl.Annotation;
 import org.lmnl.AnnotationRepository;
 import org.lmnl.QName;
 import org.lmnl.Range;
+import org.lmnl.TextContentReader;
 import org.lmnl.TextRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -91,7 +93,14 @@ public class XMLImportHandlerTest extends AbstractXMLTest {
 				LOG.debug(annotation.getKey() + " ==> " + annotation.getValue());
 			}
 
-			LOG.debug(CharStreams.toString(textRepository.read(text)));
+			if (LOG.isDebugEnabled()) {
+				textRepository.read(text, new TextContentReader() {
+					
+					public void read(Reader content, int contentLength) throws IOException {
+						LOG.debug(CharStreams.toString(content));
+					}
+				});
+			}
 
 			final SortedSet<Range> textRanges = Sets.newTreeSet();
 			final SortedSet<Range> sourceRanges = Sets.newTreeSet();

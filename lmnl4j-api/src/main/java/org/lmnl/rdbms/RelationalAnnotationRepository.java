@@ -33,7 +33,7 @@ public class RelationalAnnotationRepository extends AbstractAnnotationRepository
 
 	@SuppressWarnings("unchecked")
 	public Iterable<Annotation> find(Annotation annotation, Set<QName> names, Set<Range> ranges, boolean overlapping) {
-		Preconditions.checkArgument(annotation instanceof AnnotationRelation);
+		Preconditions.checkArgument(annotation instanceof AnnotationRelation, annotation.getClass().toString());
 
 		final Criteria c = sessionFactory.getCurrentSession().createCriteria(AnnotationRelation.class);
 		c.createCriteria("owner").add(Restrictions.idEq(((AnnotationRelation) annotation).getId()));

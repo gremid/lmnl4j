@@ -1,7 +1,5 @@
 package org.lmnl.rdbms;
 
-import java.io.IOException;
-import java.io.Reader;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -63,10 +61,5 @@ public class RelationalXMLParser extends XMLParser {
 		org.hibernate.Session session = sessionFactory.getCurrentSession();
 		session.flush();
 		session.clear();
-	}
-
-	@Override
-	protected void updateText(Annotation annotation, Reader reader, int contentLength) throws IOException {
-		annotationFactory.setText(annotation, reader, contentLength, false);
 	}
 }

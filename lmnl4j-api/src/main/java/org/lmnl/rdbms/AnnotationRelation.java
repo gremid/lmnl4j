@@ -106,6 +106,19 @@ public class AnnotationRelation implements Annotation {
 		return Objects.toStringHelper(this).addValue(getName()).addValue(getRange()).toString();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (id != 0 && obj != null && obj instanceof AnnotationRelation) {
+			return id == ((AnnotationRelation) obj).id;
+		}
+		return super.equals(obj);
+	}
+
+	@Override
+	public int hashCode() {
+		return (id == 0 ? super.hashCode() : id);
+	}
+
 	// FIXME: implement proper type-safe removal
 	// public void remove(LmnlRange deleted) {
 	// remove(deleted, true);

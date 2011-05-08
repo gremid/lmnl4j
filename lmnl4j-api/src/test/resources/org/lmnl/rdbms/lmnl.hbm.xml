@@ -13,7 +13,7 @@
 		<id name="id">
 			<generator class="native" />
 		</id>
-		<property name="content" not-null="true" />
+		<property name="content" />
 		<set name="annotations" inverse="true" table="lmnl_annotation">
 			<key column="annotation_text" />
 			<one-to-many class="org.lmnl.rdbms.AnnotationRelation" />

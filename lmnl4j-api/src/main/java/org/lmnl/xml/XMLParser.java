@@ -26,8 +26,10 @@ import org.lmnl.Annotation;
 import org.lmnl.QName;
 import org.lmnl.QNameImpl;
 import org.lmnl.Range;
+import org.lmnl.TextContentReader;
 import org.lmnl.TextRepository;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 import com.google.common.io.FileBackedOutputStream;
@@ -91,7 +93,7 @@ public abstract class XMLParser {
 			sourceContentReader = new InputStreamReader(new FileInputStream(sourceContents), charset);
 			final int sourceContentLength = contentLength(sourceContentReader);
 			sourceContentReader.close();
-			
+
 			sourceContentReader = new InputStreamReader(new FileInputStream(sourceContents), charset);
 			updateText(annotation, sourceContentReader, sourceContentLength);
 		} finally {
@@ -100,94 +102,17 @@ public abstract class XMLParser {
 		}
 	}
 
-	public void parse(Annotation source, Annotation target, Annotation offsetDeltas, XMLParserConfiguration configuration) throws IOException,
-			XMLStreamException {
-		XMLStreamReader reader = null;
+	public void parse(Annotation source, Annotation target, Annotation offsetDeltas, XMLParserConfiguration configuration)
+			throws IOException, XMLStreamException {
 		Session session = null;
 		try {
-			reader = xmlInputFactory.createXMLStreamReader(textRepository.read(source));
 			session = new Session(source, target, offsetDeltas, configuration);
-			int xmlEvents = 0;
-			Map<QName, String> attributes = null;
-
-			while (reader.hasNext()) {
-				if (xmlEvents++ % xmlEventBatchSize == 0) {
-					newXMLEventBatch();
-				}
-
-				switch (reader.next()) {
-				case XMLStreamConstants.START_ELEMENT:
-					session.writeText();
-					session.nextSibling();
-
-					attributes = Maps.newHashMap();
-					final int attributeCount = reader.getAttributeCount();
-					for (int ac = 0; ac < attributeCount; ac++) {
-						final javax.xml.namespace.QName attrQName = reader.getAttributeName(ac);
-						if (XMLNS_ATTRIBUTE_NS_URI.equals(attrQName.getNamespaceURI())) {
-							continue;
-						}
-						attributes.put(new QNameImpl(attrQName), reader.getAttributeValue(ac));
-					}
-
-					session.startElement(new QNameImpl(reader.getName()), attributes);
-					break;
-				case XMLStreamConstants.END_ELEMENT:
-					session.writeText();
-					session.endElement();
-					break;
-				case XMLStreamConstants.COMMENT:
-					session.writeText();
-					session.nextSibling();
-
-					attributes = Maps.newHashMap();
-					attributes.put(QNameImpl.COMMENT_TEXT_QNAME, reader.getText());
-					session.startElement(QNameImpl.COMMENT_QNAME, attributes);
-					session.endElement();
-					break;
-				case XMLStreamConstants.PROCESSING_INSTRUCTION:
-					session.writeText();
-					session.nextSibling();
-
-					attributes = Maps.newHashMap();
-					attributes.put(QNameImpl.PI_TARGET_QNAME, reader.getPITarget());
-					final String data = reader.getPIData();
-					if (data != null) {
-						attributes.put(QNameImpl.PI_DATA_QNAME, data);
-					}
-
-					session.startElement(QNameImpl.PI_QNAME, attributes);
-					session.endElement();
-					break;
-				case XMLStreamConstants.CHARACTERS:
-				case XMLStreamConstants.ENTITY_REFERENCE:
-				case XMLStreamConstants.CDATA:
-					session.text(reader.getText(), reader.getLocation().getCharacterOffset());
-					break;
-				case XMLStreamConstants.END_DOCUMENT:
-					session.end();
-					break;
-				}
-			}
-
-			Reader textContentReader = null;
-			try {
-				textContentReader = session.read();
-				final int textContentLength = contentLength(textContentReader);
-				Closeables.close(textContentReader, false);
-				
-				textContentReader = session.read();
-				updateText(target, textContentReader, textContentLength);
-			} finally {
-				Closeables.closeQuietly(textContentReader);
-			}
+			textRepository.read(source, session);
+		} catch (Throwable t) {
+			Throwables.propagateIfInstanceOf(t, IOException.class);
+			Throwables.propagateIfInstanceOf(Throwables.getRootCause(t), XMLStreamException.class);
+			Throwables.propagate(t);
 		} finally {
-			if (reader != null) {
-				try {
-					reader.close();
-				} catch (XMLStreamException e) {
-				}
-			}
 			if (session != null) {
 				session.dispose();
 			}
@@ -195,7 +120,9 @@ public abstract class XMLParser {
 		}
 	}
 
-	protected abstract void updateText(Annotation annotation, Reader reader, int contentLength) throws IOException;
+	protected void updateText(Annotation annotation, Reader reader, int contentLength) throws IOException {
+		textRepository.write(annotation, reader, contentLength);
+	}
 
 	protected abstract Annotation startAnnotation(Session session, QName name, Map<QName, String> attrs, int start,
 			Iterable<Integer> nodePath);
@@ -214,8 +141,8 @@ public abstract class XMLParser {
 		}
 		return contentLength;
 	}
-	
-	protected class Session {
+
+	protected class Session implements TextContentReader {
 		public final Annotation source;
 		public final Annotation target;
 		public final Annotation offsetDeltas;
@@ -235,7 +162,8 @@ public abstract class XMLParser {
 		protected char notableCharacter;
 		protected char lastChar = (removeLeadingWhitespace ? ' ' : 0);
 
-		protected Session(Annotation source, Annotation target, Annotation offsetDeltas, XMLParserConfiguration configuration) {
+		protected Session(Annotation source, Annotation target, Annotation offsetDeltas,
+				XMLParserConfiguration configuration) {
 			this.source = source;
 			this.target = target;
 			this.offsetDeltas = offsetDeltas;
@@ -350,6 +278,96 @@ public abstract class XMLParser {
 
 		protected void dispose() throws IOException {
 			textBuffer.reset();
+		}
+
+		public void read(Reader content, int contentLength) throws IOException {
+			XMLStreamReader reader = null;
+			try {
+				reader = xmlInputFactory.createXMLStreamReader(content);
+				int xmlEvents = 0;
+				Map<QName, String> attributes = null;
+
+				while (reader.hasNext()) {
+					if (xmlEvents++ % xmlEventBatchSize == 0) {
+						newXMLEventBatch();
+					}
+
+					switch (reader.next()) {
+					case XMLStreamConstants.START_ELEMENT:
+						writeText();
+						nextSibling();
+
+						attributes = Maps.newHashMap();
+						final int attributeCount = reader.getAttributeCount();
+						for (int ac = 0; ac < attributeCount; ac++) {
+							final javax.xml.namespace.QName attrQName = reader.getAttributeName(ac);
+							if (XMLNS_ATTRIBUTE_NS_URI.equals(attrQName.getNamespaceURI())) {
+								continue;
+							}
+							attributes.put(new QNameImpl(attrQName), reader.getAttributeValue(ac));
+						}
+
+						startElement(new QNameImpl(reader.getName()), attributes);
+						break;
+					case XMLStreamConstants.END_ELEMENT:
+						writeText();
+						endElement();
+						break;
+					case XMLStreamConstants.COMMENT:
+						writeText();
+						nextSibling();
+
+						attributes = Maps.newHashMap();
+						attributes.put(QNameImpl.COMMENT_TEXT_QNAME, reader.getText());
+						startElement(QNameImpl.COMMENT_QNAME, attributes);
+						endElement();
+						break;
+					case XMLStreamConstants.PROCESSING_INSTRUCTION:
+						writeText();
+						nextSibling();
+
+						attributes = Maps.newHashMap();
+						attributes.put(QNameImpl.PI_TARGET_QNAME, reader.getPITarget());
+						final String data = reader.getPIData();
+						if (data != null) {
+							attributes.put(QNameImpl.PI_DATA_QNAME, data);
+						}
+
+						startElement(QNameImpl.PI_QNAME, attributes);
+						endElement();
+						break;
+					case XMLStreamConstants.CHARACTERS:
+					case XMLStreamConstants.ENTITY_REFERENCE:
+					case XMLStreamConstants.CDATA:
+						text(reader.getText(), reader.getLocation().getCharacterOffset());
+						break;
+					case XMLStreamConstants.END_DOCUMENT:
+						end();
+						break;
+					}
+				}
+
+				Reader textContentReader = null;
+				try {
+					textContentReader = read();
+					final int textContentLength = contentLength(textContentReader);
+					Closeables.close(textContentReader, false);
+
+					textContentReader = read();
+					updateText(target, textContentReader, textContentLength);
+				} finally {
+					Closeables.closeQuietly(textContentReader);
+				}
+			} catch (XMLStreamException e) {
+				throw new RuntimeException(e);
+			} finally {
+				if (reader != null) {
+					try {
+						reader.close();
+					} catch (XMLStreamException e) {
+					}
+				}
+			}
 		}
 	}
 }
