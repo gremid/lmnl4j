@@ -21,6 +21,7 @@
 
 package org.lmnl;
 
+import java.io.Serializable;
 import java.util.SortedSet;
 
 import com.google.common.base.Objects;
@@ -61,7 +62,9 @@ import com.google.common.collect.Sets;
  * @author <a href="http://gregor.middell.net/" title="Homepage of Gregor Middell">Gregor Middell</a>
  * 
  */
-public class Range implements Comparable<Range> {
+public class Range implements Comparable<Range>, Serializable {
+	private static final long serialVersionUID = 1L;
+
 	public static final Range NULL = new Range();
 
 	/** The start offset of the segment (counted from zero, inclusive). */

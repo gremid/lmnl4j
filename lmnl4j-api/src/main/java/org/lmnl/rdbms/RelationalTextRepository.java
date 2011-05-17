@@ -67,7 +67,7 @@ public class RelationalTextRepository implements TextRepository {
 		});
 	}
 
-	public String read(Annotation annotation, Range range) throws IOException {
+	public String read(Annotation annotation, Range range) throws IOException {		
 		return getOnlyElement(bulkRead(annotation, Sets.newTreeSet(singleton(range))).values());
 	}
 

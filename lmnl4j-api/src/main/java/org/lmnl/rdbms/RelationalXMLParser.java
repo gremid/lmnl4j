@@ -31,7 +31,8 @@ public class RelationalXMLParser extends XMLParser {
 		this.annotationFactory = annotationFactory;
 	}
 
-	protected Annotation startAnnotation(Session session, QName name, Map<QName, String> attrs, int start, Iterable<Integer> nodePath) {
+	protected Annotation startAnnotation(Session session, QName name, Map<QName, String> attrs, int start,
+			Iterable<Integer> nodePath) {
 		attrs.put(XMLParser.NODE_PATH_NAME, PATH_JOINER.join(nodePath));
 
 		AnnotationRelation annotation = new AnnotationRelation();
@@ -50,10 +51,10 @@ public class RelationalXMLParser extends XMLParser {
 	}
 
 	@Override
-	protected void newOffsetDeltaRange(Session session, Range range, int offsetDelta) {
+	protected void newOffsetDelta(Session session, Range textRange, Range sourceRange) {
 		if (session.offsetDeltas != null) {
-			AnnotationRelation annotation = annotationFactory.create(session.offsetDeltas, OFFSET_DELTA_NAME, range, null);
-			annotation.setSerializableData(offsetDelta);
+			annotationFactory.create(session.offsetDeltas, OFFSET_DELTA_NAME,//
+					textRange, null).setSerializableData(sourceRange);
 		}
 	}
 

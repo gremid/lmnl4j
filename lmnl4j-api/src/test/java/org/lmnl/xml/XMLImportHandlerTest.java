@@ -28,9 +28,9 @@ import static org.lmnl.xml.XMLParser.OFFSET_DELTA_NAME;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.SortedSet;
 
 import org.junit.Test;
 import org.lmnl.AbstractXMLTest;
@@ -42,6 +42,7 @@ import org.lmnl.TextContentReader;
 import org.lmnl.TextRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
@@ -102,25 +103,25 @@ public class XMLImportHandlerTest extends AbstractXMLTest {
 				});
 			}
 
-			final SortedSet<Range> textRanges = Sets.newTreeSet();
-			final SortedSet<Range> sourceRanges = Sets.newTreeSet();
+			final List<Range> textRanges = Lists.newArrayList();
+			final List<Range> sourceRanges = Lists.newArrayList();
 
 			for (Annotation offset : annotationRepository.find(offsets, OFFSET_DELTA_NAME)) {
-				final int delta = (Integer) offset.getData();
-				final Range range = offset.getRange();
-				textRanges.add(range);
-				sourceRanges.add(range.add(delta));
+				textRanges.add(offset.getRange());
+				sourceRanges.add((Range) offset.getData());
 			}
 
-			final SortedMap<Range, String> texts = textRepository.bulkRead(text, textRanges);
-			final SortedMap<Range, String> sources = textRepository.bulkRead(document, sourceRanges);
+			final SortedMap<Range, String> texts = textRepository.bulkRead(text, Sets.newTreeSet(textRanges));
+			final SortedMap<Range, String> sources = textRepository.bulkRead(document, Sets.newTreeSet(sourceRanges));
 
-			final Iterator<Map.Entry<Range, String>> sourceIt = sources.entrySet().iterator();
-			for (Map.Entry<Range, String> textRange : texts.entrySet()) {
-				if (!sourceIt.hasNext()) {
+			final Iterator<Range> sourceRangesIt = sourceRanges.iterator();
+			for (Range textRange : textRanges) {
+				if (!sourceRangesIt.hasNext()) {
 					break;
 				}
-				LOG.debug(textRange.getValue() + " ==> " + sourceIt.next().getValue());
+				final Range sourceRange = sourceRangesIt.next();
+				//LOG.debug(textRange + " ==> " + sourceRange);
+				LOG.debug(texts.get(textRange) + " ==> " + sources.get(sourceRange));
 			}
 		}
 
