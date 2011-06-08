@@ -36,11 +36,9 @@ public class RelationalXMLParser extends XMLParser {
 		attrs.put(XMLParser.NODE_PATH_NAME, PATH_JOINER.join(nodePath));
 
 		AnnotationRelation annotation = new AnnotationRelation();
+        annotation.setText((TextRelation) session.target);
 		annotation.setName(nameRepository.get(name));
-		annotation.setOwner(session.target);
-		annotation.setAncestors(RelationalAnnotationFactory.getAncestorPath((AnnotationRelation) session.target));
 		annotation.setRange(new Range(start, start));
-		annotation.setText(((AnnotationRelation) session.target).getText());
 		annotation.setSerializableData((Serializable) attrs);
 		return annotation;
 	}
@@ -52,10 +50,8 @@ public class RelationalXMLParser extends XMLParser {
 
 	@Override
 	protected void newOffsetDelta(Session session, Range textRange, Range sourceRange) {
-		if (session.offsetDeltas != null) {
-			annotationFactory.create(session.offsetDeltas, OFFSET_DELTA_NAME,//
-					textRange, null).setSerializableData(sourceRange);
-		}
+			annotationFactory.create(session.target, OFFSET_DELTA_NAME,//
+					textRange).setSerializableData(sourceRange);
 	}
 
 	protected void newXMLEventBatch() {

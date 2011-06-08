@@ -13,6 +13,7 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.lmnl.Text;
 
 public class EventGenerator {
 	private Predicate<Annotation> filter = Predicates.alwaysTrue();
@@ -29,13 +30,9 @@ public class EventGenerator {
 		this.annotationRepository = annotationRepository;
 	}
 
-	public void generate(Annotation base, EventHandler eventHandler) throws EventHandlerException {
-		generate(base, eventHandler, 0);
-	}
-	
-	protected void generate(Annotation base, EventHandler eventHandler, int depth) throws EventHandlerException {
+	public void generate(Text text, EventHandler eventHandler) throws EventHandlerException {
 		final SortedMap<Integer, List<Annotation>> opened = Maps.newTreeMap();
-		for (Annotation annotation : Iterables.filter(annotationRepository.find(base), filter)) {
+		for (Annotation annotation : Iterables.filter(annotationRepository.find(text), filter)) {
 			final Range annotationRange = annotation.getRange();
 			final int start = annotationRange.getStart();
 			final int end = annotationRange.getEnd();
@@ -46,17 +43,15 @@ public class EventGenerator {
 					break;
 				}
 				for (Annotation ending : opened.get(endingAt)) {
-					eventHandler.endAnnotation(ending, depth);
+					eventHandler.endAnnotation(ending);
 				}
 				endingAtIt.remove();
 			}
 
-			eventHandler.startAnnotation(annotation, depth);
-
-			generate(annotation, eventHandler, depth + 1);
+			eventHandler.startAnnotation(annotation);
 
 			if (start == end) {
-				eventHandler.endAnnotation(annotation, depth);
+				eventHandler.endAnnotation(annotation);
 			} else {
 				List<Annotation> endingAnnotations = opened.get(end);
 				if (endingAnnotations == null) {
@@ -67,7 +62,7 @@ public class EventGenerator {
 		}
 		for (List<Annotation> remaining : opened.values()) {
 			for (Annotation annotation : remaining) {
-				eventHandler.endAnnotation(annotation, depth);
+				eventHandler.endAnnotation(annotation);
 			}
 		}
 	}

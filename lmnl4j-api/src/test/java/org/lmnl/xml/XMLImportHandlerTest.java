@@ -33,13 +33,7 @@ import java.util.Map;
 import java.util.SortedMap;
 
 import org.junit.Test;
-import org.lmnl.AbstractXMLTest;
-import org.lmnl.Annotation;
-import org.lmnl.AnnotationRepository;
-import org.lmnl.QName;
-import org.lmnl.Range;
-import org.lmnl.TextContentReader;
-import org.lmnl.TextRepository;
+import org.lmnl.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -63,23 +57,24 @@ public class XMLImportHandlerTest extends AbstractXMLTest {
 
 	@Test
 	public void showTextContents() throws IOException {
-		// final Annotation document = document("homer-iliad-tei.xml");
-		final Annotation document = document("george-algabal-tei.xml");
-		final Annotation text = getOnlyElement(annotationRepository.find(document, TEXT_ANNOTATION_NAME));
-		final Annotation offsets = getOnlyElement(annotationRepository.find(text, OFFSET_ANNOTATION_NAME));
+		final String resource = "george-algabal-tei.xml";
+        //final String resource = "homer-iliad-tei.xml";
+        final Text source = source(resource);
+		final Text document = document(resource);
 
-		final int textLength = textRepository.length(text);
+		final int textLength = textRepository.length(document);
 		assertTrue(textLength > 0);
 
 		if (LOG.isDebugEnabled()) {
 			final SortedMap<String, Annotation> annotations = Maps.newTreeMap();
-			for (Annotation annotation : annotationRepository.find(text)) {
-				@SuppressWarnings("unchecked")
-				final Map<QName, String> attrs = (Map<QName, String>) annotation.getData();
-				if (attrs == null) {
+			for (Annotation annotation : annotationRepository.find(document)) {
+                final Object data = annotation.getData();
+				if (data == null || !Map.class.isAssignableFrom(data.getClass())) {
 					LOG.debug(annotation + " has no attributes");
 					continue;
 				}
+                @SuppressWarnings("unchecked")
+				final Map<QName, String> attrs = (Map<QName, String>) data;
 				final String nodePath = attrs.get(XMLParser.NODE_PATH_NAME);
 				if (nodePath == null) {
 					LOG.debug(annotation + " has no XML node path");
@@ -95,7 +90,7 @@ public class XMLImportHandlerTest extends AbstractXMLTest {
 			}
 
 			if (LOG.isDebugEnabled()) {
-				textRepository.read(text, new TextContentReader() {
+				textRepository.read(document, new TextContentReader() {
 					
 					public void read(Reader content, int contentLength) throws IOException {
 						LOG.debug(CharStreams.toString(content));
@@ -106,13 +101,13 @@ public class XMLImportHandlerTest extends AbstractXMLTest {
 			final List<Range> textRanges = Lists.newArrayList();
 			final List<Range> sourceRanges = Lists.newArrayList();
 
-			for (Annotation offset : annotationRepository.find(offsets, OFFSET_DELTA_NAME)) {
+			for (Annotation offset : annotationRepository.find(document, OFFSET_DELTA_NAME)) {
 				textRanges.add(offset.getRange());
 				sourceRanges.add((Range) offset.getData());
 			}
 
-			final SortedMap<Range, String> texts = textRepository.bulkRead(text, Sets.newTreeSet(textRanges));
-			final SortedMap<Range, String> sources = textRepository.bulkRead(document, Sets.newTreeSet(sourceRanges));
+			final SortedMap<Range, String> texts = textRepository.bulkRead(document, Sets.newTreeSet(textRanges));
+			final SortedMap<Range, String> sources = textRepository.bulkRead(source, Sets.newTreeSet(sourceRanges));
 
 			final Iterator<Range> sourceRangesIt = sourceRanges.iterator();
 			for (Range textRange : textRanges) {

@@ -25,13 +25,11 @@
 			<generator class="native" />
 		</id>
 		<many-to-one name="name" class="org.lmnl.rdbms.QNameRelation" not-null="true" />
-		<many-to-one name="owner" class="org.lmnl.rdbms.AnnotationRelation" />
 		<many-to-one name="text" not-null="true" column="annotation_text" />
 		<component name="range">
 			<property name="start" not-null="true" column="range_start" index="lmnl_annotation_range" />
 			<property name="end" not-null="true" column="range_end" index="lmnl_annotation_range" />
 		</component>
 		<property name="serializableData" column="data" length="65535" />
-		<property name="ancestors" length="65535" index="lmnl_annotation_ancestors" not-null="true" />
 	</class>
 </hibernate-mapping>

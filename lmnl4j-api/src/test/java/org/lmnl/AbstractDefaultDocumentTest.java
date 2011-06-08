@@ -43,14 +43,14 @@ public abstract class AbstractDefaultDocumentTest extends AbstractTest {
 	/**
 	 * The in-memory document model to run tests against.
 	 */
-	protected Annotation document;
+	protected Text document;
 
 	/**
 	 * Creates a new document model before every test.
 	 */
 	@Before
 	public void createDocument() {
-		document = annotationFactory.create(null, TEXT_ANNOTATION_NAME, null, "");
+		document = annotationFactory.newText();
 	}
 
 	/**
@@ -62,7 +62,7 @@ public abstract class AbstractDefaultDocumentTest extends AbstractTest {
 	}
 
 	/**
-	 * Adds a simple {@link PersistentAnnotation annotation} to the test
+	 * Adds a simple {@link Annotation annotation} to the test
 	 * document.
 	 * 
 	 * @param name
@@ -75,7 +75,7 @@ public abstract class AbstractDefaultDocumentTest extends AbstractTest {
 	 * @return 
 	 */
 	protected Annotation addTestAnnotation(String name, int start, int end) {
-		return annotationFactory.create(document, new QNameImpl(TEST_NS, name), new Range(start, end), null);
+		return annotationFactory.create(document, new QNameImpl(TEST_NS, name), new Range(start, end));
 	}
 
 	/**

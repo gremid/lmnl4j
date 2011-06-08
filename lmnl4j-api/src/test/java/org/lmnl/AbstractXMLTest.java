@@ -57,7 +57,9 @@ public abstract class AbstractXMLTest extends AbstractTest {
 	protected static final SortedSet<String> RESOURCES = Sets.newTreeSet(Lists.newArrayList(//
 			"archimedes-palimpsest-tei.xml", "george-algabal-tei.xml", "homer-iliad-tei.xml"));
 
-	private Map<String, Annotation> documents = Maps.newHashMap();
+
+    private Map<String, Text> sources = Maps.newHashMap();
+	private Map<String, Text> documents = Maps.newHashMap();
 
 	private SimpleXMLParserConfiguration parserConfiguration = new SimpleXMLParserConfiguration();
 
@@ -91,7 +93,7 @@ public abstract class AbstractXMLTest extends AbstractTest {
 
 	@After
 	public void removeDocuments() {
-		for (Iterator<Annotation> documentIt = documents.values().iterator(); documentIt.hasNext();) {
+		for (Iterator<Text> documentIt = documents.values().iterator(); documentIt.hasNext();) {
 			annotationFactory.delete(documentIt.next());
 			documentIt.remove();
 		}
@@ -104,39 +106,48 @@ public abstract class AbstractXMLTest extends AbstractTest {
 	 * 
 	 * The generated test document is cached for later reuse.
 	 * 
-	 * @param resource
-	 *                the name of the resource
-	 * @return the corresponding test document
+	 *
+     * @param resource
+     *                the name of the resource
+     * @return the corresponding test document
 	 * @see #RESOURCES
 	 */
-	protected synchronized Annotation document(String resource) {
-		try {
-			if (RESOURCES.contains(resource) && !documents.containsKey(resource)) {
-
-				final Annotation xml = annotationFactory.create(null, XML_ANNOTATION_NAME, null, "");
-				final URI uri = AbstractXMLTest.class.getResource("/" + resource).toURI();
-
-				xmlParser.load(xml, new StreamSource(uri.toASCIIString()));
-
-				final Annotation text = annotationFactory.create(xml, TEXT_ANNOTATION_NAME, null, "");
-				final Annotation offsetDeltas = annotationFactory.create(text, OFFSET_ANNOTATION_NAME, null, null);
-				xmlParser.parse(xml, text, offsetDeltas, parserConfiguration);
-
-				documents.put(resource, xml);
-			}
-		} catch (Exception e) {
-			throw Throwables.propagate(e);
-		}
-
+	protected synchronized Text document(String resource) {
+        load(resource);
 		return documents.get(resource);
 	}
+
+    protected synchronized Text source(String resource) {
+        load(resource);
+        return sources.get(resource);
+    }
+
+    protected synchronized void load(String resource) {
+        try {
+            if (RESOURCES.contains(resource) && !documents.containsKey(resource)) {
+
+                Text xml = annotationFactory.newText();
+                final URI uri = AbstractXMLTest.class.getResource("/" + resource).toURI();
+
+                xmlParser.load(xml, new StreamSource(uri.toASCIIString()));
+                sources.put(resource, xml);
+
+                final Text text = annotationFactory.newText();
+                xmlParser.parse(xml, text, parserConfiguration);
+
+                documents.put(resource, text);
+            }
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
+    }
 
 	/**
 	 * Returns a default test document.
 	 * 
 	 * @return the document generated from the first available test resource
 	 */
-	protected Annotation document() {
+	protected Text document() {
 		return document(RESOURCES.first());
 	}
 }

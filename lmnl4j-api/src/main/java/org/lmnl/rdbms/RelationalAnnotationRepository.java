@@ -8,11 +8,7 @@ import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
-import org.lmnl.AbstractAnnotationRepository;
-import org.lmnl.Annotation;
-import org.lmnl.QName;
-import org.lmnl.QNameRepository;
-import org.lmnl.Range;
+import org.lmnl.*;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
@@ -32,11 +28,11 @@ public class RelationalAnnotationRepository extends AbstractAnnotationRepository
 	}
 
 	@SuppressWarnings("unchecked")
-	public Iterable<Annotation> find(Annotation annotation, Set<QName> names, Set<Range> ranges, boolean overlapping) {
-		Preconditions.checkArgument(annotation instanceof AnnotationRelation, annotation.getClass().toString());
+	public Iterable<Annotation> find(Text text, Set<QName> names, Set<Range> ranges, boolean overlapping) {
+		Preconditions.checkArgument(text instanceof TextRelation, text.getClass().toString());
 
 		final Criteria c = sessionFactory.getCurrentSession().createCriteria(AnnotationRelation.class);
-		c.createCriteria("owner").add(Restrictions.idEq(((AnnotationRelation) annotation).getId()));
+		c.createCriteria("text").add(Restrictions.idEq(((TextRelation) text).getId()));
 		c.addOrder(Order.asc("range.start")).addOrder(Order.asc("range.end"));
 
 		if (names != null && !names.isEmpty()) {

@@ -35,8 +35,6 @@ public interface Annotation {
 	final URI LMNL_NS_URI = URI.create("http://lmnl.net/namespaces/lmnl");
 
 
-	Annotation getOwner();
-
 	QName getName();
 	
 	Range getRange();

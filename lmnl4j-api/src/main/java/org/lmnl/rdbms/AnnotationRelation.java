@@ -31,12 +31,10 @@ import com.google.common.base.Objects;
 
 public class AnnotationRelation implements Annotation {
 	protected int id;
-	protected Annotation owner;
 	protected QName name;
 	protected TextRelation text;
 	protected Range range;
 	protected Serializable serializableData;
-	protected String ancestors;
 
 	public AnnotationRelation() {
 	}
@@ -47,14 +45,6 @@ public class AnnotationRelation implements Annotation {
 
 	public void setId(int id) {
 		this.id = id;
-	}
-
-	public Annotation getOwner() {
-		return owner;
-	}
-
-	public void setOwner(Annotation owner) {
-		this.owner = owner;
 	}
 
 	public QName getName() {
@@ -91,14 +81,6 @@ public class AnnotationRelation implements Annotation {
 
 	public void setSerializableData(Serializable serializableData) {
 		this.serializableData = serializableData;
-	}
-
-	public String getAncestors() {
-		return ancestors;
-	}
-
-	public void setAncestors(String ancestors) {
-		this.ancestors = ancestors;
 	}
 
 	@Override

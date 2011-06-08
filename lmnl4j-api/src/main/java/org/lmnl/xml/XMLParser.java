@@ -22,12 +22,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 
-import org.lmnl.Annotation;
-import org.lmnl.QName;
-import org.lmnl.QNameImpl;
-import org.lmnl.Range;
-import org.lmnl.TextContentReader;
-import org.lmnl.TextRepository;
+import org.lmnl.*;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
@@ -76,7 +71,7 @@ public abstract class XMLParser {
 		this.xmlEventBatchSize = xmlEventBatchSize;
 	}
 
-	public void load(Annotation annotation, Source xml) throws IOException, TransformerException {
+	public void load(Text text, Source xml) throws IOException, TransformerException {
 		File sourceContents = File.createTempFile(getClass().getName(), ".xml");
 		sourceContents.deleteOnExit();
 
@@ -95,18 +90,18 @@ public abstract class XMLParser {
 			sourceContentReader.close();
 
 			sourceContentReader = new InputStreamReader(new FileInputStream(sourceContents), charset);
-			updateText(annotation, sourceContentReader, sourceContentLength);
+			updateText(text, sourceContentReader, sourceContentLength);
 		} finally {
 			Closeables.close(sourceContentReader, false);
 			sourceContents.delete();
 		}
 	}
 
-	public void parse(Annotation source, Annotation target, Annotation offsetDeltas, XMLParserConfiguration configuration)
+	public void parse(Text source, Text target, XMLParserConfiguration configuration)
 			throws IOException, XMLStreamException {
 		Session session = null;
 		try {
-			session = new Session(source, target, offsetDeltas, configuration);
+			session = new Session(source, target, configuration);
 			textRepository.read(source, session);
 		} catch (Throwable t) {
 			Throwables.propagateIfInstanceOf(t, IOException.class);
@@ -120,8 +115,8 @@ public abstract class XMLParser {
 		}
 	}
 
-	protected void updateText(Annotation annotation, Reader reader, int contentLength) throws IOException {
-		textRepository.write(annotation, reader, contentLength);
+	protected void updateText(Text text, Reader reader, int contentLength) throws IOException {
+		textRepository.write(text, reader, contentLength);
 	}
 
 	protected abstract Annotation startAnnotation(Session session, QName name, Map<QName, String> attrs, int start,
@@ -143,9 +138,8 @@ public abstract class XMLParser {
 	}
 
 	protected class Session implements TextContentReader {
-		public final Annotation source;
-		public final Annotation target;
-		public final Annotation offsetDeltas;
+		public final Text source;
+		public final Text target;
 		public final XMLParserConfiguration configuration;
 
 		protected final Stack<Annotation> elementContext = new Stack<Annotation>();
@@ -163,11 +157,9 @@ public abstract class XMLParser {
 		protected char lastChar = (removeLeadingWhitespace ? ' ' : 0);
 		private XMLStreamReader reader;
 
-		protected Session(Annotation source, Annotation target, Annotation offsetDeltas,
-				XMLParserConfiguration configuration) {
+		protected Session(Text source, Text target, XMLParserConfiguration configuration) {
 			this.source = source;
 			this.target = target;
-			this.offsetDeltas = offsetDeltas;
 			this.configuration = configuration;
 			this.notableCharacter = configuration.getNotableCharacter();
 			this.nodePath.push(0);

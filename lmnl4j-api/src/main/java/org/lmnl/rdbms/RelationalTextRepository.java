@@ -49,8 +49,8 @@ public class RelationalTextRepository implements TextRepository {
 		this.textRelation = textRelation;
 	}
 
-	public void read(Annotation annotation, final TextContentReader reader) throws IOException {
-		sessionFactory.getCurrentSession().doWork(new TextContentRetrieval<Void>(getText(annotation)) {
+	public void read(Text text, final TextContentReader reader) throws IOException {
+		sessionFactory.getCurrentSession().doWork(new TextContentRetrieval<Void>(text) {
 
 			@Override
 			protected Void retrieve(Clob content) throws SQLException, IOException {
@@ -67,12 +67,12 @@ public class RelationalTextRepository implements TextRepository {
 		});
 	}
 
-	public String read(Annotation annotation, Range range) throws IOException {		
-		return getOnlyElement(bulkRead(annotation, Sets.newTreeSet(singleton(range))).values());
+	public String read(Text text, Range range) throws IOException {
+		return getOnlyElement(bulkRead(text, Sets.newTreeSet(singleton(range))).values());
 	}
 
-	public int length(Annotation annotation) throws IOException {
-		final TextContentRetrieval<Integer> contentLengthRetrieval = new TextContentRetrieval<Integer>(getText(annotation)) {
+	public int length(Text text) throws IOException {
+		final TextContentRetrieval<Integer> contentLengthRetrieval = new TextContentRetrieval<Integer>(text) {
 
 			@Override
 			protected Integer retrieve(Clob content) throws SQLException, IOException {
@@ -84,9 +84,9 @@ public class RelationalTextRepository implements TextRepository {
 		return contentLengthRetrieval.returnValue;
 	}
 
-	public SortedMap<Range, String> bulkRead(Annotation annotation, final SortedSet<Range> ranges) throws IOException {
+	public SortedMap<Range, String> bulkRead(Text text, final SortedSet<Range> ranges) throws IOException {
 		final SortedMap<Range, String> results = Maps.newTreeMap();
-		sessionFactory.getCurrentSession().doWork(new TextContentRetrieval<Void>(getText(annotation)) {
+		sessionFactory.getCurrentSession().doWork(new TextContentRetrieval<Void>(text) {
 
 			@Override
 			protected Void retrieve(Clob content) throws SQLException, IOException {
@@ -99,7 +99,7 @@ public class RelationalTextRepository implements TextRepository {
 		return results;
 	}
 
-	public void write(final Annotation annotation, final Reader contents, final int contentLength) throws IOException {
+	public void write(final Text text, final Reader contents, final int contentLength) throws IOException {
 		sessionFactory.getCurrentSession().doWork(new Work() {
 
 			public void execute(Connection connection) throws SQLException {
@@ -107,7 +107,7 @@ public class RelationalTextRepository implements TextRepository {
 						+ contentColumn + " = ? WHERE id = ?");
 				try {
 					updateStmt.setClob(1, contents, contentLength);
-					updateStmt.setInt(2, getText(annotation).getId());
+					updateStmt.setInt(2, ((TextRelation)text).getId());
 					updateStmt.executeUpdate();
 				} finally {
 					updateStmt.close();
@@ -115,17 +115,6 @@ public class RelationalTextRepository implements TextRepository {
 
 			}
 		});
-	}
-
-	TextRelation getText(Annotation annotation) {
-		Preconditions.checkArgument(annotation instanceof AnnotationRelation);
-		final Session session = sessionFactory.getCurrentSession();
-		
-		Criteria c = session.createCriteria(AnnotationRelation.class);
-		c.add(Restrictions.idEq(((AnnotationRelation) annotation).getId()));
-		c.setFetchMode("text", FetchMode.JOIN);
-
-		return Preconditions.checkNotNull((AnnotationRelation) c.uniqueResult()).getText();
 	}
 
 	private abstract class TextContentRetrieval<T> implements Work {
